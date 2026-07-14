@@ -1,0 +1,10 @@
+.env
+.env.*
+node_modules/
+inbox/*.jpg
+inbox/*.jpeg
+inbox/*.png
+data/*.sqlite
+data/*.sqlite-*
+out/
+scratch/
