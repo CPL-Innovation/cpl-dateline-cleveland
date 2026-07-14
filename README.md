@@ -1,127 +1,74 @@
-# Dateline Cleveland — SLICE-01 (Brooklyn News executable slice)
+# Dateline Cleveland
 
-The goblin's first step: prove **`image → VLM → structured content-objects → viewable`** works on
-real Brooklyn News pages. One issue. No UI polish, no discovery features, no entity/event enrichment.
+Print-native archive **enrichment + discovery** for the Cleveland Public Library's
+historic newspaper collection — applied first to the *Brooklyn News* (clean public-domain
+pilot corpus). An npm-workspaces monorepo with two surfaces over one shared contract:
 
-Built from the vault-side specs (`build/BUILD-SPEC.md` → `build/SLICE-01-brooklyn-news.md`).
-Those specs are read-only design intent; intent changes are proposed back via `build/_FROM-BUILD.md`.
-
-## What it does
-
-Runs the four real Brooklyn News pages (Feb 1, 1924; CDM records 7618–7621, already on disk) through
-one **structured-per-page VLM pass** each, explodes the ordered blocks into a `content_objects` store,
-and renders the result so you can eyeball it against Dry Run 01's hand-simulated inventory.
-
-## Run it
-
-```bash
-npm run slice01     # ingest + view
-# or separately:
-npm run ingest      # image -> VLM (adapter) -> explode -> SQLite
-npm run view        # console dump + out/view.html
-```
-
-Requires Node ≥ 22.5 (uses built-in `node:sqlite` and TypeScript type-stripping — no build step,
-no native modules). Then open `out/view.html`, or read the console output.
-
-## The VLM adapter (a config swap, not a hardcode)
-
-The model lives behind one adapter (`src/lib/vlmExtract.ts`). Four providers, chosen by `VLM_PROVIDER`:
-
-| Provider | Model default | Needs | Notes |
-|---|---|---|---|
-| `fixture` (default) | `session-vlm:claude/dry-run` | — | replays the session-VLM transcription under `fixtures/` |
-| `gemini` | `gemini-2.5-flash` | `GEMINI_API_KEY` | SLICE-01 production-default engine (cheap, strong OCR) |
-| `anthropic` | `claude-sonnet-5` | `ANTHROPIC_API_KEY` | **live-validated** — see below |
-| `openai` | `gpt-4o` | `OPENAI_API_KEY` | wired; set `VLM_MODEL` to your current vision model |
-
-Keys live in `.env` (gitignored) and are loaded via Node's `--env-file-if-exists`. Swap the model
-per provider with `VLM_MODEL`, and the pre-send downscale with `VLM_MAX_EDGE` (default 2200px long edge).
-
-**`fixture`** replays a structured transcription produced by the **session VLM** (Claude reading the
-real page pixels), exactly as Dry Run 01 was run ("Claude as the VLM"). It is the genuine structured
-output of a VLM pass on the real images, replayed through the real explode → store → view pipeline —
-fast, free, and curated, so it stays the default.
-
-Run a live model instead:
-```bash
-VLM_PROVIDER=gemini npm run ingest        # or anthropic / openai
-npm run probe                             # one-page live smoke test (no DB writes)
-VLM_PROVIDER=anthropic npm run probe 7621 # probe a specific page record
-```
-
-**Re-verify current models/pricing before real spend** — this market moves fast.
-
-The prompt contract lives in `src/lib/vlm-prompt.ts` (vendored, hand-synced to the brief). Spec is
-intent; that file is truth.
-
-### Live-wiring status (validated 2026-07-13)
-
-- **anthropic / claude-sonnet-5 — ✅ clean.** Probe on page 1 returned **123 correctly-ordered,
-  correctly-classified blocks** (masthead → lead story → columns in reading order; pencil marginalia
-  caught as `manuscript_annotation`), ~216s/page.
-- **gemini / gemini-2.5-flash — ⚠ degenerated** on the full dense 55-block front page (repetition
-  loop in one text field). Auth + image + response path all work; the model just strains on a full
-  dense page. This is exactly the failure mode the pipeline spec's *explicit segment→crop→VLM
-  fallback for dense pages* anticipates — logged to `build/_FROM-BUILD.md`. Try `gemini-2.0-flash`,
-  or use the per-region path for dense pages.
-- **openai — wired, not spent against.** Path is identical to the others; set your current vision
-  model via `VLM_MODEL`.
-
-The adapter tolerates real-model quirks: it strips code fences, ignores preambles, and **recovers the
-largest valid array prefix if the model truncates** a long page (logs a warning, keeps the complete
-blocks). A live run costs real money and takes minutes per page — the `fixture` default exists so the
-loop is reproducible for free.
-
-## Store shape
-
-`content_objects` (SQLite, `data/slice01.sqlite`) — the minimal SLICE-01 shape only:
-`id, issue_id, page_record, seq, object_class, role, text, region_bbox, is_publication_content,
-occurrences, transcription_confidence, run_id, model, created_at`. Migration in `migrations/001_init.sql`.
-
-Assembly (`src/lib/explode.ts`) does the minimal Stage 3: confirm `object_class`, collapse repeated
-`filler_slug` dupes to one row + an `occurrences` count, and flag handwriting as
-`manuscript_annotation` with `is_publication_content = false`. No cross-page stitching, no enrichment
-tiers, no events.
-
-## Result vs. the gold set (Dry Run 01)
-
-| Check (gold set) | Result |
+| Workspace | What it is |
 |---|---|
-| Page 1 = the only news page, articles in reading order (down columns) | ✅ 48 article rows in column order; banner→lead-story handled |
-| Pages 2–4 dominated by advertisement / classified / filler | ✅ p2 34 ads, p3 23 ads + classified_section + 2 legal, p4 20 ads + coupon + legal |
-| "Burn Yellow Jacket Coal" collapses to one row + high occurrences | ✅ 3 canonical rows, **15 total units** across the issue |
-| Pencil marginalia captured as `manuscript_annotation`, not article text | ✅ 2 annotations ("Times classified — 48…" p1; "56" p3), `is_publication_content=0` |
-| "Knaupe Breaks Leg" (p4) is a `news_brief` embedded in ads | ✅ |
-| The p4 advertorial ("To The Living About The Dead") | ⚠️ lands as `article` — the classifier trap fired (see `_FROM-BUILD` note) |
+| [`apps/pipeline`](apps/pipeline) — `@dateline/pipeline` | The enrichment pipeline. `image → VLM → structured content-objects → SQLite → viewable`. Zero-dependency Node (built-in `node:sqlite` + TypeScript type-stripping, no build step). This is **SLICE-01**. |
+| [`apps/discovery`](apps/discovery) — `@dateline/discovery` | The patron **discovery SPA** (*This Week, Then* cultural calendar + *The Index* faceted browse) **and** the staff **Editorial Workbench** at `/staff`. React + Vite. Implemented from the Claude Design prototypes. |
 
-**Reading-order finding (the risk CN never tested):** structured-per-page held reading order on the
-8-column front page without scrambling. Early, cheap signal that the Scene explicit-segmentation
-fallback is not needed for community-weekly layouts. Logged to `build/_FROM-BUILD.md`.
+The seam between them: `apps/discovery`'s **REAL DATA** toggle reads the pipeline's SQLite
+output (`apps/pipeline/data/slice01.sqlite`, exported to JSON at build time). Pipeline
+produces → discovery consumes.
 
-## Implementation notes (not intent — see `_FROM-BUILD` for intent changes)
+> `packages/*` is reserved in the workspace glob for genuinely shared code. There's none yet:
+> a shared TypeScript package would force a build step on the pipeline (Node's type-stripping
+> won't strip `.ts` under `node_modules`, where workspaces symlink), which is against its
+> no-build design. The SQL migration + the exported JSON are the contract for now.
 
-- The SLICE-01 brief recommended a Next.js scaffold to mirror CN. For this slice's throwaway view
-  (a plain HTML table + console dump, explicitly "not a designed screen"), plain Node + `node:sqlite`
-  keeps it dependency-free. Claude Design owns real interfaces once the loop is proven.
-- `scratch/` holds image crops used to condition pages for the reading pass (reader conditioning, not
-  a pipeline stage — Stage 1 tooling is skipped per the brief). Gitignored.
+## Quick start
+
+Requires **Node ≥ 22.5**. One install at the root covers both workspaces.
+
+```bash
+npm install          # installs all workspaces (deps hoist to the root)
+
+npm run pipeline     # apps/pipeline: ingest + view (image → VLM → SQLite → out/view.html)
+npm run dev          # apps/discovery: dev server at http://localhost:5180  (+ /staff)
+npm run build        # apps/discovery: production static build → apps/discovery/dist
+```
+
+Other root scripts: `npm run ingest`, `npm run view`, `npm run probe` (pipeline),
+`npm run export-real`, `npm run preview` (discovery). Each delegates to the right workspace;
+you can also `cd` into a workspace and run its own scripts.
 
 ## Layout
 
 ```
-src/config.ts          knobs: inbox path, page map, provider/model select
-src/lib/vlm-prompt.ts  the transcription contract (vendored)
-src/lib/vlmExtract.ts  the adapter (fixture | anthropic)
-src/lib/db.ts          node:sqlite open + migrate
-src/lib/explode.ts     ordered blocks -> rows (filler collapse, handwriting flag)
-src/ingest.ts          the run command
-src/view.ts            "look at it" — console + out/view.html
-fixtures/              session-VLM structured transcriptions (one JSON per page)
-inbox/                 source page images (live providers + probe only; see inbox/README.md)
-migrations/001_init.sql
+cpl-dateline-cleveland/
+├─ apps/
+│  ├─ pipeline/          # @dateline/pipeline — SLICE-01 enrichment pipeline
+│  │  ├─ src/            #   ingest · view · probe · lib (vlmExtract, explode, db, …)
+│  │  ├─ migrations/     #   001_init.sql — the content_objects store (source of truth)
+│  │  ├─ fixtures/       #   session-VLM transcriptions replayed by the `fixture` provider
+│  │  ├─ inbox/          #   the 4 Brooklyn News page images (gitignored; PD)
+│  │  ├─ data/           #   slice01.sqlite (gitignored, prototype store)
+│  │  └─ .env.example    #   VLM provider keys (copy → .env for a live run)
+│  └─ discovery/         # @dateline/discovery — patron SPA + staff /staff workbench
+│     ├─ src/            #   App/router, components, data (mock + real adapter)
+│     ├─ public/         #   staff.html (vendored Editorial Workbench, served at /staff)
+│     └─ scripts/        #   export-real-data.mjs (pipeline SQLite → real.generated.json)
+├─ tsconfig.base.json    # shared TS strictness (discovery extends it)
+└─ package.json          # workspace root + orchestration scripts
 ```
 
-> **Image location:** `INBOX_DIR` defaults to the repo-relative `inbox/` folder so the repo is
-> self-contained. Override it (`INBOX_DIR=/path npm run probe`) to read the images from elsewhere.
-> The `fixture` default provider needs no images.
+## Status & scope
+
+- **Pilot corpus = Brooklyn News**, treated as **public domain**. This is a deliberate pilot
+  fiction: the wider collection is ~82% in-copyright, and a **hard rights gate** must be
+  resolved before any real production release (public full-text + AI-derived output). See
+  `build/BUILD-SPEC.md`. A public commit of this repo *is* a public release — fine today
+  because everything committed is PD.
+- **Prototype data layer.** SQLite / static JSON by design (SLICE-01: "don't stand up Postgres
+  yet"). Production per the specs is Postgres + pgvector — not built here.
+- **Design intent** lives vault-side under `build/` (read-only; changes proposed back via
+  `build/_FROM-BUILD.md`). Implementation detail lives in this code.
+
+Deferred surfaces (CTA/stub only): IIIF deep-zoom page reader, working search,
+Front Pages / Places / About tabs, real scan crops, entity/topic/event enrichment.
+
+## License
+
+See [LICENSE](LICENSE).

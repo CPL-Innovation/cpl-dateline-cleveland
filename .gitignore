@@ -1,10 +1,20 @@
+# secrets
 .env
 .env.*
+!.env.example
+
+# dependencies & build output
 node_modules/
-inbox/*.jpg
-inbox/*.jpeg
-inbox/*.png
-data/*.sqlite
-data/*.sqlite-*
-out/
-scratch/
+apps/*/dist/
+apps/*/tsconfig.tsbuildinfo
+
+# pipeline SQLite store (prototype; PD but machine-derived — kept out of git)
+**/data/*.sqlite
+**/data/*.sqlite-*
+
+# pipeline inputs & scratch artifacts
+apps/pipeline/inbox/*.jpg
+apps/pipeline/inbox/*.jpeg
+apps/pipeline/inbox/*.png
+apps/pipeline/out/
+apps/pipeline/scratch/

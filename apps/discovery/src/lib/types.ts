@@ -1,0 +1,100 @@
+// Shared shapes for both datasets (mock + real). The UI renders against these;
+// the mock module and the real adapter both produce them.
+
+export type Page = 'calendar' | 'index';
+export type DatasetMode = 'mock' | 'real';
+
+/** A single machine-extracted fact row in a page-reader detail. */
+export interface Fact {
+  label: string;
+  value: string;
+}
+
+/** Calendar event (This Week, Then). */
+export interface CalendarEvent {
+  id: string;
+  stamp: string; // mono venue/date stamp
+  title: string;
+  blurb: string;
+  price: string;
+  section: string; // detail kicker, e.g. "MUSIC · FROM A DISPLAY AD"
+  credit: string;
+  clipNote: string;
+  transcript: string;
+  facts: Fact[];
+}
+
+export interface CalendarSection {
+  name: string; // MUSIC / FILM / THEATER / SPORT & MORE
+  events: CalendarEvent[];
+}
+
+export interface WeekCell {
+  year: string;
+  sub: string; // e.g. "JUL 23–29"
+  hasData: boolean;
+}
+
+/** One indexed object (The Index). Mixed text/visual. */
+export interface IndexItem {
+  id: string;
+  typeLabel: string; // ARTICLE / ADVERTISEMENT / PHOTOGRAPH / …
+  type: string; // facet id: y-article, y-ad, …
+  vis: string | null; // visual facet id: v-photo, v-ad, … (null if not visual)
+  isVisual: boolean;
+  wallHeight?: string; // visual-wall tile height
+  stamp: string; // mono dateline
+  title: string;
+  snippet: string;
+  topics: string[]; // facet ids
+  names: string[]; // facet ids
+  cropNote: string;
+  caption: string;
+  credit: string;
+  clipNote: string;
+  transcript: string;
+}
+
+export interface FacetValue {
+  id: string;
+  label: string;
+  count: number;
+}
+
+export interface FacetGroup {
+  key: 'topic' | 'name' | 'type' | 'visual';
+  name: string;
+  note: string;
+  values: FacetValue[];
+  /** real mode: honest note when this axis has no extracted data yet */
+  emptyNote?: string;
+}
+
+/** Everything a rendered surface needs, resolved for the active dataset. */
+export interface Dataset {
+  mode: DatasetMode;
+  weeks: WeekCell[];
+  sections: CalendarSection[];
+  eventCount: number;
+  /** false in real mode (no events extracted in SLICE-01) → honest calendar empty state */
+  calendarAvailable: boolean;
+  calendarNote: string;
+  indexItems: IndexItem[];
+  facetDefs: FacetGroup[];
+  indexHero: { kicker: string; headline: string; deck: string };
+  countsAreMock: boolean;
+}
+
+/** Functional category color per facet type id (discovery-ux-spec §5). */
+export const TYPE_COLORS: Record<string, string> = {
+  'y-article': '#0057b7',
+  'y-ad': '#f1c400',
+  'y-listing': '#94b7bb',
+  'y-cartoon': '#ff8d7e',
+  'y-photo': '#4298b5',
+  'y-map': '#56944f',
+  'y-legal': '#505a69',
+  'y-masthead': '#0f1215',
+  'y-classified': '#8a94a3',
+  'y-coupon': '#ff8d7e',
+};

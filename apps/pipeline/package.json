@@ -1,0 +1,16 @@
+{
+  "name": "@dateline/pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dateline Cleveland enrichment pipeline — SLICE-01: Brooklyn News image → VLM → structured content-objects → SQLite → viewable. Zero-dependency Node (built-in node:sqlite + TypeScript type-stripping, no build step).",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "ingest": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/ingest.ts",
+    "view": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/view.ts",
+    "slice01": "npm run ingest && npm run view",
+    "probe": "node --env-file-if-exists=.env --experimental-strip-types src/probe.ts"
+  }
+}

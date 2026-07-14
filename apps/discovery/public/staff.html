@@ -1,0 +1,837 @@
+<!-- Vendored from the Claude Design project: "Editorial Workbench.html".
+     Slugged into the discovery SPA at /staff (see src/lib/router.ts + src/App.tsx).
+     Self-contained concept sketch (own styles + scripts). Only change from the
+     design source: the "back" link points at the discovery root via target=_top. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dateline Cleveland — Editorial Workbench (concept sketch)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DATELINE CLEVELAND — EDITORIAL WORKBENCH
+   Staff-facing enrichment pipeline · concept sketch
+   Visual system = Dateline discovery tokens (discovery-ux-spec §5)
+   UX layout = mirror of CN scan-pipeline-ux.md
+   ============================================================ */
+
+:root{
+  /* color */
+  --canvas:#FFFFFF;
+  --ink:#0F1215;         /* headlines, titles */
+  --body:#2B3340;        /* reading text, values */
+  --secondary:#505A69;   /* inactive nav, meta labels, kickers */
+  --tertiary:#8A94A3;    /* mono meta, counts, disclaimers */
+  --brand:#0057B7;       /* CPL PMS 2935 — interactive/brand */
+  --brand-press:#004591;
+  --accent:#F1C400;      /* marigold — sole active accent */
+  --hair:#E6E9EE;        /* light divider */
+  --hair-2:#C9CFD8;      /* medium divider */
+  --sunken:#F2F4F7;      /* fills / hover tint */
+  /* functional category colors (object_class) */
+  --c-article:#0057B7;
+  --c-ad:#F1C400;
+  --c-photo:#4298B5;     /* denim */
+  --c-cartoon:#FF8D7E;   /* coral */
+  --c-map:#56944F;       /* ivy */
+  --c-listing:#94B7BB;   /* sky */
+  --c-unknown:#B36BC7;   /* orchid — reserved for the unknown/shape queue */
+  /* semantic */
+  --ok:#56944F;
+  --warn:#C58A00;
+  --danger:#C4462F;
+  /* type */
+  --serif:'Spectral',Georgia,serif;
+  --sans:'Work Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--serif);
+  color:var(--body);
+  background:var(--canvas);
+  font-size:16.5px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+/* ---- machine / provenance conventions ---- */
+.mono{font-family:var(--mono);font-weight:400}
+.chrome{font-family:var(--sans)}
+.kicker{
+  font-family:var(--sans);font-weight:700;font-size:11px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--secondary);
+}
+.stamp{
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;
+  color:var(--tertiary);text-transform:uppercase;
+}
+
+/* ============================================================
+   TOP DISCLAIMER STRIP  (honesty contract, made visible)
+   ============================================================ */
+.utility{
+  background:var(--ink);color:#C9CFD8;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;
+  padding:5px 20px;display:flex;justify-content:space-between;align-items:center;
+}
+.utility b{color:var(--accent);font-weight:500}
+
+/* ============================================================
+   APP HEADER
+   ============================================================ */
+.appbar{
+  display:flex;align-items:stretch;
+  border-bottom:2px solid var(--brand);
+  background:var(--canvas);
+}
+.brand{
+  padding:14px 22px;display:flex;flex-direction:column;justify-content:center;
+  border-right:1px solid var(--hair);min-width:270px;
+}
+.wordmark{
+  font-family:var(--serif);font-weight:800;font-size:23px;color:var(--brand);
+  letter-spacing:-.01em;line-height:1;
+}
+.wordmark .co{color:var(--ink)}
+.brand .sub{
+  font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--secondary);margin-top:6px;
+}
+.runbar{
+  flex:1;display:flex;align-items:center;gap:26px;padding:0 22px;flex-wrap:wrap;
+}
+.runsel{
+  display:flex;flex-direction:column;gap:3px;padding:8px 16px;
+  border-left:2px solid var(--accent);background:var(--sunken);
+}
+.runsel .lab{font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--tertiary)}
+.runsel .val{font-family:var(--mono);font-weight:500;font-size:13.5px;color:var(--ink)}
+.runmeta{display:flex;gap:24px;margin-left:auto}
+.runmeta .cell{display:flex;flex-direction:column;gap:2px}
+.runmeta .n{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--ink)}
+.runmeta .k{font-family:var(--sans);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--secondary)}
+.overlay-badge{
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--brand);
+  border:1px solid var(--brand);padding:4px 8px;text-transform:uppercase;
+}
+
+/* ============================================================
+   SHELL  (left rail + main)
+   ============================================================ */
+.shell{display:flex;height:calc(100vh - 92px)}
+.rail{
+  width:270px;flex:none;border-right:1px solid var(--hair);
+  background:var(--canvas);overflow-y:auto;padding:14px 0 40px;
+}
+.rail .grp{
+  font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--tertiary);padding:16px 22px 8px;
+}
+.navitem{
+  width:100%;text-align:left;display:flex;align-items:center;gap:12px;
+  padding:11px 22px;border-left:3px solid transparent;color:var(--secondary);
+  font-family:var(--sans);font-weight:600;font-size:13.5px;letter-spacing:.01em;
+}
+.navitem:hover{background:var(--sunken)}
+.navitem.active{
+  border-left-color:var(--accent);background:var(--sunken);color:var(--ink);
+}
+.navitem .ord{
+  font-family:var(--mono);font-size:11px;color:var(--tertiary);width:18px;flex:none;
+}
+.navitem.active .ord{color:var(--brand)}
+.navitem .count{
+  margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:500;
+  color:var(--tertiary);
+}
+.navitem.active .count{color:var(--brand)}
+.navitem .count.hot{color:var(--danger)}
+.rail .foot{
+  padding:20px 22px;margin-top:12px;border-top:1px solid var(--hair);
+  font-family:var(--mono);font-size:10px;line-height:1.7;color:var(--tertiary);
+}
+
+.main{flex:1;overflow-y:auto;background:var(--canvas)}
+.view{display:none}
+.view.active{display:block}
+
+/* section header pattern */
+.vhead{padding:26px 34px 18px;border-bottom:1px solid var(--hair)}
+.vhead h1{font-family:var(--serif);font-weight:700;font-size:30px;color:var(--ink);line-height:1.05;letter-spacing:-.01em}
+.vhead .lede{font-family:var(--serif);font-size:16px;color:var(--secondary);margin-top:8px;max-width:70ch}
+.vhead .kicker{margin-bottom:9px}
+
+/* ============================================================
+   RUN  — 6-stage batch progress (thin-ish plumbing readout)
+   ============================================================ */
+.run-wrap{padding:26px 34px 60px;max-width:1080px}
+.rollup{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  border:1px solid var(--hair-2);margin-bottom:30px;
+}
+.rollup .cell{padding:16px 18px;border-right:1px solid var(--hair)}
+.rollup .cell:last-child{border-right:none}
+.rollup .n{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--ink);line-height:1}
+.rollup .n.brand{color:var(--brand)}
+.rollup .k{font-family:var(--sans);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--secondary);margin-top:8px}
+.rollup .sub{font-family:var(--mono);font-size:11px;color:var(--tertiary);margin-top:4px}
+
+.stagelist{border-top:1px solid var(--hair)}
+.stage{
+  display:grid;grid-template-columns:34px 1fr 220px 120px;align-items:center;
+  gap:16px;padding:16px 6px;border-bottom:1px solid var(--hair);
+}
+.stage .idx{font-family:var(--mono);font-size:12px;color:var(--tertiary);text-align:center}
+.stage .nm{font-family:var(--sans);font-weight:600;font-size:14.5px;color:var(--ink)}
+.stage .nm small{display:block;font-family:var(--serif);font-weight:400;font-size:13px;color:var(--secondary);margin-top:3px;letter-spacing:0;text-transform:none}
+.bar{height:8px;background:var(--sunken);position:relative;overflow:hidden}
+.bar > span{position:absolute;left:0;top:0;bottom:0;background:var(--brand)}
+.bar.run > span{background:var(--accent);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}
+.stage .st{font-family:var(--mono);font-size:11.5px;text-align:right}
+.st.done{color:var(--ok)}
+.st.run{color:var(--warn)}
+.st.wait{color:var(--tertiary)}
+.st.hold{color:var(--danger)}
+
+.guard{
+  display:flex;align-items:center;gap:14px;margin-top:26px;padding:14px 18px;
+  border:1px solid var(--hair-2);border-left:3px solid var(--ok);background:var(--sunken);
+}
+.guard .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none}
+.guard .txt{font-family:var(--sans);font-size:12.5px;color:var(--body)}
+.guard .txt b{color:var(--ink)}
+.guard .mono{margin-left:auto;font-size:10.5px;color:var(--tertiary)}
+
+.batchtable{margin-top:34px;border:1px solid var(--hair-2)}
+.batchtable .r{display:grid;grid-template-columns:120px 1fr 100px 110px 90px;gap:12px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--hair)}
+.batchtable .r.hd{background:var(--ink)}
+.batchtable .r.hd span{font-family:var(--sans);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:#C9CFD8}
+.batchtable .r:last-child{border-bottom:none}
+.batchtable .id{font-family:var(--mono);font-size:12px;color:var(--brand)}
+.batchtable .nm2{font-family:var(--serif);font-size:14px;color:var(--body)}
+.batchtable .num{font-family:var(--mono);font-size:12px;color:var(--body)}
+.retry{font-family:var(--sans);font-weight:600;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);border:1px solid var(--brand);padding:5px 9px}
+.retry:hover{background:var(--brand);color:#fff}
+.tag-fail{font-family:var(--mono);font-size:10.5px;color:var(--danger)}
+.tag-ok{font-family:var(--mono);font-size:10.5px;color:var(--ok)}
+
+/* ============================================================
+   REVIEW  — the heart. image-left / claims-right / verdict
+   ============================================================ */
+.review{display:grid;grid-template-columns:230px 1fr;height:100%}
+/* filter/worklist rail */
+.wl{border-right:1px solid var(--hair);overflow-y:auto;padding:16px 0 40px}
+.wl .fbox{padding:0 18px 16px;border-bottom:1px solid var(--hair);margin-bottom:12px}
+.wl .fbox h4{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary);margin:14px 0 8px}
+.fopt{display:flex;align-items:center;gap:8px;padding:5px 0;font-family:var(--sans);font-size:12.5px;color:var(--secondary)}
+.fopt .sw{width:9px;height:9px;flex:none}
+.fopt .c{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--tertiary)}
+.fopt.on{color:var(--ink);font-weight:600}
+.wl .prog{padding:6px 18px 14px;font-family:var(--mono);font-size:11px;color:var(--tertiary)}
+.wl .prog b{color:var(--brand);font-weight:500}
+.wlrow{display:flex;gap:10px;align-items:flex-start;padding:9px 18px;border-left:3px solid transparent;cursor:pointer}
+.wlrow:hover{background:var(--sunken)}
+.wlrow.sel{border-left-color:var(--accent);background:var(--sunken)}
+.wlrow .th{width:34px;height:44px;flex:none;background:var(--sunken);border:1px solid var(--hair-2);position:relative;overflow:hidden}
+.wlrow .th::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,#E6E9EE 4px,#E6E9EE 5px)}
+.wlrow .th b{position:absolute;left:0;top:0;bottom:0;width:4px;z-index:2}
+.wlrow .m{min-width:0}
+.wlrow .m .t{font-family:var(--serif);font-weight:600;font-size:13px;color:var(--ink);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
+.wlrow .m .s{font-family:var(--mono);font-size:9.5px;color:var(--tertiary);margin-top:3px}
+.dot-st{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dot-st.u{background:var(--warn)}   /* unreviewed */
+.dot-st.r{background:var(--ok)}     /* reviewed */
+.dot-st.f{background:var(--danger)} /* flagged */
+
+/* the review stage itself */
+.rstage{display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+.source{border-right:1px solid var(--hair);padding:22px 26px;overflow-y:auto;background:#FCFCFD}
+.source .cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.source .cap .kicker{margin:0}
+.zoomctl{display:flex;gap:6px}
+.zoomctl button{font-family:var(--mono);font-size:12px;color:var(--secondary);border:1px solid var(--hair-2);width:26px;height:26px}
+.zoomctl button:hover{border-color:var(--brand);color:var(--brand)}
+.page{
+  position:relative;background:#fff;border:1px solid var(--hair-2);
+  aspect-ratio:3/4;
+  background-image:repeating-linear-gradient(45deg,transparent,transparent 9px,#EEF1F5 9px,#EEF1F5 10px);
+}
+.page .col-rule{position:absolute;top:5%;bottom:5%;width:1px;background:var(--hair-2)}
+/* region bboxes */
+.bbox{position:absolute;border:1.5px solid;font-family:var(--mono);font-size:8.5px;letter-spacing:.04em;text-transform:uppercase}
+.bbox span{position:absolute;top:-15px;left:-1px;padding:1px 4px;color:#fff;white-space:nowrap}
+.bbox.sel{box-shadow:0 0 0 2px rgba(241,196,0,.55)}
+.source .credit{font-family:var(--mono);font-size:10px;color:var(--tertiary);margin-top:12px;line-height:1.6}
+.iiif-cta{
+  display:inline-flex;align-items:center;gap:8px;margin-top:16px;
+  font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--brand);border:1px solid var(--brand);padding:9px 14px;
+}
+.iiif-cta:hover{background:var(--brand);color:#fff}
+.iiif-cta .df{font-family:var(--mono);font-weight:400;letter-spacing:0;font-size:9px;opacity:.7;text-transform:none}
+
+/* claims column */
+.claims{padding:22px 26px 60px;overflow-y:auto}
+.objhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.oc-chip{
+  font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:#fff;padding:4px 10px;
+}
+.objhead .oid{font-family:var(--mono);font-size:12px;color:var(--tertiary)}
+.objhead .pg{font-family:var(--mono);font-size:11px;color:var(--brand);margin-left:auto}
+.blk{border-top:1px solid var(--hair);padding:18px 0}
+.blk:first-of-type{border-top:none}
+.blk .lab{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary);margin-bottom:9px;display:flex;align-items:center;gap:10px}
+.ai-badge{font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--warn);border:1px solid var(--warn);padding:2px 6px;text-transform:none}
+.transcript{font-family:var(--serif);font-size:15.5px;line-height:1.62;color:var(--body)}
+.transcript .hl{font-family:var(--serif);font-weight:700;font-size:18px;color:var(--ink);display:block;margin-bottom:6px}
+.loss{font-family:var(--mono);font-size:12px;color:var(--danger);background:rgba(196,70,47,.08);padding:0 4px}
+.confline{display:flex;gap:18px;margin-top:12px;flex-wrap:wrap}
+.conf{font-family:var(--mono);font-size:10.5px;color:var(--tertiary)}
+.conf b{color:var(--ink);font-weight:500}
+.conf.good b{color:var(--ok)}
+.conf.mid b{color:var(--warn)}
+
+.flagrow{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(197,138,0,.08);border-left:3px solid var(--warn);margin-top:12px}
+.flagrow .ic{color:var(--warn);font-family:var(--mono);font-size:14px}
+.flagrow .t{font-family:var(--sans);font-size:12px;color:var(--body)}
+
+/* enrichment facts */
+.facts{display:grid;grid-template-columns:120px 1fr;gap:8px 16px;align-items:baseline}
+.facts .fl{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--tertiary)}
+.facts .fv{font-family:var(--serif);font-size:14.5px;color:var(--body)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--sans);font-weight:600;font-size:11px;padding:3px 9px;background:var(--sunken);border:1px solid var(--hair-2);color:var(--body)}
+.chip.brand{border-color:var(--brand);color:var(--brand)}
+.chip.prop{border-style:dashed;border-color:var(--warn);color:var(--warn)}
+.eventcard{border:1px solid var(--hair-2);padding:12px 14px;margin-top:6px;background:var(--sunken)}
+.eventcard .et{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--ink)}
+.eventcard .er{font-family:var(--mono);font-size:11px;color:var(--secondary);margin-top:5px;line-height:1.7}
+.advert-flag{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--danger);margin-top:14px}
+.advert-flag .b{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--danger);border:1px solid var(--danger);padding:3px 7px}
+.advert-flag .t{font-family:var(--serif);font-size:13px;color:var(--body)}
+
+/* verdict bar (sticky) */
+.verdict{
+  position:sticky;bottom:0;margin:24px -26px -60px;padding:16px 26px;
+  background:var(--canvas);border-top:2px solid var(--brand);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.vbtn{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:11px 18px;border:1px solid var(--hair-2);color:var(--secondary)}
+.vbtn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.vbtn.primary:hover{background:var(--brand-press)}
+.vbtn.warn{border-color:var(--warn);color:var(--warn)}
+.vbtn.warn:hover{background:var(--warn);color:#fff}
+.vbtn.ghost:hover{border-color:var(--ink);color:var(--ink)}
+.verdict .kb{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--tertiary)}
+.verdict .kb kbd{background:var(--sunken);border:1px solid var(--hair-2);padding:1px 5px;font-size:10px}
+
+/* ============================================================
+   SHAPE REVIEW  — the distinctive Dateline surface
+   ============================================================ */
+.shape-wrap{display:grid;grid-template-columns:1fr 340px;height:100%}
+.shape-queue{overflow-y:auto;padding:26px 34px 60px}
+.shape-side{border-left:1px solid var(--hair);background:var(--sunken);padding:24px 22px;overflow-y:auto}
+.scard{border:1px solid var(--hair-2);border-left:3px solid var(--c-unknown);margin-bottom:20px;background:var(--canvas)}
+.scard .top{display:flex;gap:16px;padding:16px 18px;border-bottom:1px solid var(--hair)}
+.scrop{width:110px;height:140px;flex:none;position:relative;background:#fff;border:1px solid var(--hair-2);background-image:repeating-linear-gradient(45deg,transparent,transparent 7px,#EEF1F5 7px,#EEF1F5 8px)}
+.scrop b{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c-unknown)}
+.scard .meta{min-width:0;flex:1}
+.scard .oc-chip{background:var(--c-unknown)}
+.scard .obs{font-family:var(--serif);font-size:14.5px;color:var(--body);margin-top:12px;line-height:1.55}
+.scard .obs .q{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tertiary);display:block;margin-bottom:5px}
+.scard .why{font-family:var(--mono);font-size:11px;color:var(--tertiary);margin-top:10px}
+.scard .act{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;background:#FCFCFD}
+.abtn{font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.04em;padding:8px 12px;border:1px solid var(--hair-2);color:var(--secondary)}
+.abtn.codify{border-color:var(--brand);color:var(--brand)}
+.abtn.codify:hover{background:var(--brand);color:#fff}
+.abtn.map:hover{border-color:var(--ink);color:var(--ink)}
+.abtn.oneoff:hover{border-color:var(--ink);color:var(--ink)}
+.freq{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--c-unknown);align-self:center}
+
+.garden h3{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin-bottom:6px}
+.garden .v{font-family:var(--mono);font-size:11px;color:var(--tertiary);margin-bottom:16px}
+.garden .rule{border-top:1px solid var(--hair-2);padding:12px 0;font-family:var(--serif);font-size:13.5px;color:var(--body)}
+.garden .rule .n{font-family:var(--mono);font-size:9.5px;color:var(--brand);display:block;margin-bottom:4px}
+.garden .rule.new{background:rgba(0,87,183,.05);margin:0 -10px;padding:12px 10px;border-top:none}
+.garden .note{font-family:var(--mono);font-size:10.5px;line-height:1.7;color:var(--tertiary);margin-top:18px;border-top:1px solid var(--hair-2);padding-top:14px}
+
+/* ============================================================
+   STUB VIEWS
+   ============================================================ */
+.stub{padding:60px 40px;max-width:760px}
+.stub .kicker{margin-bottom:14px}
+.stub h2{font-family:var(--serif);font-weight:700;font-size:26px;color:var(--ink);margin-bottom:14px}
+.stub p{font-family:var(--serif);font-size:16px;color:var(--secondary);margin-bottom:14px}
+.stub ul{list-style:none;margin:18px 0}
+.stub li{font-family:var(--serif);font-size:15px;color:var(--body);padding:9px 0 9px 22px;border-top:1px solid var(--hair);position:relative}
+.stub li::before{content:"—";position:absolute;left:0;color:var(--accent);font-family:var(--mono)}
+.stub li b{color:var(--ink)}
+.stubtag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);padding:4px 9px;margin-top:20px}
+
+/* footer honesty band */
+.hband{background:var(--brand);color:#fff;padding:10px 34px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between}
+.hband b{color:var(--accent);font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP DISCLAIMER STRIP ============ -->
+<div class="utility">
+  <span>Internal Editorial Workbench · <b>Concept Sketch</b> · Mock data — not the live collection</span>
+  <span>Stage 5 of the enrichment pipeline · <b>edits-as-overlay</b> · versioned runs</span>
+</div>
+
+<!-- ============ APP HEADER ============ -->
+<header class="appbar">
+  <div class="brand">
+    <div class="wordmark">Dateline<span class="co"> Cleveland</span></div>
+    <div class="sub">Editorial Workbench</div>
+  </div>
+  <div class="runbar">
+    <div class="runsel">
+      <span class="lab">Active run</span>
+      <span class="val">brooklyn-news · run v3</span>
+    </div>
+    <span class="overlay-badge">edits = overlay · raw immutable</span>
+    <a href="./" target="_top" style="font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);text-decoration:none;border:1px solid var(--brand);padding:8px 12px;white-space:nowrap;" onmouseover="this.style.background='var(--brand)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='var(--brand)'">← Patron prototype</a>
+    <div class="runmeta">
+      <div class="cell"><span class="n">4</span><span class="k">pages</span></div>
+      <div class="cell"><span class="n">312</span><span class="k">content objects</span></div>
+      <div class="cell"><span class="n">47</span><span class="k">reviewed</span></div>
+      <div class="cell"><span class="n" style="color:var(--warn)">9</span><span class="k">need shape review</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ SHELL ============ -->
+<div class="shell">
+
+  <!-- LEFT RAIL — the pipeline stage flow (mirror of CN Prep→Ingest→…→Finalize) -->
+  <nav class="rail">
+    <div class="grp">Pipeline · Stage 5 workbench</div>
+    <button class="navitem active" data-view="run"><span class="ord">01</span>Run &amp; progress<span class="count">6 stages</span></button>
+    <button class="navitem" data-view="review"><span class="ord">02</span>Review<span class="count">265 left</span></button>
+    <button class="navitem" data-view="topics"><span class="ord">03</span>Proposed topics<span class="count">7</span></button>
+    <button class="navitem" data-view="entities"><span class="ord">04</span>Entities &amp; merge<span class="count">38</span></button>
+    <button class="navitem" data-view="shape"><span class="ord">05</span>Shape review<span class="count hot">9</span></button>
+    <button class="navitem" data-view="lowconf"><span class="ord">06</span>Low-confidence<span class="count">14</span></button>
+    <button class="navitem" data-view="illus"><span class="ord">07</span>Illustrations<span class="count">21</span></button>
+    <button class="navitem" data-view="export"><span class="ord">08</span>Export<span class="count">—</span></button>
+    <div class="foot">
+      Pilot posture — corpus treated as public domain for prototyping.<br><br>
+      Hard rights gate before production. Every machine field ships flagged until a human confirms.
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ==================== 01 · RUN ==================== -->
+    <section class="view active" id="run">
+      <div class="run-wrap">
+        <div class="kicker">Batch readout · plumbing, not a designed screen</div>
+        <div class="rollup">
+          <div class="cell"><div class="n">4</div><div class="k">Pages ingested</div><div class="sub">Brooklyn News · 1921-06-14</div></div>
+          <div class="cell"><div class="n brand">312</div><div class="k">Content objects</div><div class="sub">~75% ads / classifieds / filler</div></div>
+          <div class="cell"><div class="n">123</div><div class="k">Articles</div><div class="sub">object_class = article</div></div>
+          <div class="cell"><div class="n" style="color:var(--warn)">9</div><div class="k">Unknown shapes</div><div class="sub">held for shape review</div></div>
+        </div>
+
+        <div class="stagelist">
+          <div class="stage">
+            <div class="idx">1</div>
+            <div class="nm">Ingest &amp; conditioning<small>Deskew · despeckle · binarize · IIIF register · condition_flag</small></div>
+            <div class="bar"><span style="width:100%"></span></div>
+            <div class="st done">4 / 4 ✓</div>
+          </div>
+          <div class="stage">
+            <div class="idx">1.5</div>
+            <div class="nm">Masthead extraction<small>VLM-read colophon → tagline · price · circulation · office</small></div>
+            <div class="bar"><span style="width:100%"></span></div>
+            <div class="st done">1 / 1 ✓</div>
+          </div>
+          <div class="stage">
+            <div class="idx">2</div>
+            <div class="nm">VLM transcription<small>Structured per-page · pinned Claude Sonnet + degeneration guard</small></div>
+            <div class="bar"><span style="width:100%"></span></div>
+            <div class="st done">4 / 4 ✓</div>
+          </div>
+          <div class="stage">
+            <div class="idx">3</div>
+            <div class="nm">Object assembly<small>Group regions · confirm class · collapse filler dupes · stitch jumps</small></div>
+            <div class="bar"><span style="width:100%"></span></div>
+            <div class="st done">312 / 312 ✓</div>
+          </div>
+          <div class="stage">
+            <div class="idx">4</div>
+            <div class="nm">Tiered enrichment<small>heavy · light · structured · capture_only — routed by object_class</small></div>
+            <div class="bar run"><span style="width:78%"></span></div>
+            <div class="st run">243 / 312 …</div>
+          </div>
+          <div class="stage">
+            <div class="idx">5</div>
+            <div class="nm">Human review &amp; export<small>this workbench — verdicts, queues, overlay edits</small></div>
+            <div class="bar"><span style="width:15%"></span></div>
+            <div class="st wait">47 / 312</div>
+          </div>
+        </div>
+
+        <div class="guard">
+          <span class="dot"></span>
+          <span class="txt"><b>Output-stability guard: clean.</b> No repetition loops or runaway fields this run. Truncation recovery armed. (SLICE-01: Gemini-Flash degenerated at temp-0; this run is on the pinned Sonnet path.)</span>
+          <span class="mono">0 degenerations · 2 truncations recovered</span>
+        </div>
+
+        <div style="margin-top:34px" class="kicker">Failures &amp; retries — loud and itemized, never a silent partial</div>
+        <div class="batchtable">
+          <div class="r hd"><span>Object</span><span>Read</span><span>Stage</span><span>Status</span><span></span></div>
+          <div class="r">
+            <div class="id">bn_p2_obj041</div>
+            <div class="nm2">Classified section — “Situations Wanted”</div>
+            <div class="num">structured</div>
+            <div><span class="tag-fail">timeout ×2</span></div>
+            <div><button class="retry">Retry</button></div>
+          </div>
+          <div class="r">
+            <div class="id">bn_p4_obj018</div>
+            <div class="nm2">Dense mid-column stack (4 articles)</div>
+            <div class="num">assembly</div>
+            <div><span class="tag-fail">low reading-order conf</span></div>
+            <div><button class="retry">Retry</button></div>
+          </div>
+          <div class="r">
+            <div class="id">bn_p1_obj003</div>
+            <div class="nm2">Masthead / colophon</div>
+            <div class="num">masthead</div>
+            <div><span class="tag-ok">ok</span></div>
+            <div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 02 · REVIEW (the heart) ==================== -->
+    <section class="view" id="review">
+      <div class="review">
+
+        <!-- worklist + filters -->
+        <aside class="wl">
+          <div class="prog">reviewed <b>47</b> / 312 · 265 left</div>
+          <div class="fbox">
+            <h4>Object class</h4>
+            <div class="fopt on"><span class="sw" style="background:var(--c-article)"></span>Article<span class="c">123</span></div>
+            <div class="fopt"><span class="sw" style="background:var(--c-ad)"></span>Advertisement<span class="c">98</span></div>
+            <div class="fopt"><span class="sw" style="background:var(--c-listing)"></span>Listing<span class="c">31</span></div>
+            <div class="fopt"><span class="sw" style="background:var(--c-photo)"></span>Illustration<span class="c">21</span></div>
+            <div class="fopt"><span class="sw" style="background:var(--c-unknown)"></span>Unknown<span class="c">9</span></div>
+            <h4>Flags</h4>
+            <div class="fopt"><span class="sw" style="background:var(--warn)"></span>Suspected hallucination<span class="c">6</span></div>
+            <div class="fopt"><span class="sw" style="background:var(--danger)"></span>Advertorial suspect<span class="c">3</span></div>
+            <div class="fopt"><span class="sw" style="background:var(--tertiary)"></span>Low transcription<span class="c">14</span></div>
+          </div>
+          <div class="wlrow sel">
+            <div class="th"><b style="background:var(--c-article)"></b></div>
+            <div class="m"><div class="t">Steel Strike Spreads</div><div class="s"><span class="dot-st u"></span>p1 · article · news</div></div>
+          </div>
+          <div class="wlrow">
+            <div class="th"><b style="background:var(--c-ad)"></b></div>
+            <div class="m"><div class="t">Palace Theatre — “The Kid”</div><div class="s"><span class="dot-st r"></span>p3 · ad · event</div></div>
+          </div>
+          <div class="wlrow">
+            <div class="th"><b style="background:var(--danger)"></b></div>
+            <div class="m"><div class="t">To The Living…</div><div class="s"><span class="dot-st f"></span>p4 · advertorial?</div></div>
+          </div>
+          <div class="wlrow">
+            <div class="th"><b style="background:var(--c-listing)"></b></div>
+            <div class="m"><div class="t">Situations Wanted</div><div class="s"><span class="dot-st u"></span>p2 · classified</div></div>
+          </div>
+          <div class="wlrow">
+            <div class="th"><b style="background:var(--c-ad)"></b></div>
+            <div class="m"><div class="t">Burn Yellow Jacket Coal</div><div class="s"><span class="dot-st r"></span>filler ×15</div></div>
+          </div>
+        </aside>
+
+        <!-- image | claims -->
+        <div class="rstage">
+          <!-- SOURCE -->
+          <div class="source">
+            <div class="cap">
+              <span class="kicker">The source, as printed</span>
+              <div class="zoomctl"><button>−</button><button>⌂</button><button>+</button></div>
+            </div>
+            <div class="page">
+              <div class="col-rule" style="left:33%"></div>
+              <div class="col-rule" style="left:66%"></div>
+              <div class="bbox sel" style="left:6%;top:5%;width:60%;height:9%;border-color:var(--c-article)"><span style="background:var(--c-article)">headline</span></div>
+              <div class="bbox" style="left:6%;top:16%;width:26%;height:44%;border-color:var(--c-article)"><span style="background:var(--c-article)">body · col 1</span></div>
+              <div class="bbox" style="left:34%;top:16%;width:26%;height:38%;border-color:var(--c-article)"><span style="background:var(--c-article)">body · col 2 (jump)</span></div>
+              <div class="bbox" style="left:68%;top:6%;width:26%;height:30%;border-color:var(--c-ad)"><span style="background:var(--c-ad);color:#0F1215">ad</span></div>
+              <div class="bbox" style="left:6%;top:64%;width:54%;height:16%;border-color:var(--c-photo)"><span style="background:var(--c-photo)">halftone + caption</span></div>
+            </div>
+            <div class="credit">
+              IIIF p16014coll5 · The Brooklyn News, vol. 14 no. 24 · 1921-06-14 · page 1<br>
+              condition_flag: <b style="color:var(--body)">creased</b> (lower-right) — do not bridge physical gaps
+            </div>
+            <br>
+            <a class="iiif-cta">Open in page reader <span class="df">deferred surface</span></a>
+          </div>
+
+          <!-- CLAIMS -->
+          <div class="claims">
+            <div class="objhead">
+              <span class="oc-chip" style="background:var(--c-article)">Article</span>
+              <span class="oid">bn_p1_obj007</span>
+              <span class="pg">page 1 · region 007</span>
+            </div>
+
+            <div class="blk">
+              <div class="lab">Transcription <span class="ai-badge">Transcribed by AI — may contain errors</span></div>
+              <div class="transcript">
+                <span class="hl">STEEL STRIKE SPREADS TO CLEVELAND MILLS</span>
+                Some four thousand men walked out at the Corrigan-McKinney works yesterday
+                as the American Federation of Labor extended its wage protest across the
+                Cuyahoga valley. John L. Lewis, addressing a crowd on <span class="loss">[loss]</span>
+                Street, promised the men that the federation would <span class="loss">[illegible]</span>
+                stand behind every striker until the eight-hour day is won.
+              </div>
+              <div class="confline">
+                <span class="conf good">reading-order <b>high</b></span>
+                <span class="conf good">transcription <b>good</b></span>
+                <span class="conf mid">continuation <b>jump → p8, medium</b></span>
+              </div>
+            </div>
+
+            <div class="blk">
+              <div class="lab">Enrichment · heavy tier</div>
+              <div class="facts">
+                <span class="fl">object_class</span><span class="fv">article · <span class="mono" style="font-size:12px">article_type = news_report</span></span>
+                <span class="fl">section</span><span class="fv">front_page</span>
+                <span class="fl">topics</span><span class="fv"><div class="chips"><span class="chip brand">Economy &amp; Labor</span><span class="chip prop">proposed: Strikes ⟶ review</span></div></span>
+                <span class="fl">entities</span><span class="fv"><div class="chips"><span class="chip">John L. Lewis</span><span class="chip">American Federation of Labor</span><span class="chip">Cleveland</span><span class="chip">Corrigan-McKinney</span></div></span>
+                <span class="fl">summary</span><span class="fv" style="font-style:italic">AFL wage protest reaches Cleveland’s steel mills as 4,000 walk out.</span>
+              </div>
+              <div class="flagrow">
+                <span class="ic">⚠</span>
+                <span class="t"><b>Faithfulness check:</b> place name after “addressing a crowd on” marked <span class="mono" style="font-size:11px;color:var(--danger)">[loss]</span> — VLM did not invent across the crease. Verify against crop.</span>
+              </div>
+            </div>
+
+            <div class="verdict">
+              <button class="vbtn primary">✓ Confirm &amp; next</button>
+              <button class="vbtn warn">Edit overlay</button>
+              <button class="vbtn ghost">Flag → queue</button>
+              <span class="kb"><kbd>↵</kbd> confirm · <kbd>e</kbd> edit · <kbd>x</kbd> flag</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 05 · SHAPE REVIEW ==================== -->
+    <section class="view" id="shape">
+      <div class="shape-wrap">
+        <div class="shape-queue">
+          <div class="vhead" style="padding:26px 0 18px;border:none">
+            <div class="kicker" style="color:var(--c-unknown)">Runtime sensor · Principle 18 · locus</div>
+            <h1>Shape review</h1>
+            <div class="lede">Objects the extractor could not confidently place — <span class="mono" style="font-size:14px">object_class = 'unknown'</span> plus low-fit calls. A misfit never enters the corpus unreviewed. Decide: recurring shape → codify a new class &amp; teach the prompt; one-off → resolve in place.</div>
+          </div>
+
+          <div class="scard">
+            <div class="top">
+              <div class="scrop"><b></b></div>
+              <div class="meta">
+                <div class="objhead"><span class="oc-chip">Unknown</span><span class="oid">bn_p2_obj055</span></div>
+                <div class="obs"><span class="q">payload.observed (free-text VLM read)</span>“A bold group banner — ‘BROOKLYN LODGE No. 217, I.O.O.F.’ — printed as a header directly above a two-column directory of member names and meeting times. Reads like a masthead but sits mid-page over a list.”</div>
+                <div class="why">held at capture_only · fits neither masthead nor listing cleanly · reading-order conf 0.41</div>
+              </div>
+            </div>
+            <div class="act">
+              <button class="abtn codify">Codify new class → “fraternal_directory”</button>
+              <button class="abtn map">Map to → listing</button>
+              <button class="abtn oneoff">Resolve one-off</button>
+              <span class="freq">seen ×4 this run</span>
+            </div>
+          </div>
+
+          <div class="scard">
+            <div class="top">
+              <div class="scrop"><b></b></div>
+              <div class="meta">
+                <div class="objhead"><span class="oc-chip">Unknown</span><span class="oid">bn_p3_obj022</span></div>
+                <div class="obs"><span class="q">payload.observed</span>“A decorative box containing a poem with no byline, ruled off from the news column. Not an ad (no product), not a filler slug (too long), not a letter to the editor (no addressee).”</div>
+                <div class="why">held at capture_only · closest match: article/feature (conf 0.38)</div>
+              </div>
+            </div>
+            <div class="act">
+              <button class="abtn codify">Codify new class → “versed_filler”</button>
+              <button class="abtn map">Map to → article</button>
+              <button class="abtn oneoff">Resolve one-off</button>
+              <span class="freq">seen ×1 this run</span>
+            </div>
+          </div>
+
+          <div class="scard">
+            <div class="top">
+              <div class="scrop"><b></b></div>
+              <div class="meta">
+                <div class="objhead"><span class="oc-chip">Unknown</span><span class="oid">bn_p4_obj071</span></div>
+                <div class="obs"><span class="q">payload.observed</span>“Half-tone photograph of a building whose printed caption is entirely lost to a tear. No legible text to transcribe; the crop itself is intact.”</div>
+                <div class="why">physical loss ≠ transcription noise · route to illustration review, caption = [loss]</div>
+              </div>
+            </div>
+            <div class="act">
+              <button class="abtn map">Map to → illustration</button>
+              <button class="abtn oneoff">Resolve one-off</button>
+              <span class="freq">seen ×2 this run</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- gardened prompt side panel -->
+        <aside class="shape-side garden">
+          <h3>The gardened prompt</h3>
+          <div class="v">transcription-prompt · v7 · accreted 3 rules this run</div>
+          <div class="rule new">
+            <span class="n">PENDING — from bn_p2_obj055 ×4</span>
+            A bold banner naming a lodge/club/church over a name+time list is a <b>fraternal_directory</b>, not a masthead. Emit its rows as structured payload.
+          </div>
+          <div class="rule">
+            <span class="n">v7 · added 2026-07-13</span>
+            A reflective essay ending in a product or service pitch is an <b>advertorial</b> — set is_advertorial=true, keep out of the journalism corpus.
+          </div>
+          <div class="rule">
+            <span class="n">v6 · added 2026-07-13</span>
+            Never bridge a physical gap. Mark <b>[loss]</b>; do not hallucinate across a tear or crease.
+          </div>
+          <div class="rule">
+            <span class="n">v6</span>
+            Repeated identical filler (“Burn Yellow Jacket Coal”) → one canonical row + occurrence count.
+          </div>
+          <div class="note">
+            Sensor now, machinery later. The queue teaches the prompt one codified convention at a time; periodic human consolidation stops it rotting into contradictory special-cases. Auto-consolidation deferred until a Scene batch shows whether the tail is a few recurring types or genuinely long.
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== STUBS ==================== -->
+    <section class="view" id="topics">
+      <div class="stub">
+        <div class="kicker">Present, not sketched</div>
+        <h2>Proposed topics</h2>
+        <p>Accept / remap / reject / merge the topics the LLM proposed against the closed controlled vocabulary. Locked until the enrichment run completes, so the vocabulary doesn’t shift mid-pass.</p>
+        <ul>
+          <li><b>proposed_topic</b> escape hatch surfaced here — e.g. “Strikes” wants promoting under <b>Economy &amp; Labor</b>.</li>
+          <li>Accept → adds to vocabulary · Remap → folds into an existing topic · Reject → drops.</li>
+          <li>Mirrors CN’s <b>Facet review</b> stage — a dedicated pass downstream of extraction.</li>
+        </ul>
+        <span class="stubtag">Budget goes to Review + Shape review first</span>
+      </div>
+    </section>
+
+    <section class="view" id="entities">
+      <div class="stub">
+        <div class="kicker">Present, not sketched</div>
+        <h2>Entities &amp; merge</h2>
+        <p>Dedup people / places / orgs — and the print-native additions: <b>venue · performer · creative_work</b>. Auto-suggested merges by substring, abbreviation, and prefix; place-hierarchy assignment.</p>
+        <ul>
+          <li>“A.F. of L.” · “A. F. of L.” · “American Federation of Labor” → one entity.</li>
+          <li>Place hierarchy: <b>Corrigan-McKinney → Cleveland → Cuyahoga County → Ohio</b>.</li>
+          <li>Feeds the discovery interface’s <b>The Index</b> (browse-by-name facet).</li>
+        </ul>
+        <span class="stubtag">Same merge pattern as CN entity browser</span>
+      </div>
+    </section>
+
+    <section class="view" id="lowconf">
+      <div class="stub">
+        <div class="kicker">Present, not sketched</div>
+        <h2>Low-confidence queue</h2>
+        <p>The escape hatch for reads no first pass could trust — low transcription quality or suspected hallucination. Re-OCR at higher fidelity, route to the two-stage segment→crop→VLM fallback, or hand to human transcription.</p>
+        <ul>
+          <li>Dense multi-column pages (the Scene stress case) land here when reading-order confidence drops.</li>
+          <li>Excluded from full-text search until resolved — never index a read the pipeline itself distrusts.</li>
+          <li>Analog of CN’s <b>low-OCR / illegible</b> worklist — same “needs another look” discipline.</li>
+        </ul>
+        <span class="stubtag">Deferred surface</span>
+      </div>
+    </section>
+
+    <section class="view" id="illus">
+      <div class="stub">
+        <div class="kicker">Present, not sketched</div>
+        <h2>Illustration review</h2>
+        <p>Confirm / relabel extracted images and their types — photo · cartoon · map · chart · ad-cut. Transcribe the printed <b>caption</b> (the reliable signal); the crop is served visually via IIIF, <em>not</em> described by the machine.</p>
+        <ul>
+          <li>Text-first, scoped: no generated visual description in the prototype phase.</li>
+          <li><b>degraded_halftone</b> flag for poor microfilm reproduction.</li>
+          <li>Confirmed illustrations carry into discovery as first-class objects (the “Pictures &amp; Ads” visual wall).</li>
+        </ul>
+        <span class="stubtag">Deferred surface</span>
+      </div>
+    </section>
+
+    <section class="view" id="export">
+      <div class="stub">
+        <div class="kicker">Terminal stage</div>
+        <h2>Export</h2>
+        <p>Graduate the reviewed, enriched run into the data backend — the seam to the patron discovery interface.</p>
+        <ul>
+          <li>Enriched dataset → Postgres + pgvector (discovery search + facets).</li>
+          <li><b>METS/ALTO</b> synthesized from VLM output · region-level boxes free, word-level = downstream alignment.</li>
+          <li><b>IIIF</b> Presentation + Image manifests for the deep-zoom page reader.</li>
+          <li>Versioned run + overlay edits preserved — the raw transcription stays immutable.</li>
+        </ul>
+        <span class="stubtag">Deferred surface</span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="hband">
+  <span>Dateline Cleveland · Editorial Workbench — a staff-facing concept sketch</span>
+  <span><b>Pilot material treated as public domain</b> · not the live collection · rights gate before production</span>
+</div>
+
+<script>
+/* tab switching */
+document.querySelectorAll('.navitem').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.navitem').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    var v = document.getElementById(btn.dataset.view);
+    if(v){ v.classList.add('active'); document.querySelector('.main').scrollTop=0; }
+  });
+});
+/* worklist selection */
+document.querySelectorAll('.wlrow').forEach(function(row){
+  row.addEventListener('click', function(){
+    document.querySelectorAll('.wlrow').forEach(r=>r.classList.remove('sel'));
+    row.classList.add('sel');
+  });
+});
+/* filter toggle (visual only) */
+document.querySelectorAll('.fopt').forEach(function(o){
+  o.addEventListener('click', ()=>o.classList.toggle('on'));
+});
+/* verdict feedback (visual only) */
+document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
+  b.addEventListener('click', function(e){ e.preventDefault(); b.style.transform='scale(.96)'; setTimeout(()=>b.style.transform='',120); });
+});
+</script>
+</body>
+</html>

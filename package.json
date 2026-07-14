@@ -2,15 +2,23 @@
   "name": "cpl-dateline-cleveland",
   "version": "0.1.0",
   "private": true,
-  "description": "Dateline Cleveland — SLICE-01: Brooklyn News image → VLM → structured content-objects → viewable. The goblin's first step.",
+  "description": "Dateline Cleveland — print-native archive enrichment + discovery. Monorepo: apps/pipeline (image → VLM → structured content-objects) and apps/discovery (patron discovery SPA + staff workbench).",
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "engines": {
     "node": ">=22.5.0"
   },
   "scripts": {
-    "ingest": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/ingest.ts",
-    "view": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/view.ts",
-    "slice01": "npm run ingest && npm run view",
-    "probe": "node --env-file-if-exists=.env --experimental-strip-types src/probe.ts"
+    "ingest": "npm run ingest --workspace @dateline/pipeline",
+    "view": "npm run view --workspace @dateline/pipeline",
+    "probe": "npm run probe --workspace @dateline/pipeline",
+    "pipeline": "npm run slice01 --workspace @dateline/pipeline",
+    "export-real": "npm run export-real --workspace @dateline/discovery",
+    "dev": "npm run dev --workspace @dateline/discovery",
+    "build": "npm run build --workspace @dateline/discovery",
+    "preview": "npm run preview --workspace @dateline/discovery"
   }
 }
