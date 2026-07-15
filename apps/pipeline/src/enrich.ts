@@ -20,7 +20,11 @@ import { ISSUE_ID, ENRICH_PROVIDER, ENRICH_PROMPT_VERSION } from "./config.ts";
 type Tier = "heavy" | "light" | "structured" | "capture_only";
 
 const RUN_ID = `${ENRICH_PROMPT_VERSION}_${ENRICH_PROVIDER}_run1`;
-const CREATED_AT = "2026-07-14T00:00:00Z";
+// Fixture runs keep a fixed stamp; a LIVE run is dated honestly (Principle 5).
+const CREATED_AT =
+  ENRICH_PROVIDER === "fixture"
+    ? "2026-07-14T00:00:00Z"
+    : new Date().toISOString().slice(0, 10) + "T00:00:00Z";
 
 // Classes that never touch the enrichment model (data-schema §routing).
 const CAPTURE_ONLY = new Set([

@@ -16,7 +16,12 @@ import {
 
 // Deterministic run id (Date.now is unavailable in some sandboxes; keep it reproducible).
 const RUN_ID = `${PROMPT_VERSION}_${VLM_PROVIDER}_run1`;
-const CREATED_AT = "2026-07-13T00:00:00Z";
+// Fixture runs keep a fixed stamp (reproducible); a LIVE run is dated honestly so
+// the store records when the real VLM actually produced this data (Principle 5).
+const CREATED_AT =
+  VLM_PROVIDER === "fixture"
+    ? "2026-07-13T00:00:00Z"
+    : new Date().toISOString().slice(0, 10) + "T00:00:00Z";
 
 async function main() {
   const db = openDb();

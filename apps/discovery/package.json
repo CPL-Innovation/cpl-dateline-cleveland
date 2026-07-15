@@ -6,9 +6,11 @@
   "description": "Dateline Cleveland — patron-discovery SPA (This Week, Then + The Index) + staff Editorial Workbench at /staff. Implemented from the Claude Design converged prototype; the REAL DATA toggle reads apps/pipeline output.",
   "scripts": {
     "export-real": "node --experimental-sqlite scripts/export-real-data.mjs",
-    "predev": "npm run export-real",
+    "export-staff": "node --experimental-sqlite scripts/export-staff-run.mjs",
+    "export-all": "npm run export-real && npm run export-staff",
+    "predev": "npm run export-all",
     "dev": "vite",
-    "prebuild": "npm run export-real",
+    "prebuild": "npm run export-all",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },

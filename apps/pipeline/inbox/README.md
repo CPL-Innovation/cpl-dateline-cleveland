@@ -1,7 +1,12 @@
 # inbox/ — source page images
 
-The harvested page images the pipeline reads (SLICE-01 step 1 — "the four pages are already in
-`inbox/`"; no IIIF fetch in this slice). `src/config.ts` defaults `INBOX_DIR` to this folder.
+The page images the live-VLM pipeline reads. `src/config.ts` defaults `INBOX_DIR` to this folder.
+
+**Populate it with a real harvest (SLICE-06):** `npm run harvest` pulls the Brooklyn News
+issue's pages **live from CPL's ContentDM IIIF Image API** (collection `p16014coll5`, records
+7618–7621) into this folder — the pipeline's real front door. (It also writes display-size copies
+to `apps/discovery/public/pages/` and a provenance manifest to `apps/pipeline/harvest/`.)
+The images can still be dropped in by hand instead; the harvest just makes the source demonstrable.
 
 ## Expected files (Brooklyn News, Feb 1 1924 — CDM collection `p16014coll5`)
 

@@ -1,0 +1,57 @@
+{
+  "issueId": "brooklynnews_1924-02-01",
+  "collection": "p16014coll5",
+  "source": "ContentDM IIIF Image API 2.0",
+  "harvestedFrom": "cdm16014.contentdm.oclc.org",
+  "displaySize": "1600,",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "pageRecord": 7618,
+      "iiifId": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7618",
+      "fullImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7618/full/full/0/default.jpg",
+      "displayImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7618/full/1600,/0/default.jpg",
+      "displayFile": "p16014coll5_7618.jpg",
+      "width": 5332,
+      "height": 6845,
+      "fullBytes": 4952691,
+      "displayBytes": 595095
+    },
+    {
+      "pageNumber": 2,
+      "pageRecord": 7619,
+      "iiifId": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7619",
+      "fullImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7619/full/full/0/default.jpg",
+      "displayImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7619/full/1600,/0/default.jpg",
+      "displayFile": "p16014coll5_7619.jpg",
+      "width": 5332,
+      "height": 6845,
+      "fullBytes": 4283018,
+      "displayBytes": 513950
+    },
+    {
+      "pageNumber": 3,
+      "pageRecord": 7620,
+      "iiifId": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7620",
+      "fullImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7620/full/full/0/default.jpg",
+      "displayImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7620/full/1600,/0/default.jpg",
+      "displayFile": "p16014coll5_7620.jpg",
+      "width": 5332,
+      "height": 6845,
+      "fullBytes": 4116796,
+      "displayBytes": 510541
+    },
+    {
+      "pageNumber": 4,
+      "pageRecord": 7621,
+      "iiifId": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7621",
+      "fullImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7621/full/full/0/default.jpg",
+      "displayImageUrl": "https://cdm16014.contentdm.oclc.org/digital/iiif/p16014coll5/7621/full/1600,/0/default.jpg",
+      "displayFile": "p16014coll5_7621.jpg",
+      "width": 5415,
+      "height": 6845,
+      "fullBytes": 4367279,
+      "displayBytes": 480441
+    }
+  ]
+}

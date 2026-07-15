@@ -18,6 +18,8 @@
     "pipeline": "npm run slice01 --workspace @dateline/pipeline",
     "enrich": "npm run enrich --workspace @dateline/pipeline",
     "export-real": "npm run export-real --workspace @dateline/discovery",
+    "export-staff": "npm run export-staff --workspace @dateline/discovery",
+    "export-all": "npm run export-all --workspace @dateline/discovery",
     "dev": "npm run dev --workspace @dateline/discovery",
     "build": "npm run build --workspace @dateline/discovery",
     "preview": "npm run preview --workspace @dateline/discovery"

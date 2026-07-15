@@ -48,6 +48,7 @@ Return ONLY a JSON array. Each element:
 }
 
 RULES (follow exactly):
+- ONE CONTENT-OBJECT PER STORY. A single article is ONE block: emit its headline, any subhead/deck, and its body TOGETHER in that block's "text" (headline line first, then the body), with role "headline+body". Do NOT split one story into separate headline / subhead / body blocks — a headline and the body beneath it are the same object. Keep DISTINCT stories as separate blocks. (The same one-object rule holds for ads, listings, and notices: group the whole unit, not its typographic parts.)
 - READING ORDER: read DOWN each column, then move to the next column. NEVER read across columns.
 - TRANSCRIBE ONLY WHAT IS PRINTED AND VISIBLE. Mark unreadable text [illegible] and physical damage [loss]. NEVER invent text to bridge a gap.
 - HANDWRITING IS NOT PUBLICATION CONTENT. Pencil/pen marginalia -> object_class "manuscript_annotation"; do NOT fold it into adjacent article text.

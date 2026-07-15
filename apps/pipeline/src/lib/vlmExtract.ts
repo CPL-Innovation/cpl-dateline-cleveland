@@ -12,6 +12,7 @@ import type { VlmProvider } from "../config.ts";
 import { buildUserPrompt, SYSTEM_PROMPT, OBJECT_CLASSES } from "./vlm-prompt.ts";
 import type { VlmBlock, ObjectClass } from "./vlm-prompt.ts";
 import { conditionedImage } from "./condition.ts";
+import { fetchRetry } from "./http.ts";
 
 export interface VlmUsage {
   inputTokens: number | null;
@@ -115,11 +116,11 @@ async function callGemini(args: VlmArgs, model: string): Promise<RawCall> {
       thinkingConfig: { thinkingBudget: 0 },
     },
   };
-  const res = await fetch(url, {
+  const res = await fetchRetry(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }, { label: `Gemini VLM (${model})` });
   if (!res.ok) throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
@@ -137,12 +138,23 @@ async function callGemini(args: VlmArgs, model: string): Promise<RawCall> {
 }
 
 // --- anthropic provider -----------------------------------------------------
+// Transcribing a dense page takes minutes; a non-streaming request holds an idle
+// connection open the whole time and gets reset by network middleboxes at ~4-5 min
+// ("fetch failed"). We STREAM (SSE): continuous deltas keep the socket alive, which
+// is Anthropic's own recommendation for long requests. We accumulate the text and
+// usage from the event stream, then parse exactly as before.
 async function callAnthropic(args: VlmArgs, model: string): Promise<RawCall> {
   const key = requireKey("ANTHROPIC_API_KEY", "anthropic");
   const img = conditionedImage(args.imagePath, VLM_MAX_EDGE);
   const body = {
     model,
-    max_tokens: 32000,
+    // A dense page grouped into full-text-per-story blocks can run long; give the
+    // output budget real headroom so a whole page fits in one response (the 32k
+    // ceiling truncated page 1 mid-transcription). Streaming keeps the socket alive.
+    max_tokens: 64000,
+    stream: true,
+    // NB: no `temperature` — deprecated on claude-sonnet-5-class models (400 error).
+    // The gemini/openai paths still pin temperature:0; this path relies on the model default.
     system: SYSTEM_PROMPT,
     messages: [
       {
@@ -159,7 +171,7 @@ async function callAnthropic(args: VlmArgs, model: string): Promise<RawCall> {
   };
   // Use the public API host explicitly — ANTHROPIC_BASE_URL may point at an
   // OAuth gateway that rejects x-api-key auth.
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetchRetry("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -167,19 +179,61 @@ async function callAnthropic(args: VlmArgs, model: string): Promise<RawCall> {
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify(body),
-  });
+  }, { label: `Anthropic VLM (${model})` });
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
-  const json = (await res.json()) as {
-    content: Array<{ text?: string }>;
-    usage?: { input_tokens?: number; output_tokens?: number };
-  };
+  const streamed = await readAnthropicStream(res);
   return {
-    raw: parseLooseArray(json.content.map((c) => c.text ?? "").join("")),
-    usage: {
-      inputTokens: json.usage?.input_tokens ?? null,
-      outputTokens: json.usage?.output_tokens ?? null,
-    },
+    raw: parseLooseArray(streamed.text),
+    usage: streamed.usage,
   };
+}
+
+// Consume an Anthropic SSE stream into the full text + token usage. Handles the
+// message_start (input tokens), content_block_delta (text_delta chunks), and
+// message_delta (output tokens) events; ignores ping/other events.
+async function readAnthropicStream(
+  res: Response,
+): Promise<{ text: string; usage: VlmUsage }> {
+  if (!res.body) throw new Error("Anthropic stream returned no body");
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let text = "";
+  let inputTokens: number | null = null;
+  let outputTokens: number | null = null;
+
+  function handle(dataLine: string) {
+    let evt: any;
+    try {
+      evt = JSON.parse(dataLine);
+    } catch {
+      return; // partial/non-JSON data line; skip
+    }
+    if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+      text += evt.delta.text ?? "";
+    } else if (evt.type === "message_start") {
+      inputTokens = evt.message?.usage?.input_tokens ?? inputTokens;
+    } else if (evt.type === "message_delta") {
+      outputTokens = evt.usage?.output_tokens ?? outputTokens;
+    } else if (evt.type === "error") {
+      throw new Error(`Anthropic stream error: ${JSON.stringify(evt.error ?? evt)}`);
+    }
+  }
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    // SSE events are separated by blank lines; process complete lines only.
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).replace(/\r$/, "");
+      buf = buf.slice(nl + 1);
+      if (line.startsWith("data:")) handle(line.slice(5).trim());
+    }
+  }
+  if (buf.startsWith("data:")) handle(buf.slice(5).trim());
+  return { text, usage: { inputTokens, outputTokens } };
 }
 
 // --- openai provider --------------------------------------------------------
@@ -212,11 +266,11 @@ async function callOpenAI(args: VlmArgs, model: string): Promise<RawCall> {
       },
     ],
   };
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetchRetry("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
     body: JSON.stringify(body),
-  });
+  }, { label: `OpenAI VLM (${model})` });
   if (!res.ok) throw new Error(`OpenAI API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     choices: Array<{ message: { content: string } }>;

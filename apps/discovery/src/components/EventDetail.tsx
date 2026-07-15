@@ -10,7 +10,7 @@ export function EventDetail({ event, onBack }: { event: CalendarEvent; onBack: (
 
       <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: 48, marginTop: 36 }}>
         <div>
-          <ClippingFrame height={520} clipNote={event.clipNote} credit={event.credit} />
+          <ClippingFrame height={520} clipNote={event.clipNote} credit={event.credit} pageImage={event.pageImage} iiifId={event.iiifId} />
           <Transcription text={event.transcript} />
         </div>
 

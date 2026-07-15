@@ -8,6 +8,7 @@
     "node": ">=22.5.0"
   },
   "scripts": {
+    "harvest": "node --env-file-if-exists=.env --experimental-strip-types src/harvest.ts",
     "ingest": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/ingest.ts",
     "view": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/view.ts",
     "enrich": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/enrich.ts",

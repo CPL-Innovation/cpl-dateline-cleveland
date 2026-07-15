@@ -48,6 +48,8 @@ interface RawObject {
   tags?: string[];
   topics?: RawTopicRef[];
   names?: RawNameRef[];
+  pageImage?: string | null; // SLICE-06: real ContentDM page image
+  iiifId?: string | null;
 }
 
 interface RawEvent {
@@ -63,6 +65,8 @@ interface RawEvent {
   sourcePage: number;
   sourceClass: string;
   sourceSummary: string | null;
+  pageImage?: string | null; // SLICE-06
+  iiifId?: string | null;
 }
 
 interface RawPayload {
@@ -195,6 +199,8 @@ function toItem(o: RawObject): IndexItem {
     credit: `SOURCE: BROOKLYN NEWS · FEB 1 1924 · ${o.issueId} · P.${printedPage(o.page)} · SEQ ${o.seq}`,
     clipNote: o.isAdvertorial ? `${roleNote} · flagged advertorial` : roleNote,
     transcript: o.text,
+    pageImage: o.pageImage ?? null,
+    iiifId: o.iiifId ?? null,
   };
 }
 
@@ -295,6 +301,8 @@ function eventToCalendar(ev: RawEvent): CalendarEvent {
     clipNote: `${ev.eventType.replace(/_/g, ' ')} — extracted from ${ev.sourceClass.replace(/_/g, ' ')}`,
     transcript: `[${ev.title}] ${ev.venue ? ev.venue + ' — ' : ''}${when}. ${ev.sourceSummary || ''}`.trim(),
     facts,
+    pageImage: ev.pageImage ?? null,
+    iiifId: ev.iiifId ?? null,
   };
 }
 

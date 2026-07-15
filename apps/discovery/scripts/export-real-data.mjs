@@ -10,7 +10,7 @@
 // out of the patron-facing index.
 
 import { DatabaseSync } from 'node:sqlite';
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -21,9 +21,31 @@ const dbPath = resolve(repoRoot, 'apps', 'pipeline', 'data', 'slice01.sqlite');
 const outDir = resolve(here, '..', 'src', 'data');
 const outFile = resolve(outDir, 'real.generated.json');
 
+// SLICE-06: the ContentDM harvest manifest (page_record → real page image + IIIF id).
+// Present once `npm run harvest` has pulled the pages; absent → no image, honest fallback.
+const manifestPath = resolve(here, '..', 'public', 'pages', 'manifest.json');
+const pageSource = new Map(); // page_record → { pageImage, iiifId, fullImageUrl }
+if (existsSync(manifestPath)) {
+  const m = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  for (const p of m.pages ?? []) {
+    pageSource.set(p.pageRecord, {
+      pageImage: `pages/${p.displayFile}`, // served from public/, BASE_URL-prefixed in the SPA
+      iiifId: p.iiifId,
+      fullImageUrl: p.fullImageUrl,
+    });
+  }
+}
+const imageFor = (rec) => pageSource.get(rec) ?? { pageImage: null, iiifId: null, fullImageUrl: null };
+
 if (!existsSync(dbPath)) {
-  console.error(`[export-real] no store at ${dbPath} — run \`npm run pipeline\` from the repo root first.`);
-  // Write an empty dataset so the build still succeeds.
+  // No SQLite store (it's gitignored) — but real.generated.json is COMMITTED with
+  // the last real run, so a clean clone / public repo still drives the demo.
+  // NEVER clobber that committed data with an empty dataset; keep it and move on.
+  if (existsSync(outFile)) {
+    console.log(`[export-real] no store at ${dbPath}; keeping committed ${outFile.replace(repoRoot + '/', '')} (last real run).`);
+    process.exit(0);
+  }
+  console.error(`[export-real] no store at ${dbPath} and no committed export — run \`npm run pipeline\` from the repo root first.`);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(outFile, JSON.stringify({ generatedAt: null, issue: null, objects: [] }, null, 2));
   process.exit(0);
@@ -105,6 +127,9 @@ const objects = rows.map((r) => ({
   tags: r.tags ? JSON.parse(r.tags) : [],
   topics: topicsByObj.get(r.id) || [],
   names: namesByObj.get(r.id) || [],
+  // SLICE-06: the real ContentDM page image + IIIF provenance for this object's page.
+  pageImage: imageFor(r.page_record).pageImage,
+  iiifId: imageFor(r.page_record).iiifId,
 }));
 
 // TOPIC facet: every controlled topic that landed on ≥1 publication object, with counts.
@@ -153,14 +178,31 @@ if (hasEnrichment) {
       sourcePage: r.page_record,
       sourceClass: r.object_class,
       sourceSummary: r.summary,
+      pageImage: imageFor(r.page_record).pageImage,
+      iiifId: imageFor(r.page_record).iiifId,
     }));
 }
 
 const issueRow = rows[0] || null;
+// Provider is encoded in the run_id (`slice01-v1_<provider>_run1`); a non-fixture
+// provider means this data came from a real live VLM call (SLICE-05).
+const providerMatch = /_(fixture|anthropic|gemini|openai)_/.exec(issueRow?.run_id || '');
+const provider = providerMatch ? providerMatch[1] : 'unknown';
+const isLive = provider !== 'fixture';
 const payload = {
-  // A fixed stamp so repeated exports are deterministic (Date.now() would churn git).
-  generatedAt: hasEnrichment ? 'SLICE-02 enrichment run' : 'SLICE-01 fixture run',
+  // Stamp is derived from the run itself (not Date.now()), so repeated exports of
+  // the SAME run stay byte-stable — but a LIVE run reads as live, not "fixture".
+  generatedAt: isLive
+    ? `LIVE ${provider} run · ${issueRow?.model || ''} · ${issueRow?.created_at || ''}`.trim()
+    : hasEnrichment ? 'SLICE-02 enrichment run (fixture)' : 'SLICE-01 fixture run',
+  live: isLive,
+  provider,
   enriched: hasEnrichment,
+  // SLICE-06: where the pixels came from — a real ContentDM IIIF harvest (or null
+  // if the pages haven't been harvested; the SPA then keeps the honest placeholder).
+  source: pageSource.size
+    ? { kind: 'contentdm-iiif', collection: 'p16014coll5', server: 'cdm16014.contentdm.oclc.org', pageCount: pageSource.size }
+    : null,
   issue: issueRow
     ? { id: issueRow.issue_id, model: issueRow.model, runId: issueRow.run_id }
     : null,

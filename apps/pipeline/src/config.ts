@@ -13,6 +13,27 @@ export const INBOX_DIR = process.env.INBOX_DIR ?? resolve(ROOT, "inbox");
 
 export const ISSUE_ID = "brooklynnews_1924-02-01";
 
+// --- ContentDM / IIIF harvest (SLICE-06) ------------------------------------
+// CPL's ContentDM serves a IIIF Image API 2.0. The pilot Brooklyn News issue is
+// collection p16014coll5, records 7618–7621. The canonical IIIF identifier of a
+// page is `${CDM_IIIF_BASE}/${CDM_COLLECTION}/${record}`; its image is that + a
+// `/full/<size>/0/default.jpg` request. This is the REAL front door — the harvest
+// pulls pages live from here rather than reading hand-obtained local files.
+export const CDM_IIIF_BASE =
+  process.env.CDM_IIIF_BASE ?? "https://cdm16014.contentdm.oclc.org/digital/iiif";
+export const CDM_COLLECTION = process.env.CDM_COLLECTION ?? "p16014coll5";
+export function iiifId(record: number): string {
+  return `${CDM_IIIF_BASE}/${CDM_COLLECTION}/${record}`;
+}
+export function iiifImageUrl(record: number, size = "full"): string {
+  return `${iiifId(record)}/full/${size}/0/default.jpg`;
+}
+// Display size the patron reader / workbench render (IIIF serves it directly — no
+// local resize, no tiling server). Full-res (5332×6845) is the pipeline input.
+export const HARVEST_DISPLAY_SIZE = process.env.HARVEST_DISPLAY_SIZE ?? "1600,";
+// Committed display images + provenance manifest for the front-end (PD, so fine to commit).
+export const PAGES_OUT_DIR = resolve(ROOT, "..", "discovery", "public", "pages");
+
 // CDM record → page number map (SLICE-01 step 1: 7618=p1 … 7621=p4).
 export const PAGES = [
   { pageRecord: 7618, pageNumber: 1, file: "p16014coll5_7618_full.jpg" },

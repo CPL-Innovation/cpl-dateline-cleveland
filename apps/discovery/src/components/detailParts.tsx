@@ -44,16 +44,26 @@ export function BackBar({
   );
 }
 
-/** The keylined "source clipping" placeholder + credit + reader CTA. */
+/** The keylined "source" frame. Renders the REAL ContentDM page image when one is
+ *  available (SLICE-06); otherwise falls back to the striped clipping placeholder
+ *  (MOCK data, or REAL data before the pages are harvested). */
 export function ClippingFrame({
   height,
   clipNote,
   credit,
+  pageImage,
+  iiifId,
 }: {
   height: number;
   clipNote: string;
   credit: string;
+  pageImage?: string | null;
+  iiifId?: string | null;
 }) {
+  // Vite serves public/ under BASE_URL; images live at `<base>/pages/…`.
+  const src = pageImage ? import.meta.env.BASE_URL + pageImage : null;
+  // Full-res deep-zoom is ContentDM's own IIIF viewer — no tiling server of our own.
+  const readerHref = iiifId ? `${iiifId}/full/full/0/default.jpg` : undefined;
   return (
     <div>
       <div
@@ -69,31 +79,62 @@ export function ClippingFrame({
         THE SOURCE, AS PRINTED
       </div>
       <div style={{ border: `1px solid ${C.hairMed}`, background: C.canvas, padding: 14 }}>
-        <div
-          style={{
-            height,
-            background: `repeating-linear-gradient(45deg, ${C.sunken}, ${C.sunken} 10px, ${C.canvas} 10px, ${C.canvas} 20px)`,
-            border: `1px solid ${C.hairLight}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{ fontFamily: MONO, fontSize: 12, color: C.secondary, textAlign: 'center', lineHeight: 1.7 }}>
-            [ SOURCE CLIPPING — HALFTONE SCAN ]
-            <br />
-            {clipNote}
-            <br />
-            IIIF region crop · drop real scan here
+        {src ? (
+          <a
+            href={readerHref}
+            target="_blank"
+            rel="noreferrer"
+            title="Open the full-resolution page on CPL's ContentDM IIIF"
+            style={{
+              display: 'block',
+              maxHeight: height,
+              overflow: 'hidden',
+              border: `1px solid ${C.hairLight}`,
+              background: C.sunken,
+              cursor: readerHref ? 'zoom-in' : 'default',
+            }}
+          >
+            <img
+              src={src}
+              alt="The source page, as printed — scanned from CPL's ContentDM"
+              loading="lazy"
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+          </a>
+        ) : (
+          <div
+            style={{
+              height,
+              background: `repeating-linear-gradient(45deg, ${C.sunken}, ${C.sunken} 10px, ${C.canvas} 10px, ${C.canvas} 20px)`,
+              border: `1px solid ${C.hairLight}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <div style={{ fontFamily: MONO, fontSize: 12, color: C.secondary, textAlign: 'center', lineHeight: 1.7 }}>
+              [ SOURCE CLIPPING — HALFTONE SCAN ]
+              <br />
+              {clipNote}
+              <br />
+              IIIF region crop · drop real scan here
+            </div>
           </div>
-        </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', color: C.secondary }}>
             {credit}
           </div>
-          <button
+          <a
             className="dc-btn-primary"
-            title="Deep-zoom IIIF page reader — designed as a CTA, surface not built in this prototype"
+            href={readerHref}
+            target="_blank"
+            rel="noreferrer"
+            title={
+              readerHref
+                ? "Open the full-resolution page on CPL's ContentDM IIIF"
+                : 'Deep-zoom IIIF page reader — surface not built in this prototype'
+            }
             style={{
               fontFamily: SANS,
               fontSize: 11,
@@ -103,10 +144,13 @@ export function ClippingFrame({
               padding: '5px 12px',
               background: C.navy,
               color: C.canvas,
+              textDecoration: 'none',
+              pointerEvents: readerHref ? 'auto' : 'none',
+              opacity: readerHref ? 1 : 0.85,
             }}
           >
             OPEN IN PAGE READER ⤢
-          </button>
+          </a>
         </div>
       </div>
     </div>

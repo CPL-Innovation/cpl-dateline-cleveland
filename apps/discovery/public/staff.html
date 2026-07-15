@@ -388,7 +388,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
 <!-- ============ TOP DISCLAIMER STRIP ============ -->
 <div class="utility">
-  <span>Internal Editorial Workbench · <b>Concept Sketch</b> · Mock data — not the live collection</span>
+  <span id="u-banner">Internal Editorial Workbench · <b>Loading run…</b></span>
   <span>Stage 5 of the enrichment pipeline · <b>edits-as-overlay</b> · versioned runs</span>
 </div>
 
@@ -401,15 +401,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   <div class="runbar">
     <div class="runsel">
       <span class="lab">Active run</span>
-      <span class="val">brooklyn-news · run v3</span>
+      <span class="val" id="h-run">loading…</span>
     </div>
     <span class="overlay-badge">edits = overlay · raw immutable</span>
     <a href="./" target="_top" style="font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);text-decoration:none;border:1px solid var(--brand);padding:8px 12px;white-space:nowrap;" onmouseover="this.style.background='var(--brand)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='var(--brand)'">← Patron prototype</a>
     <div class="runmeta">
-      <div class="cell"><span class="n">4</span><span class="k">pages</span></div>
-      <div class="cell"><span class="n">312</span><span class="k">content objects</span></div>
-      <div class="cell"><span class="n">47</span><span class="k">reviewed</span></div>
-      <div class="cell"><span class="n" style="color:var(--warn)">9</span><span class="k">need shape review</span></div>
+      <div class="cell"><span class="n" id="h-pages">—</span><span class="k">pages</span></div>
+      <div class="cell"><span class="n" id="h-objects">—</span><span class="k">content objects</span></div>
+      <div class="cell"><span class="n" id="h-reviewed">—</span><span class="k">reviewed</span></div>
+      <div class="cell"><span class="n" id="h-shape" style="color:var(--warn)">—</span><span class="k">need shape review</span></div>
     </div>
   </div>
 </header>
@@ -421,12 +421,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   <nav class="rail">
     <div class="grp">Pipeline · Stage 5 workbench</div>
     <button class="navitem active" data-view="run"><span class="ord">01</span>Run &amp; progress<span class="count">6 stages</span></button>
-    <button class="navitem" data-view="review"><span class="ord">02</span>Review<span class="count">265 left</span></button>
-    <button class="navitem" data-view="topics"><span class="ord">03</span>Proposed topics<span class="count">7</span></button>
-    <button class="navitem" data-view="entities"><span class="ord">04</span>Entities &amp; merge<span class="count">38</span></button>
-    <button class="navitem" data-view="shape"><span class="ord">05</span>Shape review<span class="count hot">9</span></button>
-    <button class="navitem" data-view="lowconf"><span class="ord">06</span>Low-confidence<span class="count">14</span></button>
-    <button class="navitem" data-view="illus"><span class="ord">07</span>Illustrations<span class="count">21</span></button>
+    <button class="navitem" data-view="review"><span class="ord">02</span>Review<span class="count" id="nav-review">—</span></button>
+    <button class="navitem" data-view="topics"><span class="ord">03</span>Proposed topics<span class="count" id="nav-topics">—</span></button>
+    <button class="navitem" data-view="entities"><span class="ord">04</span>Entities &amp; merge<span class="count" id="nav-entities">—</span></button>
+    <button class="navitem" data-view="shape"><span class="ord">05</span>Shape review<span class="count" id="nav-shape">—</span></button>
+    <button class="navitem" data-view="lowconf"><span class="ord">06</span>Low-confidence<span class="count" id="nav-lowconf">—</span></button>
+    <button class="navitem" data-view="illus"><span class="ord">07</span>Illustrations<span class="count" id="nav-illus">—</span></button>
     <button class="navitem" data-view="export"><span class="ord">08</span>Export<span class="count">—</span></button>
     <div class="foot">
       Pilot posture — corpus treated as public domain for prototyping.<br><br>
@@ -442,10 +442,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
       <div class="run-wrap">
         <div class="kicker">Batch readout · plumbing, not a designed screen</div>
         <div class="rollup">
-          <div class="cell"><div class="n">4</div><div class="k">Pages ingested</div><div class="sub">Brooklyn News · 1921-06-14</div></div>
-          <div class="cell"><div class="n brand">312</div><div class="k">Content objects</div><div class="sub">~75% ads / classifieds / filler</div></div>
-          <div class="cell"><div class="n">123</div><div class="k">Articles</div><div class="sub">object_class = article</div></div>
-          <div class="cell"><div class="n" style="color:var(--warn)">9</div><div class="k">Unknown shapes</div><div class="sub">held for shape review</div></div>
+          <div class="cell"><div class="n" id="r-pages">—</div><div class="k">Pages ingested</div><div class="sub" id="r-pages-sub">—</div></div>
+          <div class="cell"><div class="n brand" id="r-objects">—</div><div class="k">Content objects</div><div class="sub" id="r-objects-sub">—</div></div>
+          <div class="cell"><div class="n" id="r-articles">—</div><div class="k">Articles</div><div class="sub">object_class = article</div></div>
+          <div class="cell"><div class="n" id="r-unknown" style="color:var(--warn)">—</div><div class="k">Unknown shapes</div><div class="sub">held for shape review</div></div>
         </div>
 
         <div class="stagelist">
@@ -471,52 +471,31 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
             <div class="idx">3</div>
             <div class="nm">Object assembly<small>Group regions · confirm class · collapse filler dupes · stitch jumps</small></div>
             <div class="bar"><span style="width:100%"></span></div>
-            <div class="st done">312 / 312 ✓</div>
+            <div class="st done" id="st-assembly">— ✓</div>
           </div>
           <div class="stage">
             <div class="idx">4</div>
             <div class="nm">Tiered enrichment<small>heavy · light · structured · capture_only — routed by object_class</small></div>
-            <div class="bar run"><span style="width:78%"></span></div>
-            <div class="st run">243 / 312 …</div>
+            <div class="bar" id="bar-enrich"><span style="width:100%"></span></div>
+            <div class="st done" id="st-enrich">—</div>
           </div>
           <div class="stage">
             <div class="idx">5</div>
             <div class="nm">Human review &amp; export<small>this workbench — verdicts, queues, overlay edits</small></div>
-            <div class="bar"><span style="width:15%"></span></div>
-            <div class="st wait">47 / 312</div>
+            <div class="bar" id="bar-review"><span style="width:0%"></span></div>
+            <div class="st wait" id="st-review">—</div>
           </div>
         </div>
 
         <div class="guard">
           <span class="dot"></span>
-          <span class="txt"><b>Output-stability guard: clean.</b> No repetition loops or runaway fields this run. Truncation recovery armed. (SLICE-01: Gemini-Flash degenerated at temp-0; this run is on the pinned Sonnet path.)</span>
-          <span class="mono">0 degenerations · 2 truncations recovered</span>
+          <span class="txt" id="guard-txt"><b>Output-stability guard: clean.</b> No repetition loops or runaway fields this run. Truncation recovery armed. (SLICE-03: Gemini-Flash &amp; GPT-4o degenerate on dense pages; this run is on the pinned Sonnet path.)</span>
+          <span class="mono" id="guard-mono">—</span>
         </div>
 
-        <div style="margin-top:34px" class="kicker">Failures &amp; retries — loud and itemized, never a silent partial</div>
-        <div class="batchtable">
-          <div class="r hd"><span>Object</span><span>Read</span><span>Stage</span><span>Status</span><span></span></div>
-          <div class="r">
-            <div class="id">bn_p2_obj041</div>
-            <div class="nm2">Classified section — “Situations Wanted”</div>
-            <div class="num">structured</div>
-            <div><span class="tag-fail">timeout ×2</span></div>
-            <div><button class="retry">Retry</button></div>
-          </div>
-          <div class="r">
-            <div class="id">bn_p4_obj018</div>
-            <div class="nm2">Dense mid-column stack (4 articles)</div>
-            <div class="num">assembly</div>
-            <div><span class="tag-fail">low reading-order conf</span></div>
-            <div><button class="retry">Retry</button></div>
-          </div>
-          <div class="r">
-            <div class="id">bn_p1_obj003</div>
-            <div class="nm2">Masthead / colophon</div>
-            <div class="num">masthead</div>
-            <div><span class="tag-ok">ok</span></div>
-            <div></div>
-          </div>
+        <div style="margin-top:34px" class="kicker">Per-page ingest — content objects by page (this run)</div>
+        <div class="batchtable" id="perpage">
+          <div class="r hd"><span>Page</span><span>Source record</span><span>Objects</span><span>Articles</span><span>Ads</span></div>
         </div>
       </div>
     </section>
@@ -527,39 +506,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
         <!-- worklist + filters -->
         <aside class="wl">
-          <div class="prog">reviewed <b>47</b> / 312 · 265 left</div>
-          <div class="fbox">
+          <div class="prog" id="wl-prog">loading run…</div>
+          <div class="fbox" id="wl-fbox">
             <h4>Object class</h4>
-            <div class="fopt on"><span class="sw" style="background:var(--c-article)"></span>Article<span class="c">123</span></div>
-            <div class="fopt"><span class="sw" style="background:var(--c-ad)"></span>Advertisement<span class="c">98</span></div>
-            <div class="fopt"><span class="sw" style="background:var(--c-listing)"></span>Listing<span class="c">31</span></div>
-            <div class="fopt"><span class="sw" style="background:var(--c-photo)"></span>Illustration<span class="c">21</span></div>
-            <div class="fopt"><span class="sw" style="background:var(--c-unknown)"></span>Unknown<span class="c">9</span></div>
+            <div id="wl-classes"></div>
             <h4>Flags</h4>
-            <div class="fopt"><span class="sw" style="background:var(--warn)"></span>Suspected hallucination<span class="c">6</span></div>
-            <div class="fopt"><span class="sw" style="background:var(--danger)"></span>Advertorial suspect<span class="c">3</span></div>
-            <div class="fopt"><span class="sw" style="background:var(--tertiary)"></span>Low transcription<span class="c">14</span></div>
+            <div id="wl-flags"></div>
           </div>
-          <div class="wlrow sel">
-            <div class="th"><b style="background:var(--c-article)"></b></div>
-            <div class="m"><div class="t">Steel Strike Spreads</div><div class="s"><span class="dot-st u"></span>p1 · article · news</div></div>
-          </div>
-          <div class="wlrow">
-            <div class="th"><b style="background:var(--c-ad)"></b></div>
-            <div class="m"><div class="t">Palace Theatre — “The Kid”</div><div class="s"><span class="dot-st r"></span>p3 · ad · event</div></div>
-          </div>
-          <div class="wlrow">
-            <div class="th"><b style="background:var(--danger)"></b></div>
-            <div class="m"><div class="t">To The Living…</div><div class="s"><span class="dot-st f"></span>p4 · advertorial?</div></div>
-          </div>
-          <div class="wlrow">
-            <div class="th"><b style="background:var(--c-listing)"></b></div>
-            <div class="m"><div class="t">Situations Wanted</div><div class="s"><span class="dot-st u"></span>p2 · classified</div></div>
-          </div>
-          <div class="wlrow">
-            <div class="th"><b style="background:var(--c-ad)"></b></div>
-            <div class="m"><div class="t">Burn Yellow Jacket Coal</div><div class="s"><span class="dot-st r"></span>filler ×15</div></div>
-          </div>
+          <div id="wl-rows"></div>
         </aside>
 
         <!-- image | claims -->
@@ -570,19 +524,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <span class="kicker">The source, as printed</span>
               <div class="zoomctl"><button>−</button><button>⌂</button><button>+</button></div>
             </div>
-            <div class="page">
+            <div class="page" id="rv-page">
               <div class="col-rule" style="left:33%"></div>
               <div class="col-rule" style="left:66%"></div>
-              <div class="bbox sel" style="left:6%;top:5%;width:60%;height:9%;border-color:var(--c-article)"><span style="background:var(--c-article)">headline</span></div>
-              <div class="bbox" style="left:6%;top:16%;width:26%;height:44%;border-color:var(--c-article)"><span style="background:var(--c-article)">body · col 1</span></div>
-              <div class="bbox" style="left:34%;top:16%;width:26%;height:38%;border-color:var(--c-article)"><span style="background:var(--c-article)">body · col 2 (jump)</span></div>
-              <div class="bbox" style="left:68%;top:6%;width:26%;height:30%;border-color:var(--c-ad)"><span style="background:var(--c-ad);color:#0F1215">ad</span></div>
-              <div class="bbox" style="left:6%;top:64%;width:54%;height:16%;border-color:var(--c-photo)"><span style="background:var(--c-photo)">halftone + caption</span></div>
             </div>
-            <div class="credit">
-              IIIF p16014coll5 · The Brooklyn News, vol. 14 no. 24 · 1921-06-14 · page 1<br>
-              condition_flag: <b style="color:var(--body)">creased</b> (lower-right) — do not bridge physical gaps
-            </div>
+            <div class="credit" id="rv-credit">—</div>
             <br>
             <a class="iiif-cta">Open in page reader <span class="df">deferred surface</span></a>
           </div>
@@ -590,41 +536,21 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
           <!-- CLAIMS -->
           <div class="claims">
             <div class="objhead">
-              <span class="oc-chip" style="background:var(--c-article)">Article</span>
-              <span class="oid">bn_p1_obj007</span>
-              <span class="pg">page 1 · region 007</span>
+              <span class="oc-chip" id="rv-chip" style="background:var(--c-article)">—</span>
+              <span class="oid" id="rv-oid">—</span>
+              <span class="pg" id="rv-pg">—</span>
             </div>
 
             <div class="blk">
               <div class="lab">Transcription <span class="ai-badge">Transcribed by AI — may contain errors</span></div>
-              <div class="transcript">
-                <span class="hl">STEEL STRIKE SPREADS TO CLEVELAND MILLS</span>
-                Some four thousand men walked out at the Corrigan-McKinney works yesterday
-                as the American Federation of Labor extended its wage protest across the
-                Cuyahoga valley. John L. Lewis, addressing a crowd on <span class="loss">[loss]</span>
-                Street, promised the men that the federation would <span class="loss">[illegible]</span>
-                stand behind every striker until the eight-hour day is won.
-              </div>
-              <div class="confline">
-                <span class="conf good">reading-order <b>high</b></span>
-                <span class="conf good">transcription <b>good</b></span>
-                <span class="conf mid">continuation <b>jump → p8, medium</b></span>
-              </div>
+              <div class="transcript" id="rv-transcript">—</div>
+              <div class="confline" id="rv-confline"></div>
             </div>
 
-            <div class="blk">
-              <div class="lab">Enrichment · heavy tier</div>
-              <div class="facts">
-                <span class="fl">object_class</span><span class="fv">article · <span class="mono" style="font-size:12px">article_type = news_report</span></span>
-                <span class="fl">section</span><span class="fv">front_page</span>
-                <span class="fl">topics</span><span class="fv"><div class="chips"><span class="chip brand">Economy &amp; Labor</span><span class="chip prop">proposed: Strikes ⟶ review</span></div></span>
-                <span class="fl">entities</span><span class="fv"><div class="chips"><span class="chip">John L. Lewis</span><span class="chip">American Federation of Labor</span><span class="chip">Cleveland</span><span class="chip">Corrigan-McKinney</span></div></span>
-                <span class="fl">summary</span><span class="fv" style="font-style:italic">AFL wage protest reaches Cleveland’s steel mills as 4,000 walk out.</span>
-              </div>
-              <div class="flagrow">
-                <span class="ic">⚠</span>
-                <span class="t"><b>Faithfulness check:</b> place name after “addressing a crowd on” marked <span class="mono" style="font-size:11px;color:var(--danger)">[loss]</span> — VLM did not invent across the crease. Verify against crop.</span>
-              </div>
+            <div class="blk" id="rv-enrich-blk">
+              <div class="lab" id="rv-enrich-lab">Enrichment</div>
+              <div class="facts" id="rv-facts"></div>
+              <div id="rv-flag"></div>
             </div>
 
             <div class="verdict">
@@ -641,13 +567,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     <!-- ==================== 05 · SHAPE REVIEW ==================== -->
     <section class="view" id="shape">
       <div class="shape-wrap">
-        <div class="shape-queue">
+        <div class="shape-queue" id="shape-queue">
           <div class="vhead" style="padding:26px 0 18px;border:none">
             <div class="kicker" style="color:var(--c-unknown)">Runtime sensor · Principle 18 · locus</div>
             <h1>Shape review</h1>
             <div class="lede">Objects the extractor could not confidently place — <span class="mono" style="font-size:14px">object_class = 'unknown'</span> plus low-fit calls. A misfit never enters the corpus unreviewed. Decide: recurring shape → codify a new class &amp; teach the prompt; one-off → resolve in place.</div>
           </div>
-
+          <!-- the cards below are illustrative; the runtime script replaces them with the
+               real shape-review queue for the loaded run (or an honest empty state). -->
           <div class="scard">
             <div class="top">
               <div class="scrop"><b></b></div>
@@ -702,8 +629,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         <!-- gardened prompt side panel -->
         <aside class="shape-side garden">
           <h3>The gardened prompt</h3>
-          <div class="v">transcription-prompt · v7 · accreted 3 rules this run</div>
-          <div class="rule new">
+          <div class="v" id="garden-v">transcription-prompt · slice01-v1</div>
+          <div class="rule new" id="garden-pending">
             <span class="n">PENDING — from bn_p2_obj055 ×4</span>
             A bold banner naming a lodge/club/church over a name+time list is a <b>fraternal_directory</b>, not a masthead. Emit its rows as structured payload.
           </div>
@@ -731,6 +658,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
       <div class="stub">
         <div class="kicker">Present, not sketched</div>
         <h2>Proposed topics</h2>
+        <div id="topics-real"></div>
         <p>Accept / remap / reject / merge the topics the LLM proposed against the closed controlled vocabulary. Locked until the enrichment run completes, so the vocabulary doesn’t shift mid-pass.</p>
         <ul>
           <li><b>proposed_topic</b> escape hatch surfaced here — e.g. “Strikes” wants promoting under <b>Economy &amp; Labor</b>.</li>
@@ -745,6 +673,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
       <div class="stub">
         <div class="kicker">Present, not sketched</div>
         <h2>Entities &amp; merge</h2>
+        <div id="entities-real"></div>
         <p>Dedup people / places / orgs — and the print-native additions: <b>venue · performer · creative_work</b>. Auto-suggested merges by substring, abbreviation, and prefix; place-hierarchy assignment.</p>
         <ul>
           <li>“A.F. of L.” · “A. F. of L.” · “American Federation of Labor” → one entity.</li>
@@ -759,6 +688,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
       <div class="stub">
         <div class="kicker">Present, not sketched</div>
         <h2>Low-confidence queue</h2>
+        <div id="lowconf-real"></div>
         <p>The escape hatch for reads no first pass could trust — low transcription quality or suspected hallucination. Re-OCR at higher fidelity, route to the two-stage segment→crop→VLM fallback, or hand to human transcription.</p>
         <ul>
           <li>Dense multi-column pages (the Scene stress case) land here when reading-order confidence drops.</li>
@@ -802,8 +732,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 </div>
 
 <div class="hband">
-  <span>Dateline Cleveland · Editorial Workbench — a staff-facing concept sketch</span>
-  <span><b>Pilot material treated as public domain</b> · not the live collection · rights gate before production</span>
+  <span id="hband-left">Dateline Cleveland · Editorial Workbench</span>
+  <span><b>Pilot material treated as public domain</b> · Brooklyn News (PD) · rights gate before production</span>
 </div>
 
 <script>
@@ -832,6 +762,243 @@ document.querySelectorAll('.fopt').forEach(function(o){
 document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
   b.addEventListener('click', function(e){ e.preventDefault(); b.style.transform='scale(.96)'; setTimeout(()=>b.style.transform='',120); });
 });
+
+/* ============================================================
+   SLICE-05 · REAL RUN BINDING
+   Fetch staff-run.json (exported from the live pipeline SQLite store) and
+   replace every concept-mock number with this run's actual stats. The workbench
+   keeps its layout; only the data is real now. Queues with genuinely zero items
+   show an honest empty state, never mock rows.
+   ============================================================ */
+(function(){
+  var CLASS_VAR = { article:'--c-article', ad:'--c-ad', photo:'--c-photo',
+                    listing:'--c-listing', unknown:'--c-unknown' };
+  function colorVar(key){ return 'var(' + (CLASS_VAR[key] || '--c-article') + ')'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function set(id, txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+  function html(id, h){ var el=document.getElementById(id); if(el) el.innerHTML=h; }
+  // Render physical-loss / illegibility markers as the design's .loss spans.
+  function markLoss(t){ return esc(t).replace(/\[(loss|illegible)\]/gi,
+    function(m){ return '<span class="loss">'+m+'</span>'; }); }
+
+  function fail(msg){
+    html('u-banner', 'Internal Editorial Workbench · <b>'+esc(msg)+'</b>');
+  }
+
+  fetch('staff-run.json', { cache:'no-store' })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(render)
+    .catch(function(e){ fail('run stats unavailable — run the pipeline export ('+esc(e.message)+')'); });
+
+  function render(d){
+    if(!d || !d.loaded){ fail((d && d.reason) || 'no run loaded'); return; }
+    var vlm = (d.run && d.run.vlm) || {};
+    var enr = (d.run && d.run.enrich) || null;
+    var engine = vlm.engine || 'unknown';
+
+    // ---- top banner + header ---------------------------------------------
+    html('u-banner', 'Internal Editorial Workbench · ' +
+      (d.live ? '<b>LIVE RUN</b> · ' + esc(engine) + ' · not a replay'
+              : '<b>Fixture run</b> · replayed transcription — not a live VLM call'));
+    set('h-run', (d.issue && d.issue.id ? d.issue.id.split('_')[0] : 'run') +
+      ' · ' + (vlm.provider||'?') + '/' + engine);
+    set('h-pages', d.pages);
+    set('h-objects', d.objectCount);
+    set('h-reviewed', d.review ? d.review.reviewed : 0);
+    set('h-shape', d.unknownShapes);
+    var hShapeEl=document.getElementById('h-shape');
+    if(hShapeEl) hShapeEl.style.color = d.unknownShapes>0 ? 'var(--warn)' : 'var(--ok)';
+
+    // ---- nav counts ------------------------------------------------------
+    set('nav-review', (d.review ? d.review.unreviewed : d.publicationCount) + ' left');
+    set('nav-topics', (d.proposedTopics||[]).length);
+    set('nav-entities', d.entities);
+    var navShape=document.getElementById('nav-shape');
+    if(navShape){ navShape.textContent=d.unknownShapes; navShape.classList.toggle('hot', d.unknownShapes>0); }
+    set('nav-lowconf', d.lowConfidence);
+    set('nav-illus', d.illustrations);
+
+    // ---- RUN view: rollup + stages + per-page ----------------------------
+    set('r-pages', d.pages);
+    set('r-pages-sub', (d.issue && d.issue.label) || '');
+    set('r-objects', d.objectCount);
+    set('r-objects-sub', d.articles + ' articles · ' + d.ads + ' ads · ' + d.tiers.capture_only + ' capture-only');
+    set('r-articles', d.articles);
+    set('r-unknown', d.unknownShapes);
+
+    var enrichedN = d.tiers.heavy + d.tiers.light + d.tiers.structured + d.tiers.capture_only;
+    set('st-assembly', d.objectCount + ' / ' + d.objectCount + ' ✓');
+    set('st-enrich', d.run.enriched ? (enrichedN + ' / ' + d.objectCount + ' ✓') : 'not run');
+    set('st-review', (d.review ? d.review.reviewed : 0) + ' / ' + (d.review ? d.review.total : d.publicationCount));
+    var barReview=document.querySelector('#bar-review > span');
+    if(barReview && d.review && d.review.total) barReview.style.width = Math.round(100*d.review.reviewed/d.review.total)+'%';
+    html('guard-mono', 'pinned ' + esc(engine) + ' · truncation guard armed');
+
+    var pp = '<div class="r hd"><span>Page</span><span>Source record</span><span>Objects</span><span>Articles</span><span>Ads</span></div>';
+    (d.perPage||[]).forEach(function(p){
+      pp += '<div class="r"><div class="id">P.'+p.page+'</div><div class="nm2">rec '+p.record+
+        '</div><div class="num">'+p.objects+'</div><div class="num">'+p.articles+'</div><div class="num">'+p.ads+'</div></div>';
+    });
+    html('perpage', pp);
+
+    // ---- REVIEW: worklist + filters + detail ------------------------------
+    var wl = d.worklist || [];
+    set('wl-prog', 'reviewed ' + (d.review?d.review.reviewed:0) + ' / ' + (d.review?d.review.total:wl.length) +
+      ' · ' + (d.review?d.review.unreviewed:wl.length) + ' left');
+
+    // object-class filter facets from real distribution
+    var LABEL = { article:'Article', advertisement:'Advertisement', illustration:'Illustration',
+      legal_notice:'Legal notice', classified_section:'Classified', coupon:'Coupon',
+      masthead:'Masthead', caption:'Caption', unknown:'Unknown' };
+    var COLORKEY = { article:'article', advertisement:'ad', illustration:'photo',
+      legal_notice:'listing', classified_section:'listing', coupon:'ad', masthead:'listing', unknown:'unknown' };
+    var cc = d.worklistClassCounts || {};
+    var classHtml = '';
+    Object.keys(cc).sort(function(a,b){ return cc[b]-cc[a]; }).forEach(function(k, i){
+      classHtml += '<div class="fopt'+(i===0?' on':'')+'"><span class="sw" style="background:'+
+        colorVar(COLORKEY[k]||'article')+'"></span>'+esc(LABEL[k]||k.replace(/_/g,' '))+
+        '<span class="c">'+cc[k]+'</span></div>';
+    });
+    html('wl-classes', classHtml);
+
+    var advCount = wl.filter(function(o){ return o.isAdvertorial; }).length;
+    var lossCount = wl.filter(function(o){ return /\[(loss|illegible)\]/i.test(o.transcript||''); }).length;
+    html('wl-flags',
+      '<div class="fopt"><span class="sw" style="background:var(--danger)"></span>Advertorial suspect<span class="c">'+advCount+'</span></div>'+
+      '<div class="fopt"><span class="sw" style="background:var(--warn)"></span>Faithfulness marks <span class="c">'+lossCount+'</span></div>'+
+      '<div class="fopt"><span class="sw" style="background:var(--tertiary)"></span>Low transcription<span class="c">'+d.lowConfidence+'</span></div>');
+
+    var STDOT = { unreviewed:'u', reviewed:'r', flagged:'f' };
+    var rowsHtml = '';
+    wl.forEach(function(o, i){
+      var dot = STDOT[o.status] || 'u';
+      var meta = 'p'+o.page+' · '+esc(o.class.replace(/_/g,' '))+(o.tier?' · '+esc(o.tier):'');
+      rowsHtml += '<div class="wlrow'+(i===0?' sel':'')+'" data-i="'+i+'">'+
+        '<div class="th"><b style="background:'+colorVar(o.color)+'"></b></div>'+
+        '<div class="m"><div class="t">'+esc(o.title)+'</div>'+
+        '<div class="s"><span class="dot-st '+dot+'"></span>'+meta+'</div></div></div>';
+    });
+    html('wl-rows', rowsHtml || '<div class="prog">No publication objects in this run.</div>');
+
+    function renderDetail(o){
+      if(!o) return;
+      var chip=document.getElementById('rv-chip');
+      chip.textContent=o.classLabel||o.class; chip.style.background=colorVar(o.color);
+      set('rv-oid', o.id);
+      set('rv-pg', 'page '+o.page+' · seq '+o.seq);
+      // The REAL page image (SLICE-06), harvested from ContentDM. Render it in the
+      // source frame; fall back to the striped column-rule placeholder if absent.
+      var page=document.getElementById('rv-page');
+      if(page){
+        if(o.pageImage){
+          var href=o.iiifId ? o.iiifId+'/full/full/0/default.jpg' : null;
+          page.style.background='var(--sunken)';
+          page.style.backgroundImage='none';
+          page.innerHTML='<a '+(href?'href="'+esc(href)+'" target="_blank" rel="noreferrer" title="Open full-res on ContentDM IIIF"':'')+
+            ' style="display:block;position:absolute;inset:0;overflow:auto">'+
+            '<img src="'+esc(o.pageImage)+'" alt="source page, as printed" style="width:100%;display:block">'+
+            '</a>';
+        } else {
+          page.style.backgroundImage='';
+          page.innerHTML='<div class="col-rule" style="left:33%"></div><div class="col-rule" style="left:66%"></div>';
+        }
+      }
+      html('rv-credit', 'SOURCE: BROOKLYN NEWS · '+esc((d.issue&&d.issue.label)||'')+
+        ' · P.'+o.page+' · SEQ '+o.seq+'<br>'+
+        'transcribed by '+esc((vlm.provider||'')+'/'+engine)+
+        (o.iiifId ? '<br>IIIF: '+esc(o.iiifId) : ' · region_bbox: null'));
+      // transcription: first line as headline, remainder as body
+      var lines=(o.transcript||'').split('\n'); var head=lines.shift()||'';
+      var bodyTxt=lines.join('\n').trim();
+      html('rv-transcript', '<span class="hl">'+markLoss(head)+'</span>'+markLoss(bodyTxt));
+      html('rv-confline',
+        '<span class="conf"><b>'+esc(o.class)+'</b> · '+(o.role?esc(o.role):'—')+'</span>'+
+        '<span class="conf">tier <b>'+esc(o.tier||'—')+'</b></span>'+
+        '<span class="conf">per-field confidence <b>not emitted this run</b></span>');
+      // enrichment facts
+      set('rv-enrich-lab', 'Enrichment' + (o.tier ? ' · '+o.tier+' tier' : ''));
+      var facts='';
+      var typeStr = 'article_type = '+(o.articleType||'—');
+      facts += '<span class="fl">object_class</span><span class="fv">'+esc(o.class)+
+        ' · <span class="mono" style="font-size:12px">'+esc(typeStr)+'</span></span>';
+      if(o.topics && o.topics.length){
+        var tchips=o.topics.map(function(t){
+          return t.proposed ? '<span class="chip prop">proposed: '+esc(t.name)+' ⟶ review</span>'
+                            : '<span class="chip brand">'+esc(t.name)+'</span>'; }).join('');
+        facts += '<span class="fl">topics</span><span class="fv"><div class="chips">'+tchips+'</div></span>';
+      }
+      if(o.entities && o.entities.length){
+        var echips=o.entities.slice(0,8).map(function(n){ return '<span class="chip">'+esc(n)+'</span>'; }).join('');
+        facts += '<span class="fl">entities</span><span class="fv"><div class="chips">'+echips+'</div></span>';
+      }
+      if(o.eventType) facts += '<span class="fl">event_type</span><span class="fv">'+esc(o.eventType)+'</span>';
+      if(o.summary) facts += '<span class="fl">summary</span><span class="fv" style="font-style:italic">'+esc(o.summary)+'</span>';
+      if(!o.tier || o.tier==='capture_only') facts += '<span class="fl">note</span><span class="fv">captured, no enrichment spent (Principle 16 routing).</span>';
+      html('rv-facts', facts);
+      // flags: physical loss faithfulness note + advertorial
+      var flag='';
+      if(/\[(loss|illegible)\]/i.test(o.transcript||'')){
+        flag += '<div class="flagrow"><span class="ic">⚠</span><span class="t"><b>Faithfulness check:</b> '+
+          'the read carries <span class="mono" style="font-size:11px;color:var(--danger)">[loss]</span>/'+
+          '<span class="mono" style="font-size:11px;color:var(--danger)">[illegible]</span> markers — the VLM did not invent across the gap. Verify against the crop.</span></div>';
+      }
+      if(o.isAdvertorial){
+        flag += '<div class="advert-flag"><span class="b">advertorial?</span><span class="t">Flagged as an advertorial — reads as editorial but pitches a product/service. Kept out of the journalism corpus until a human confirms.</span></div>';
+      }
+      html('rv-flag', flag);
+    }
+    if(wl.length) renderDetail(wl[0]);
+
+    // rebind worklist selection to the real rows
+    document.querySelectorAll('#wl-rows .wlrow').forEach(function(row){
+      row.addEventListener('click', function(){
+        document.querySelectorAll('#wl-rows .wlrow').forEach(function(r){ r.classList.remove('sel'); });
+        row.classList.add('sel');
+        renderDetail(wl[+row.dataset.i]);
+      });
+    });
+
+    // ---- SHAPE REVIEW: real queue or honest empty state -------------------
+    var sq=document.getElementById('shape-queue');
+    if(sq && d.unknownShapes===0){
+      sq.querySelectorAll('.scard').forEach(function(c){ c.remove(); });
+      var empty=document.createElement('div');
+      empty.className='guard';
+      empty.style.borderLeftColor='var(--ok)';
+      empty.innerHTML='<span class="dot"></span><span class="txt"><b>No shapes held for review this run.</b> '+
+        'Every one of the '+d.objectCount+' objects was placed into a known class — <span class="mono" style="font-size:11px">object_class = \'unknown\'</span> count is 0. '+
+        'The sensor is armed; a misfit would surface here (Principle 18).</span>';
+      sq.appendChild(empty);
+      var gp=document.getElementById('garden-pending'); if(gp) gp.style.display='none';
+      set('garden-v', 'transcription-prompt · '+((d.run&&d.run.runId)||'slice01-v1')+' · 0 pending this run');
+    }
+
+    // ---- PROPOSED TOPICS + LOW-CONFIDENCE stubs (real data line) ----------
+    var pts=d.proposedTopics||[];
+    if(pts.length){
+      var chips=pts.map(function(t){ return '<span class="chip prop">'+esc(t.name)+'</span>'; }).join(' ');
+      html('topics-real', '<p style="color:var(--body)"><b>This run surfaced '+pts.length+
+        ' proposed topic'+(pts.length===1?'':'s')+'</b> the closed vocabulary did not carry:</p>'+
+        '<div class="chips" style="margin:6px 0 4px">'+chips+'</div>');
+    } else {
+      html('topics-real', '<p style="color:var(--body)"><b>No proposed topics this run</b> — every extracted subject matched the controlled vocabulary.</p>');
+    }
+    if(d.lowConfidence>0){
+      html('lowconf-real', '<p style="color:var(--body)"><b>'+d.lowConfidence+' object'+(d.lowConfidence===1?'':'s')+
+        ' below the confidence threshold this run.</b></p>');
+    } else {
+      html('lowconf-real', '<p style="color:var(--body)"><b>0 items this run.</b> The pipeline emitted no per-object transcription confidence, so nothing is queued here — an honest empty state, not a claim of perfection.</p>');
+    }
+    html('entities-real', '<p style="color:var(--body)"><b>This run extracted '+d.entities+
+      ' distinct entit'+(d.entities===1?'y':'ies')+'</b> (people / places / orgs) across the '+
+      d.publicationCount+' publication objects — the raw material the merge tools below would dedup.</p>');
+
+    // ---- footer ----------------------------------------------------------
+    set('hband-left', (d.live ? 'Live pipeline run · '+engine : 'Fixture run')+
+      ' · Dateline Cleveland · Editorial Workbench');
+  }
+})();
 </script>
 </body>
 </html>

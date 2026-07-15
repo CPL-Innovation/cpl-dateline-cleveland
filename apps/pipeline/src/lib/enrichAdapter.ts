@@ -18,6 +18,7 @@ import {
   CONTROLLED_TOPICS,
   type Enrichment,
 } from "./enrich-prompt.ts";
+import { fetchRetry } from "./http.ts";
 
 export interface EnrichArgs {
   issueId: string;
@@ -106,10 +107,11 @@ async function callAnthropic(args: EnrichArgs): Promise<unknown> {
   const body = {
     model: ENRICH_MODEL,
     max_tokens: 4096,
+    // NB: no `temperature` — deprecated on claude-sonnet-5-class models (400 error).
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: promptFor(args) }],
   };
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetchRetry("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -117,7 +119,7 @@ async function callAnthropic(args: EnrichArgs): Promise<unknown> {
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify(body),
-  });
+  }, { label: `Anthropic enrich (${ENRICH_MODEL})` });
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as { content: Array<{ text?: string }> };
   return parseObject(json.content.map((c) => c.text ?? "").join(""));
@@ -137,11 +139,11 @@ async function callGemini(args: EnrichArgs): Promise<unknown> {
       maxOutputTokens: 4096,
     },
   };
-  const res = await fetch(url, {
+  const res = await fetchRetry(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }, { label: `Gemini enrich (${ENRICH_MODEL})` });
   if (!res.ok) throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
@@ -163,11 +165,11 @@ async function callOpenAI(args: EnrichArgs): Promise<unknown> {
       { role: "user", content: promptFor(args) },
     ],
   };
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetchRetry("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
     body: JSON.stringify(body),
-  });
+  }, { label: `OpenAI enrich (${ENRICH_MODEL})` });
   if (!res.ok) throw new Error(`OpenAI API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     choices: Array<{ message: { content: string } }>;

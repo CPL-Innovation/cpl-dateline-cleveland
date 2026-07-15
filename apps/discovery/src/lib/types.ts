@@ -24,6 +24,8 @@ export interface CalendarEvent {
   clipNote: string;
   transcript: string;
   facts: Fact[];
+  pageImage?: string | null; // SLICE-06: real ContentDM page image (BASE-relative path)
+  iiifId?: string | null; // SLICE-06: canonical IIIF identifier for provenance
 }
 
 export interface CalendarSection {
@@ -56,6 +58,8 @@ export interface IndexItem {
   credit: string;
   clipNote: string;
   transcript: string;
+  pageImage?: string | null; // SLICE-06: real ContentDM page image (BASE-relative path)
+  iiifId?: string | null; // SLICE-06: canonical IIIF identifier for provenance
 }
 
 export interface FacetValue {

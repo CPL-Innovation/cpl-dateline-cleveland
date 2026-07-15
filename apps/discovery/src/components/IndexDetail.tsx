@@ -29,7 +29,7 @@ export function IndexDetail({ item, dataset, onBack }: { item: IndexItem; datase
 
       <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: 48, marginTop: 36 }}>
         <div>
-          <ClippingFrame height={480} clipNote={item.clipNote} credit={item.credit} />
+          <ClippingFrame height={480} clipNote={item.clipNote} credit={item.credit} pageImage={item.pageImage} iiifId={item.iiifId} />
           <Transcription text={item.transcript} />
         </div>
 
