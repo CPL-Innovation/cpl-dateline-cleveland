@@ -1,5 +1,6 @@
 import type { CalendarEvent } from '../lib/types';
 import { C, MONO, SERIF } from '../lib/ui';
+import { sourcePhrase } from '../lib/calendar';
 import { BackBar, ClippingFrame, FactsTable, HonestyBox, Transcription } from './detailParts';
 
 export function EventDetail({ event, onBack }: { event: CalendarEvent; onBack: () => void }) {
@@ -24,7 +25,7 @@ export function EventDetail({ event, onBack }: { event: CalendarEvent; onBack: (
 
           <FactsTable facts={event.facts} />
 
-          <HonestyBox>EVENT MACHINE-EXTRACTED FROM PERIOD ADVERTISING · CURATOR-REVIEWABLE · NOT EDITORIAL FACT</HonestyBox>
+          <HonestyBox>EVENT MACHINE-EXTRACTED FROM {sourcePhrase(event.sourceKind)} · CURATOR-REVIEWABLE · NOT EDITORIAL FACT</HonestyBox>
         </div>
       </div>
     </div>

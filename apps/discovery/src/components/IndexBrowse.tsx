@@ -86,7 +86,9 @@ function FacetRail({ dataset, selected, onToggle, onClearAll }: Omit<Props, 'onO
       <div style={{ marginTop: 26, fontFamily: MONO, fontSize: 9.5, lineHeight: 1.7, color: C.tertiary, borderTop: `1px solid ${C.hairMed}`, paddingTop: 12 }}>
         {dataset.countsAreMock
           ? 'ALL FACETS MACHINE-EXTRACTED · CURATOR-REVIEWABLE · COUNTS ARE MOCK'
-          : 'TYPE & PICTURE FACETS ARE REAL SLICE-01 COUNTS · CURATOR-REVIEWABLE'}
+          : dataset.facetDefs.find((g) => g.key === 'topic')?.values.length
+            ? 'ALL FACETS MACHINE-EXTRACTED FROM ONE REAL ISSUE · CURATOR-REVIEWABLE'
+            : 'TYPE & PICTURE FACETS ARE REAL SLICE-01 COUNTS · CURATOR-REVIEWABLE'}
       </div>
     </div>
   );

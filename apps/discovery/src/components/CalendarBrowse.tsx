@@ -1,12 +1,6 @@
 import type { Dataset } from '../lib/types';
 import { C, MONO, SANS, SERIF } from '../lib/ui';
-
-const SEC_COLORS: Record<string, string> = {
-  MUSIC: '#4298B5',
-  FILM: '#FF8D7E',
-  THEATER: '#56944F',
-  'SPORT & MORE': '#F1C400',
-};
+import { deckKind } from '../lib/calendar';
 
 interface Props {
   dataset: Dataset;
@@ -18,10 +12,12 @@ interface Props {
 
 export function CalendarBrowse({ dataset, weekIdx, onPickWeek, onOpenEvent, onBackToPopulated }: Props) {
   const week = dataset.weeks[weekIdx] ?? dataset.weeks[0];
-  const weekLabel = week.hasData
-    ? 'July 23–29, 1970'
-    : week.sub.charAt(0) + week.sub.slice(1).toLowerCase() + ', ' + week.year;
+  // Label derives from the week data — no hardcoded date literal (SLICE-04).
+  const weekLabel = week.sub.charAt(0) + week.sub.slice(1).toLowerCase() + ', ' + week.year;
   const weekStamp = week.sub + ' ' + week.year;
+  // Deck framing derives from the actual event mix (civic-dominant vs nightlife),
+  // not from the dataset's mode — same component, corpus-aware.
+  const civic = deckKind(dataset.sections) === 'civic';
 
   return (
     <div className="dc-shell" style={{ padding: '0 32px' }}>
@@ -47,8 +43,17 @@ export function CalendarBrowse({ dataset, weekIdx, onPickWeek, onOpenEvent, onBa
           </div>
         </div>
         <div style={{ fontFamily: SERIF, fontSize: 16.5, lineHeight: 1.55, color: C.secondary, paddingBottom: 6 }}>
-          Concerts, films, theater, races — assembled from the articles <em>and the ads</em>. A question no catalog
-          search can answer; pick a week and the city's night life sets itself in type.
+          {civic ? (
+            <>
+              Lodge halls, church basements, school socials, and the odd picture show — assembled from the articles{' '}
+              <em>and the ads</em>. A community weekly's week is civic life, and no catalog ever indexed it.
+            </>
+          ) : (
+            <>
+              Concerts, films, theater, races — assembled from the articles <em>and the ads</em>. A question no catalog
+              search can answer; pick a week and the city's night life sets itself in type.
+            </>
+          )}
         </div>
       </div>
 
@@ -110,12 +115,12 @@ function Listings({ dataset, onOpenEvent }: { dataset: Dataset; onOpenEvent: (id
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, marginTop: 16, borderTop: `2px solid ${C.navy}`, marginBottom: 80 }}>
         {dataset.sections.map((sec) => {
-          const color = SEC_COLORS[sec.name] || C.navy;
+          const color = sec.color || C.navy;
           return (
             <div key={sec.name} style={{ padding: '18px 20px 24px 0', marginRight: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 9, height: 9, background: color }} />
-                <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, letterSpacing: '0.2em', color: C.ink }}>{sec.name}</div>
+                <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, letterSpacing: '0.2em', color: C.ink }}>{sec.name.toUpperCase()}</div>
                 <div style={{ flex: 1, height: 1, background: C.hairLight }} />
               </div>
               {sec.events.map((ev) => (

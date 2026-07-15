@@ -10,6 +10,7 @@ import type {
   IndexItem,
   WeekCell,
 } from '../lib/types';
+import { buildSections } from '../lib/calendar';
 
 const weeks: WeekCell[] = [
   { year: '1924', sub: 'FEB 1–7', hasData: false },
@@ -20,12 +21,16 @@ const weeks: WeekCell[] = [
   { year: '1974', sub: 'AUG 15–21', hasData: false },
 ];
 
-const sections: CalendarSection[] = [
+// Authoring convenience: events grouped for readability. The real display sections
+// are DERIVED from each event's event_type below (buildSections) — SLICE-04.
+const mockGrouped: CalendarSection[] = [
   {
     name: 'MUSIC',
     events: [
       {
         id: 'sly',
+        eventType: 'concert',
+        sourceKind: 'ad',
         stamp: 'PUBLIC AUDITORIUM · SAT JUL 25 · 8:30 PM',
         title: 'Sly & The Family Stone',
         blurb: 'One night only downtown — the whole family, "and a light show besides."',
@@ -46,6 +51,8 @@ const sections: CalendarSection[] = [
       },
       {
         id: 'mathis',
+        eventType: 'concert',
+        sourceKind: 'listing',
         stamp: 'BLOSSOM MUSIC CENTER · TUE JUL 28 · 8:30 PM',
         title: 'Johnny Mathis at Blossom',
         blurb: 'Under the pavilion with the Cleveland Orchestra pops — lawn seats a dollar.',
@@ -65,6 +72,8 @@ const sections: CalendarSection[] = [
       },
       {
         id: 'agora',
+        eventType: 'concert',
+        sourceKind: 'listing',
         stamp: 'THE AGORA, E. 24TH ST · ALL WEEK · 9 PM',
         title: 'Damnation of Adam Blessing',
         blurb: 'The hometown heavies hold the club through Wednesday; no cover Monday.',
@@ -89,6 +98,8 @@ const sections: CalendarSection[] = [
     events: [
       {
         id: 'woodstock',
+        eventType: 'film',
+        sourceKind: 'ad',
         stamp: 'HIPPODROME, EUCLID AVE · DAILY · 4 SHOWS',
         title: '“Woodstock” — held over',
         blurb: '“Three days of peace & music,” fifth big week downtown.',
@@ -108,6 +119,8 @@ const sections: CalendarSection[] = [
       },
       {
         id: 'mayfield',
+        eventType: 'film',
+        sourceKind: 'ad',
         stamp: 'OLD MAYFIELD, COVENTRY · FRI–SUN',
         title: 'Old Mayfield film calendar',
         blurb: 'The repertory house runs “Z”, then a Marx Brothers double bill Sunday.',
@@ -127,6 +140,8 @@ const sections: CalendarSection[] = [
       },
       {
         id: 'drivein',
+        eventType: 'film',
+        sourceKind: 'ad',
         stamp: 'MEMPHIS DRIVE-IN, BROOKLYN · NIGHTLY · DUSK',
         title: 'Drive-in triple feature',
         blurb: 'Three at dusk on Memphis Avenue; kids free in the back seat.',
@@ -151,6 +166,8 @@ const sections: CalendarSection[] = [
     events: [
       {
         id: 'musicarnival',
+        eventType: 'theater',
+        sourceKind: 'ad',
         stamp: 'MUSICARNIVAL TENT · NIGHTLY EXC. MON · 8:40 PM',
         title: '“Fiddler on the Roof” in the round',
         blurb: 'The air-conditioned tent’s big summer musical, second week.',
@@ -170,6 +187,8 @@ const sections: CalendarSection[] = [
       },
       {
         id: 'cainpark',
+        eventType: 'theater',
+        sourceKind: 'ad',
         stamp: 'CAIN PARK, CLEVELAND HTS · FRI–SAT · 8:30 PM',
         title: 'Cain Park under the stars',
         blurb: 'The open-air amphitheater closes its July bill this weekend.',
@@ -194,6 +213,8 @@ const sections: CalendarSection[] = [
     events: [
       {
         id: 'randall',
+        eventType: 'race',
+        sourceKind: 'ad',
         stamp: 'RANDALL PARK · NIGHTLY · POST 8 PM',
         title: 'Thoroughbreds at Randall Park',
         blurb: 'Nine races nightly; the feature goes Saturday.',
@@ -213,6 +234,8 @@ const sections: CalendarSection[] = [
       },
       {
         id: 'indians',
+        eventType: 'other',
+        sourceKind: 'ad',
         stamp: 'MUNICIPAL STADIUM · SUN JUL 26 · 1:30 PM',
         title: 'Indians vs. Yankees, doubleheader',
         blurb: 'Sunday twin bill on the lakefront; Bat Day for the kids.',
@@ -232,6 +255,8 @@ const sections: CalendarSection[] = [
       },
       {
         id: 'artmuseum',
+        eventType: 'exhibition',
+        sourceKind: 'listing',
         stamp: 'CLEVELAND MUSEUM OF ART · ALL WEEK · FREE',
         title: 'Summer exhibition, East Wing',
         blurb: 'The museum’s summer show runs daily; admission free as ever.',
@@ -252,6 +277,11 @@ const sections: CalendarSection[] = [
     ],
   },
 ];
+
+// Re-group by event_type — same logic REAL mode uses. The 1970 nightlife mix yields
+// Music / Film / Theater / Sport & Racing (+ Exhibitions / Other), proving the calendar
+// is data-driven, not a template hardcoded to four columns.
+const sections: CalendarSection[] = buildSections(mockGrouped.flatMap((g) => g.events));
 
 const indexItems: IndexItem[] = [
   {

@@ -6,7 +6,7 @@ pilot corpus). An npm-workspaces monorepo with two surfaces over one shared cont
 
 | Workspace | What it is |
 |---|---|
-| [`apps/pipeline`](apps/pipeline) — `@dateline/pipeline` | The enrichment pipeline. `image → VLM → structured content-objects → SQLite → viewable`. Zero-dependency Node (built-in `node:sqlite` + TypeScript type-stripping, no build step). This is **SLICE-01**. |
+| [`apps/pipeline`](apps/pipeline) — `@dateline/pipeline` | The enrichment pipeline. `image → VLM → structured content-objects → SQLite → viewable` (**SLICE-01**), then `content-objects → tiered Stage-4 enrichment → topics · names · events · advertorial flag` (**SLICE-02**). Zero-dependency Node (built-in `node:sqlite` + TypeScript type-stripping, no build step). |
 | [`apps/discovery`](apps/discovery) — `@dateline/discovery` | The patron **discovery SPA** (*This Week, Then* cultural calendar + *The Index* faceted browse) **and** the staff **Editorial Workbench** at `/staff`. React + Vite. Implemented from the Claude Design prototypes. |
 
 The seam between them: `apps/discovery`'s **REAL DATA** toggle reads the pipeline's SQLite
@@ -26,9 +26,15 @@ Requires **Node ≥ 22.5**. One install at the root covers both workspaces.
 npm install          # installs all workspaces (deps hoist to the root)
 
 npm run pipeline     # apps/pipeline: ingest + view (image → VLM → SQLite → out/view.html)
+npm run enrich       # apps/pipeline: SLICE-02 Stage-4 enrichment overlay (topics · names · events)
 npm run dev          # apps/discovery: dev server at http://localhost:5180  (+ /staff)
 npm run build        # apps/discovery: production static build → apps/discovery/dist
 ```
+
+A full pilot run is `npm run pipeline && npm run enrich && npm run dev`, then flip the
+SPA's **REAL DATA** toggle. `npm run enrich` defaults to the `fixture` provider (the session
+model's Stage-4 pass, no API key needed); set `ENRICH_PROVIDER=anthropic|gemini|openai`
+(+ the matching key in `apps/pipeline/.env`) for a live enrichment pass.
 
 Other root scripts: `npm run ingest`, `npm run view`, `npm run probe` (pipeline),
 `npm run export-real`, `npm run preview` (discovery). Each delegates to the right workspace;
@@ -40,9 +46,9 @@ you can also `cd` into a workspace and run its own scripts.
 cpl-dateline-cleveland/
 ├─ apps/
 │  ├─ pipeline/          # @dateline/pipeline — SLICE-01 enrichment pipeline
-│  │  ├─ src/            #   ingest · view · probe · lib (vlmExtract, explode, db, …)
-│  │  ├─ migrations/     #   001_init.sql — the content_objects store (source of truth)
-│  │  ├─ fixtures/       #   session-VLM transcriptions replayed by the `fixture` provider
+│  │  ├─ src/            #   ingest · enrich · view · probe · lib (vlmExtract, enrichAdapter, explode, db, …)
+│  │  ├─ migrations/     #   001_init.sql (content_objects) + 002_enrichment.sql (topics/entities/events)
+│  │  ├─ fixtures/       #   session-model transcriptions (VLM) + enrichment/ (Stage-4) replayed by `fixture`
 │  │  ├─ inbox/          #   the 4 Brooklyn News page images (gitignored; PD)
 │  │  ├─ data/           #   slice01.sqlite (gitignored, prototype store)
 │  │  └─ .env.example    #   VLM provider keys (copy → .env for a live run)
@@ -67,7 +73,8 @@ cpl-dateline-cleveland/
   `build/_FROM-BUILD.md`). Implementation detail lives in this code.
 
 Deferred surfaces (CTA/stub only): IIIF deep-zoom page reader, working search,
-Front Pages / Places / About tabs, real scan crops, entity/topic/event enrichment.
+Front Pages / Places / About tabs, real scan crops, semantic-search embeddings,
+cross-issue entity dedup, the staff workbench wired to live run stats.
 
 ## License
 

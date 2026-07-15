@@ -1,0 +1,970 @@
+{
+  "7618:0": {
+    "topics": [{"name": "Local Government & Civic", "confidence": "high"}, {"name": "Business & Commerce", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["civic association", "community improvement", "Southwestern Civic and Business Men's Association"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Southwestern Civic and Business Men's Association", "type": "organization", "role": "subject"},
+      {"name": "Brooklyn", "type": "place", "role": "mentioned"},
+      {"name": "Pearl Road", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "The Southwestern Civic and Business Men's Association opens its 1924 season pushing a slate of neighborhood improvements despite an icy first meeting.",
+    "context_hint": "Brooklyn was a semi-rural southwest Cleveland community; its business-men's association functioned as an informal local government.",
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Southwestern Civic and Business Men's Association meeting", "event_type": "civic", "venue": "Association hall, 4154 Pearl Rd.", "start_text": "Monday evening", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:1": {
+    "topics": [{"name": "Local Government & Civic", "confidence": "high"}, {"name": "Business & Commerce", "confidence": "low"}],
+    "proposed_topic": null,
+    "tags": ["rural mail service", "postal delivery", "Parma Township"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Ira D. Siegfried", "type": "person", "role": "subject"},
+      {"name": "Southwestern Civic and Business Men's Association", "type": "organization", "role": "subject"},
+      {"name": "Parma Township", "type": "place", "role": "mentioned"},
+      {"name": "Post Office Department", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "A committee moves to win city mail delivery for north Parma Township, taking the case to the postal authorities.",
+    "context_hint": "Extending city carrier routes to unincorporated townships was a common civic-association fight in the 1920s.",
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:2": {
+    "topics": [{"name": "Schools & Education", "confidence": "high"}, {"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["parent-teacher association", "mothers' clubs", "Brooklyn schools"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Brooklyn Heights", "type": "place", "role": "mentioned"},
+      {"name": "Parma", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "Parent-teacher and mothers' clubs are now organized across every Brooklyn-district school, with a roster of presiding officers.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:3": {
+    "topics": [{"name": "Schools & Education", "confidence": "high"}, {"name": "Clubs & Societies", "confidence": "medium"}],
+    "proposed_topic": "Amusements & Entertainment",
+    "tags": ["masquerade", "PTA dance", "Broadview school"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Broadview Parent-Teachers' Association", "type": "organization", "role": "subject"},
+      {"name": "Broadview School", "type": "place", "role": "venue"},
+      {"name": "Gimbel's Orchestra", "type": "performer", "role": "performer"}
+    ],
+    "summary": "Broadview PTA plans a prize masquerade dance for February 9 with Gimbel's orchestra and costume prizes.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Broadview PTA prize masquerade", "event_type": "civic", "venue": "Broadview School", "start_text": "Sat. evening, Feb. 9", "recurrence_text": null, "performers": ["Gimbel's Orchestra"], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:4": {
+    "topics": [{"name": "Schools & Education", "confidence": "high"}, {"name": "Churches & Religion", "confidence": "low"}],
+    "proposed_topic": null,
+    "tags": ["parent-teacher association", "Ben Franklin school", "Korea lecture"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Ben Franklin Parent-Teachers' Association", "type": "organization", "role": "subject"},
+      {"name": "Bessie Dalton", "type": "person", "role": "mentioned"},
+      {"name": "S. F. Brockman", "type": "person", "role": "performer"}
+    ],
+    "summary": "The Ben Franklin PTA hears a talk on Korea and new school-orchestra music; its next meeting is February 20.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Ben Franklin PTA meeting", "event_type": "civic", "venue": "Ben Franklin School", "start_text": "Feb. 20", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:5": {
+    "topics": [{"name": "Schools & Education", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["parent-teacher association", "Parma-Ridgewood"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Parma-Ridgewood Parent-Teachers", "type": "organization", "role": "subject"},
+      {"name": "Elsie Cleverdon", "type": "person", "role": "performer"}
+    ],
+    "summary": "Parma-Ridgewood PTA meets February 6 to hear a county board of education speaker.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Parma-Ridgewood PTA meeting", "event_type": "civic", "venue": null, "start_text": "Tuesday, Feb. 6", "recurrence_text": null, "performers": ["Mrs. Elsie Cleverdon"], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:6": {
+    "topics": [{"name": "Schools & Education", "confidence": "high"}, {"name": "Clubs & Societies", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["quilting", "Denison PTA"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Denison Parent-Teachers' Association", "type": "organization", "role": "subject"}],
+    "summary": "The Denison PTA holds an all-day quilting at the school on February 7.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Denison PTA all-day quilting", "event_type": "civic", "venue": "Denison School", "start_text": "Thursday, Feb. 7", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:7": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}, {"name": "Schools & Education", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["mothers' club", "bazaar", "Congress of Mothers"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Dawning Mothers' Club", "type": "organization", "role": "subject"},
+      {"name": "Hollenden Hotel", "type": "venue", "role": "venue"}
+    ],
+    "summary": "The Dawning Mothers' Club meets February 14 to prepare its bazaar and coordinate a trip to the Congress of Mothers.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Dawning Mothers' Club meeting", "event_type": "civic", "venue": "Dawning School", "start_text": "Thursday, Feb. 14", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:8": {
+    "topics": [{"name": "Schools & Education", "confidence": "high"}, {"name": "Clubs & Societies", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["PTA", "oyster supper", "sewing meeting", "Brooklyn Heights"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Brooklyn Heights Parent-Teachers' Association", "type": "organization", "role": "subject"}],
+    "summary": "Brooklyn Heights PTA holds an all-day sewing meeting February 5 and an oyster supper and dance February 15.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Brooklyn Heights PTA oyster supper and dance", "event_type": "civic", "venue": "Brooklyn Heights School", "start_text": "February 15", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:9": {
+    "topics": [{"name": "Sports & Recreation", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["bowling", "tournament", "Brooklyn Catholic Club"],
+    "article_type": "sports_box_score",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Brooklyn Catholic Club", "type": "organization", "role": "venue"},
+      {"name": "Al Miller", "type": "person", "role": "subject"},
+      {"name": "Al Kopl", "type": "person", "role": "mentioned"}
+    ],
+    "summary": "Miller and Augustine lead the doubles and Al Kopl the singles in the Brooklyn Catholic Club bowling tournament.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:10": {
+    "topics": [{"name": "Health & Medicine", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["accident", "gas asphyxiation"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Albert Kraft", "type": "person", "role": "subject"},
+      {"name": "E. Engler", "type": "person", "role": "mentioned"}
+    ],
+    "summary": "Albert Kraft is overcome by gas thawing a frozen radiator in a Brooklyn garage.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:14": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["business growth", "used cars", "advertiser booster"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "W. J. Lodrick Motor Co.", "type": "organization", "role": "subject"},
+      {"name": "Pearl Road", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "The W. J. Lodrick Motor Co. adds a reconditioning garage as one of several Brooklyn businesses reporting a strong start to 1924.",
+    "context_hint": "The 'Reports Show Business Is Good' banner grouped several advertiser-flattering business items — booster content in news form.",
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:15": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["coal", "business report", "advertiser booster"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "Brooklyn Coal and Coke Co.", "type": "organization", "role": "subject"},
+      {"name": "W. B. McDiarmid", "type": "person", "role": "mentioned"}
+    ],
+    "summary": "The Brooklyn Coal and Coke Co. reports its biggest-tonnage January and plans to hire.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:16": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["batteries", "business report", "advertiser booster"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "Southwest Battery Co.", "type": "organization", "role": "subject"},
+      {"name": "David Frey", "type": "person", "role": "mentioned"}
+    ],
+    "summary": "The Southwest Battery Co. president reports January business running well ahead of usual.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:17": {
+    "topics": [{"name": "Sports & Recreation", "confidence": "high"}, {"name": "Clubs & Societies", "confidence": "low"}],
+    "proposed_topic": null,
+    "tags": ["basketball", "league", "Glenn Hall"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Glenn Hall", "type": "venue", "role": "venue"}],
+    "summary": "Managers of Brooklyn basketball teams are called to a February 4 meeting to form a league at Glenn Hall.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Basketball league organizing meeting", "event_type": "civic", "venue": "Glenn Hall", "start_text": "February 4, 8 p.m.", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:18": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["grocery promotion", "free oranges", "Broadview Market", "advertiser booster"],
+    "article_type": "news_report",
+    "is_advertorial": true,
+    "is_advertorial_confidence": "medium",
+    "entities": [{"name": "Broadview Market", "type": "organization", "role": "subject"}],
+    "summary": "The Broadview Market promises free Sunkist oranges to every Brooklyn adult who brings the coupon from its ad in this issue.",
+    "context_hint": "This news item is a straight cross-promotion of the market's own coupon ad elsewhere in the issue — booster content shading into advertorial.",
+    "event_type": "other",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Broadview Market free-orange giveaway", "event_type": "other", "venue": "Broadview Market", "start_text": "Saturday, 7 a.m.–noon", "recurrence_text": null, "performers": [], "price_text": "Free", "confidence": "medium"}
+    ]
+  },
+  "7618:19": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}, {"name": "Real Estate & Building", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["Knights of Pythias", "lodge home", "fraternal order"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "South Brooklyn Lodge No. 426, K. of P.", "type": "organization", "role": "subject"},
+      {"name": "Broadview Road", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "The Knights of Pythias plan a new Broadview Road lodge home with ground-floor stores; a deputy makes his official visit February 7.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "K. of P. County Deputy official visit", "event_type": "club_engagement", "venue": "South Brooklyn Lodge", "start_text": "February 7", "recurrence_text": null, "performers": ["County Deputy G. C. J. Hall"], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:20": {
+    "topics": [{"name": "Churches & Religion", "confidence": "high"}, {"name": "National & World", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["YWCA", "China", "missionary", "women"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Brooklyn Branch Y. W. C. A.", "type": "organization", "role": "subject"},
+      {"name": "Pearl Rd. M. E. Church", "type": "venue", "role": "venue"},
+      {"name": "China", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "The Brooklyn YWCA plans a February 7 evening on China and the lives of Chinese women, with a returned missionary and a Chinese student speaking.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "YWCA program on China", "event_type": "civic", "venue": "Pearl Rd. M. E. Church", "start_text": "Feb. 7, 8 o'clock", "recurrence_text": null, "performers": ["Miss Hwang"], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:21": {
+    "topics": [{"name": "Obituaries & Deaths", "confidence": "high"}, {"name": "Health & Medicine", "confidence": "low"}],
+    "proposed_topic": null,
+    "tags": ["obituary", "tuberculosis"],
+    "article_type": "obituary",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Rose Drazil", "type": "person", "role": "subject"},
+      {"name": "Our Lady of Good Counsel Catholic Church", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "Miss Rose Drazil, 21, dies at the tuberculosis sanitarium; funeral held at Our Lady of Good Counsel.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:22": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["W.B.A. of Maccabees", "annual dance", "fraternal order"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Riverside Review No. 29, W. B. A. of Maccabees", "type": "organization", "role": "subject"},
+      {"name": "Herriman Hall", "type": "venue", "role": "venue"},
+      {"name": "Kasper's Orchestra", "type": "performer", "role": "performer"}
+    ],
+    "summary": "The Maccabees' Riverside Review holds its annual dance February 9 at Herriman Hall with Kasper's orchestra.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Riverside Review annual dance", "event_type": "club_engagement", "venue": "Herriman Hall, 3025 Vega Ave.", "start_text": "Sat. evening, Feb. 9", "recurrence_text": null, "performers": ["Kasper's Orchestra"], "price_text": "small admission fee", "confidence": "high"}
+    ]
+  },
+  "7618:23": {
+    "topics": [{"name": "Schools & Education", "confidence": "medium"}],
+    "proposed_topic": "Amusements & Entertainment",
+    "tags": ["child performers", "Geltman orchestra", "entertainment"],
+    "article_type": "feature",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Geltman Orchestra", "type": "performer", "role": "subject"},
+      {"name": "Judge Herman Geltman", "type": "person", "role": "mentioned"},
+      {"name": "Parma", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "Judge Geltman's three small children — aged 3, 6 and 9 — are in demand as an orchestra, playing the Parma school entertainment tonight.",
+    "context_hint": null,
+    "event_type": "other",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Parma school entertainment (Geltman Orchestra)", "event_type": "other", "venue": "Parma School", "start_text": "Tonight (Friday)", "recurrence_text": null, "performers": ["Geltman Orchestra"], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:24": {
+    "topics": [{"name": "Health & Medicine", "confidence": "high"}, {"name": "Business & Commerce", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["chiropractor", "business opening", "Hohler"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "C. A. Hohler", "type": "person", "role": "subject"},
+      {"name": "Pearl Road", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "Chiropractor C. A. Hohler opens an office at 4402 Pearl Road.",
+    "context_hint": "Hohler also runs a display ad in this same issue (p4) — the news brief doubles as free publicity.",
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:25": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": "Amusements & Entertainment",
+    "tags": ["movie theater", "projectors", "Y Theater", "advertiser booster"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "Y Theater", "type": "venue", "role": "subject"},
+      {"name": "Sam Schachtel", "type": "person", "role": "mentioned"}
+    ],
+    "summary": "The Y Theater installs two new projectors it bills as the first of their kind on the West Side.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:26": {
+    "topics": [{"name": "Sports & Recreation", "confidence": "high"}, {"name": "Churches & Religion", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["YMCA", "church basketball league", "boys' band"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Y. M. C. A.", "type": "organization", "role": "subject"},
+      {"name": "J. W. Buttriss", "type": "person", "role": "mentioned"}
+    ],
+    "summary": "YMCA notes: Pearl M. E. hands Archwood its first church-league basketball loss, with a full February 7 schedule.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Church League Basketball night", "event_type": "civic", "venue": "Y. M. C. A.", "start_text": "Thursday, Feb. 7 (7:30, 8:15, 9:00)", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:27": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["stork shower", "Dames of Malta", "social"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Brooklyn Heights Sisterhood 245, Dames of Malta", "type": "organization", "role": "subject"},
+      {"name": "Maggie Cutting", "type": "person", "role": "mentioned"}
+    ],
+    "summary": "The Dames of Malta sisterhood fetes two guests of honor at a pink-and-white stork shower on Spring Road.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:28": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["Rebekah lodge", "card party", "fraternal order"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Glendalia Rebekah Lodge", "type": "organization", "role": "subject"}, {"name": "Glen Hall", "type": "venue", "role": "venue"}],
+    "summary": "Glendalia Rebekah Lodge plans a members' surprise at tonight's meeting and an afternoon card party at Glen Hall.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Glendalia Rebekah Lodge meeting and card party", "event_type": "club_engagement", "venue": "Glen Hall, Broadview and Pearl Rd.", "start_text": "Tonight (Friday)", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:29": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["Pythian Sisters", "inspection", "fraternal order"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Brooklyn Temple Pythian Sisters", "type": "organization", "role": "subject"},
+      {"name": "Castle Hall", "type": "venue", "role": "venue"}
+    ],
+    "summary": "The Brooklyn Temple Pythian Sisters honor a grand deputy at inspection; the temple meets second and fourth Tuesdays.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Brooklyn Temple Pythian Sisters meeting", "event_type": "club_engagement", "venue": "Castle Hall, Broadview Rd.", "start_text": null, "recurrence_text": "second and fourth Tuesday of each month", "performers": [], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:30": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["card party", "social"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Clara Bradley", "type": "person", "role": "subject"}, {"name": "A. I. U. Hall", "type": "venue", "role": "venue"}],
+    "summary": "Clara Bradley hosts a February 4 evening card party at A. I. U. Hall on Pearl Road.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Card party (Clara Bradley)", "event_type": "club_engagement", "venue": "A. I. U. Hall, 4154 Pearl Rd.", "start_text": "Monday, February 4, 8 p.m.", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:31": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["Dames of Malta", "card party series", "fundraiser"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Brooklyn Heights Sisterhood 245, Dames of Malta", "type": "organization", "role": "subject"}],
+    "summary": "The Dames of Malta sisterhood plans a series of evening card parties to raise money for robes.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Dames of Malta card party series", "event_type": "club_engagement", "venue": null, "start_text": null, "recurrence_text": "series of evening card parties", "performers": [], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:32": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["tire shop", "business sale", "Horn"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "Fred O. Horn", "type": "person", "role": "subject"},
+      {"name": "Davis Tire & Repair Shop", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "Fred O. Horn buys the Davis Tire & Repair Shop on Pearl Road while keeping his moving business.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:33": {
+    "topics": [{"name": "Churches & Religion", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["church directory", "Sunday services", "sermons"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Evangelical St. Luke's Church", "type": "organization", "role": "subject"},
+      {"name": "Eighth Reformed Church", "type": "organization", "role": "subject"},
+      {"name": "Pearl Road Methodist Episcopal Church", "type": "organization", "role": "subject"}
+    ],
+    "summary": "The weekly Church News directory lists Sunday services and sermon topics for the district's congregations.",
+    "context_hint": "This banner heads a directory of many short like-shaped entries — a register, not independent stories (data-schema §Group banners).",
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Sunday church services (district directory)", "event_type": "civic", "venue": "Various Brooklyn-district churches", "start_text": "next Sunday", "recurrence_text": "weekly", "performers": [], "price_text": null, "confidence": "low"}
+    ]
+  },
+  "7618:34": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}, {"name": "Local Government & Civic", "confidence": "low"}],
+    "proposed_topic": null,
+    "tags": ["Woman's Civic League", "peace", "women's clubs"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Woman's Civic League", "type": "organization", "role": "subject"},
+      {"name": "Hotel Statler", "type": "venue", "role": "mentioned"},
+      {"name": "Cleveland Symphony Orchestra", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "The Woman's Civic League schedules a February board meeting on 'Peace,' a symphony night, dressmaking classes, and a card party.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Woman's Civic League board meeting ('Peace')", "event_type": "civic", "venue": "League House", "start_text": "Tuesday, Feb. 5, 3:00 p.m.", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "medium"},
+      {"title": "Woman's Civic League monthly card party", "event_type": "civic", "venue": "League House", "start_text": "Feb. 21", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:35": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["tires", "balloon tires", "Loesch", "advertiser booster"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [{"name": "Orville Loesch", "type": "person", "role": "subject"}, {"name": "Loesch Tire & Repair Shop", "type": "organization", "role": "subject"}],
+    "summary": "Orville Loesch stocks the new balloon tires and offers to answer buyers' questions.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:36": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["Pythian Sisters", "card party"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Pythian Sisters 425", "type": "organization", "role": "subject"}, {"name": "Castle Hall", "type": "venue", "role": "venue"}],
+    "summary": "The Pythian Sisters report a successful card party and set the next for February 19 at Castle Hall.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Pythian Sisters card party", "event_type": "club_engagement", "venue": "Castle Hall", "start_text": "Tuesday, Feb. 19", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:37": {
+    "topics": [{"name": "Business & Commerce", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["property sale", "tinshop"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Ernest Engler", "type": "person", "role": "subject"}],
+    "summary": "Ernest Engler sells his Spokane Avenue tinshop property.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:38": {
+    "topics": [{"name": "Health & Medicine", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["accident", "carbon monoxide", "fire crew"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "William Morlock", "type": "person", "role": "subject"},
+      {"name": "Engine House No. 24", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "William Morlock is overcome by auto fumes in his garage and revived by the Engine House No. 24 crew.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:39": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["Dames of Malta", "initiation"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Brooklyn Heights Sisterhood 245, Dames of Malta", "type": "organization", "role": "subject"}],
+    "summary": "The Dames of Malta sisterhood holds an initiation at its February 11 meeting.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Dames of Malta meeting and initiation", "event_type": "club_engagement", "venue": null, "start_text": "February 11", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:40": {
+    "topics": [{"name": "Real Estate & Building", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["new home", "Bungalow Gardens", "society note"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Bungalow Gardens", "type": "place", "role": "mentioned"}],
+    "summary": "Mr. and Mrs. E. Collingwood move into a new Bungalow Gardens home on Creston Avenue.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:41": {
+    "topics": [{"name": "Obituaries & Deaths", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["obituary", "industrial accident"],
+    "article_type": "obituary",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "William Schroeder", "type": "person", "role": "subject"},
+      {"name": "St. Mark's Lutheran Church", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "William Schroeder, 63, dies of injuries from the Cleveland garbage plant and is buried from St. Mark's Lutheran.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:42": {
+    "topics": [{"name": "Churches & Religion", "confidence": "high"}, {"name": "Health & Medicine", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["revival", "faith healing", "evangelists"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Brooklyn United Presbyterian Church", "type": "organization", "role": "subject"},
+      {"name": "J. Lyle Shaw", "type": "person", "role": "performer"},
+      {"name": "John W. Sproul", "type": "person", "role": "performer"}
+    ],
+    "summary": "Crowds from across Cleveland pack the Brooklyn U. P. Church for healing evangelists Shaw and Sproul, with testimonies of cures.",
+    "context_hint": null,
+    "event_type": "civic",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Healing services (Shaw & Sproul)", "event_type": "civic", "venue": "Brooklyn United Presbyterian Church, Pearl and Spokane", "start_text": null, "recurrence_text": "nightly meetings", "performers": ["J. Lyle Shaw", "John W. Sproul"], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:43": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["I.O.O.F.", "grand ball", "fraternal order"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "I. O. O. F.", "type": "organization", "role": "subject"},
+      {"name": "Hotel Cleveland", "type": "venue", "role": "venue"}
+    ],
+    "summary": "The Odd Fellows invite Brooklyn Lodge members to a grand ball at Hotel Cleveland on October 20.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "I. O. O. F. grand ball", "event_type": "club_engagement", "venue": "Hotel Cleveland", "start_text": "Oct. 20", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7618:44": {
+    "topics": [{"name": "Sports & Recreation", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["basketball", "box score", "State Road Pals"],
+    "article_type": "sports_box_score",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "State Road Pals", "type": "organization", "role": "subject"},
+      {"name": "Brooklyn Heights Gym", "type": "venue", "role": "venue"}
+    ],
+    "summary": "The State Road Pals beat the high-school team 20–14 in a practice game, with the Schaaf Road girls also winning.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:46": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["housewarming", "sign painting", "James Day"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [{"name": "James Day", "type": "person", "role": "subject"}],
+    "summary": "Friends fill James Day's housewarming at his new Pearl Road sign-painting headquarters.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:47": {
+    "topics": [{"name": "Business & Commerce", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["automobiles", "Chrysler", "car dealer", "advertiser booster"],
+    "article_type": "news_report",
+    "is_advertorial": true,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "Holden Motor Sales Co.", "type": "organization", "role": "subject"},
+      {"name": "Floyd O. Holden", "type": "person", "role": "mentioned"},
+      {"name": "Chrysler", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "Holden Motor Sales reports the new Chrysler Six booked solid for demonstrations, with dealer sales records touted.",
+    "context_hint": "Reads as a news item but is dealer promotion built entirely from the dealer's own quotes — booster content shading into advertorial.",
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:49": {
+    "topics": [{"name": "Real Estate & Building", "confidence": "high"}, {"name": "Business & Commerce", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["real estate", "homesites", "Findlay Co.", "advertiser booster"],
+    "article_type": "news_report",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "Robert Kennedy, Sr.", "type": "person", "role": "subject"},
+      {"name": "Findlay Co.", "type": "organization", "role": "subject"}
+    ],
+    "summary": "Father and son Kennedy both sell Brooklyn-territory homesites for the Findlay Co.'s Orchard and Broadview Acres.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:50": {
+    "topics": [{"name": "Business & Commerce", "confidence": "medium"}],
+    "proposed_topic": "Amusements & Entertainment",
+    "tags": ["movie review", "Harold Lloyd", "Y Theatre", "Why Worry"],
+    "article_type": "review",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "medium",
+    "entities": [
+      {"name": "Harold Lloyd", "type": "performer", "role": "performer"},
+      {"name": "Why Worry", "type": "creative_work", "role": "subject"},
+      {"name": "Y Theatre", "type": "venue", "role": "venue"}
+    ],
+    "summary": "A rave for Harold Lloyd's farce 'Why Worry,' running next Wednesday at the Y Theatre.",
+    "context_hint": "Part film review, part showtime plug — the community-weekly blend of criticism and theater promotion.",
+    "event_type": "film",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "'Why Worry' (Harold Lloyd)", "event_type": "film", "venue": "Y Theatre, State and W. 35th", "start_text": "next Wednesday", "recurrence_text": null, "performers": ["Harold Lloyd"], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7618:51": {
+    "topics": [{"name": "Real Estate & Building", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["new home", "Bungalow Gardens", "society note"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Bungalow Gardens", "type": "place", "role": "mentioned"}],
+    "summary": "Mr. and Mrs. George H. Owens move into a new Creston Avenue home in Bungalow Gardens.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7618:52": {
+    "topics": [{"name": "Real Estate & Building", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["new home", "Bungalow Gardens", "society note"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Bungalow Gardens", "type": "place", "role": "mentioned"}],
+    "summary": "Mr. and Mrs. Wm. Swaysland move to a new Creston Avenue home in Bungalow Gardens.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7619:1": {
+    "topics": [{"name": "National & World", "confidence": "high"}, {"name": "Local Government & Civic", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["editorial", "Bok peace plan", "world peace"],
+    "article_type": "editorial",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Edward Bok", "type": "person", "role": "subject"}],
+    "summary": "An editorial defends the widely discussed Bok peace plan and marvels that anyone could ask who Bok is.",
+    "context_hint": "Edward Bok's 1923 American Peace Award drew national debate over U.S. cooperation with the World Court and League.",
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7620:0": {
+    "topics": [{"name": "Agriculture & Rural Life", "confidence": "low"}],
+    "proposed_topic": null,
+    "tags": ["birth", "society note", "Weiss family"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Ridgewood, Parma Township", "type": "place", "role": "mentioned"}],
+    "summary": "A fifth child, Dorothy Virginia, is born to the Weiss family of Ridgewood in Parma Township.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7620:1": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["Rebekah lodge", "card party"],
+    "article_type": "announcement",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Glendalia Rebekah Lodge", "type": "organization", "role": "subject"}, {"name": "Glenn Hall", "type": "venue", "role": "venue"}],
+    "summary": "The Glendalia Rebekah Lodge holds a Friday-afternoon card party at Glenn Hall on February 1.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "Glendalia Rebekah Lodge card party", "event_type": "club_engagement", "venue": "Glenn Hall", "start_text": "Friday, Feb. 1, 2 o'clock", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"}
+    ]
+  },
+  "7621:0": {
+    "topics": [{"name": "Health & Medicine", "confidence": "high"}],
+    "proposed_topic": null,
+    "tags": ["accident", "broken leg", "automobile"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "George Knaupe", "type": "person", "role": "subject"},
+      {"name": "East Cleveland", "type": "place", "role": "mentioned"}
+    ],
+    "summary": "George Knaupe of Henritze Avenue is home with a broken leg after an East Cleveland auto accident.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7621:1": {
+    "topics": [{"name": "Real Estate & Building", "confidence": "medium"}],
+    "proposed_topic": null,
+    "tags": ["new home", "Bungalow Gardens", "society note"],
+    "article_type": "news_brief",
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [{"name": "Bungalow Gardens", "type": "place", "role": "mentioned"}],
+    "summary": "Mr. and Mrs. R. Pallas move to a new Bungalow Gardens home on Creston Avenue.",
+    "context_hint": null,
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7621:2": {
+    "topics": [{"name": "Health & Medicine", "confidence": "medium"}, {"name": "Business & Commerce", "confidence": "low"}],
+    "proposed_topic": null,
+    "tags": ["chiropractic", "native advertising", "Tut-ankh-amen", "paid placement"],
+    "article_type": "feature",
+    "is_advertorial": true,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "C. A. Hohler", "type": "person", "role": "subject"},
+      {"name": "Universal Chiropractors' Association", "type": "organization", "role": "mentioned"}
+    ],
+    "summary": "A jokey Tut-ankh-amen essay that resolves into a paid pitch for chiropractor C. A. Hohler — an advertorial dressed as a feature.",
+    "context_hint": "GAP D, load-bearing: this reads as a reflective feature essay but is a paid chiropractic advertisement; leaving is_advertorial false would poison the journalism corpus and any RAG citation.",
+    "event_type": null,
+    "is_event_bearing": false,
+    "events": []
+  },
+  "7619:8": {
+    "topics": [{"name": "Business & Commerce", "confidence": "medium"}],
+    "proposed_topic": "Amusements & Entertainment",
+    "tags": ["movie theater", "Y Theater", "film program", "silent film"],
+    "article_type": null,
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Y Theater", "type": "venue", "role": "venue"},
+      {"name": "The Silent Command", "type": "creative_work", "role": "subject"},
+      {"name": "William Russell", "type": "performer", "role": "performer"}
+    ],
+    "summary": "The Y Theater's weekend program: 'The Silent Command' with a juvenile revue Friday, a William Russell picture Saturday.",
+    "context_hint": null,
+    "event_type": "film",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "The Silent Command (with Juvenile Frivolities)", "event_type": "film", "venue": "Y Theater", "start_text": "Friday, Feb. 1", "recurrence_text": null, "performers": [], "price_text": null, "confidence": "high"},
+      {"title": "William Russell picture", "event_type": "film", "venue": "Y Theater", "start_text": "Saturday, Feb. 2", "recurrence_text": null, "performers": ["William Russell"], "price_text": null, "confidence": "medium"}
+    ]
+  },
+  "7619:9": {
+    "topics": [{"name": "Clubs & Societies", "confidence": "high"}],
+    "proposed_topic": "Amusements & Entertainment",
+    "tags": ["social dance", "Knights of Malta", "fraternal order"],
+    "article_type": null,
+    "is_advertorial": false,
+    "is_advertorial_confidence": "high",
+    "entities": [
+      {"name": "Brooklyn Commandery, K. of M.", "type": "organization", "role": "subject"},
+      {"name": "Labor Auditorium", "type": "venue", "role": "venue"}
+    ],
+    "summary": "The Knights of Malta Brooklyn Commandery holds its first social dance February 1 at the Labor Auditorium, 65 cents.",
+    "context_hint": null,
+    "event_type": "club_engagement",
+    "is_event_bearing": true,
+    "events": [
+      {"title": "K. of M. Boosters first social dance", "event_type": "club_engagement", "venue": "Labor Auditorium, 8167 W. 25th St.", "start_text": "Fri. eve., Feb. 1", "recurrence_text": null, "performers": [], "price_text": "65c", "confidence": "high"}
+    ]
+  }
+}

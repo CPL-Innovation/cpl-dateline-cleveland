@@ -10,7 +10,9 @@
   "scripts": {
     "ingest": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/ingest.ts",
     "view": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/view.ts",
+    "enrich": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/enrich.ts",
     "slice01": "npm run ingest && npm run view",
+    "slice02": "npm run ingest && npm run enrich",
     "probe": "node --env-file-if-exists=.env --experimental-strip-types src/probe.ts"
   }
 }

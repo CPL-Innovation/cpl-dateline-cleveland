@@ -1,5 +1,6 @@
 {
-  "generatedAt": "SLICE-01 fixture run",
+  "generatedAt": "SLICE-02 enrichment run",
+  "enriched": true,
   "issue": {
     "id": "brooklynnews_1924-02-01",
     "model": "session-vlm:claude/dry-run",
@@ -13,7 +14,7 @@
   ],
   "objects": [
     {
-      "id": "co-1",
+      "id": "co-297",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 0,
@@ -25,10 +26,50 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "The Southwestern Civic and Business Men's Association opens its 1924 season pushing a slate of neighborhood improvements despite an icy first meeting.",
+      "contextHint": "Brooklyn was a semi-rural southwest Cleveland community; its business-men's association functioned as an informal local government.",
+      "eventType": "civic",
+      "tags": [
+        "civic association",
+        "community improvement",
+        "Southwestern Civic and Business Men's Association"
+      ],
+      "topics": [
+        {
+          "id": "t-local-government-and-civic",
+          "label": "Local Government & Civic",
+          "confidence": "high"
+        },
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-southwestern-civic-and-business-men-s-association",
+          "label": "Southwestern Civic and Business Men's Association",
+          "type": "organization"
+        },
+        {
+          "id": "n-place-brooklyn",
+          "label": "Brooklyn",
+          "type": "place"
+        },
+        {
+          "id": "n-place-pearl-road",
+          "label": "Pearl Road",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-2",
+      "id": "co-298",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 1,
@@ -40,10 +81,55 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "A committee moves to win city mail delivery for north Parma Township, taking the case to the postal authorities.",
+      "contextHint": "Extending city carrier routes to unincorporated townships was a common civic-association fight in the 1920s.",
+      "eventType": null,
+      "tags": [
+        "rural mail service",
+        "postal delivery",
+        "Parma Township"
+      ],
+      "topics": [
+        {
+          "id": "t-local-government-and-civic",
+          "label": "Local Government & Civic",
+          "confidence": "high"
+        },
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "low"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-ira-d-siegfried",
+          "label": "Ira D. Siegfried",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-southwestern-civic-and-business-men-s-association",
+          "label": "Southwestern Civic and Business Men's Association",
+          "type": "organization"
+        },
+        {
+          "id": "n-place-parma-township",
+          "label": "Parma Township",
+          "type": "place"
+        },
+        {
+          "id": "n-organization-post-office-department",
+          "label": "Post Office Department",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-3",
+      "id": "co-299",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 2,
@@ -55,10 +141,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "Parent-teacher and mothers' clubs are now organized across every Brooklyn-district school, with a roster of presiding officers.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "parent-teacher association",
+        "mothers' clubs",
+        "Brooklyn schools"
+      ],
+      "topics": [
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "high"
+        },
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-place-brooklyn-heights",
+          "label": "Brooklyn Heights",
+          "type": "place"
+        },
+        {
+          "id": "n-place-parma",
+          "label": "Parma",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-4",
+      "id": "co-300",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 3,
@@ -70,10 +191,50 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "Broadview PTA plans a prize masquerade dance for February 9 with Gimbel's orchestra and costume prizes.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "masquerade",
+        "PTA dance",
+        "Broadview school"
+      ],
+      "topics": [
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "high"
+        },
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-broadview-parent-teachers-association",
+          "label": "Broadview Parent-Teachers' Association",
+          "type": "organization"
+        },
+        {
+          "id": "n-place-broadview-school",
+          "label": "Broadview School",
+          "type": "place"
+        },
+        {
+          "id": "n-performer-gimbel-s-orchestra",
+          "label": "Gimbel's Orchestra",
+          "type": "performer"
+        }
+      ]
     },
     {
-      "id": "co-5",
+      "id": "co-301",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 4,
@@ -85,10 +246,50 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Ben Franklin PTA hears a talk on Korea and new school-orchestra music; its next meeting is February 20.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "parent-teacher association",
+        "Ben Franklin school",
+        "Korea lecture"
+      ],
+      "topics": [
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "high"
+        },
+        {
+          "id": "t-churches-and-religion",
+          "label": "Churches & Religion",
+          "confidence": "low"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-ben-franklin-parent-teachers-association",
+          "label": "Ben Franklin Parent-Teachers' Association",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-bessie-dalton",
+          "label": "Bessie Dalton",
+          "type": "person"
+        },
+        {
+          "id": "n-person-s-f-brockman",
+          "label": "S. F. Brockman",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-6",
+      "id": "co-302",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 5,
@@ -100,10 +301,39 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Parma-Ridgewood PTA meets February 6 to hear a county board of education speaker.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "parent-teacher association",
+        "Parma-Ridgewood"
+      ],
+      "topics": [
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-parma-ridgewood-parent-teachers",
+          "label": "Parma-Ridgewood Parent-Teachers",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-elsie-cleverdon",
+          "label": "Elsie Cleverdon",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-7",
+      "id": "co-303",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 6,
@@ -115,10 +345,39 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Denison PTA holds an all-day quilting at the school on February 7.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "quilting",
+        "Denison PTA"
+      ],
+      "topics": [
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "high"
+        },
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-denison-parent-teachers-association",
+          "label": "Denison Parent-Teachers' Association",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-8",
+      "id": "co-304",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 7,
@@ -130,10 +389,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Dawning Mothers' Club meets February 14 to prepare its bazaar and coordinate a trip to the Congress of Mothers.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "mothers' club",
+        "bazaar",
+        "Congress of Mothers"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        },
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-dawning-mothers-club",
+          "label": "Dawning Mothers' Club",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-hollenden-hotel",
+          "label": "Hollenden Hotel",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-9",
+      "id": "co-305",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 8,
@@ -145,10 +439,41 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Brooklyn Heights PTA holds an all-day sewing meeting February 5 and an oyster supper and dance February 15.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "PTA",
+        "oyster supper",
+        "sewing meeting",
+        "Brooklyn Heights"
+      ],
+      "topics": [
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "high"
+        },
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-heights-parent-teachers-association",
+          "label": "Brooklyn Heights Parent-Teachers' Association",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-10",
+      "id": "co-306",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 9,
@@ -160,10 +485,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "sports_box_score",
+      "isAdvertorial": false,
+      "summary": "Miller and Augustine lead the doubles and Al Kopl the singles in the Brooklyn Catholic Club bowling tournament.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "bowling",
+        "tournament",
+        "Brooklyn Catholic Club"
+      ],
+      "topics": [
+        {
+          "id": "t-sports-and-recreation",
+          "label": "Sports & Recreation",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-catholic-club",
+          "label": "Brooklyn Catholic Club",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-al-miller",
+          "label": "Al Miller",
+          "type": "person"
+        },
+        {
+          "id": "n-person-al-kopl",
+          "label": "Al Kopl",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-11",
+      "id": "co-307",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 10,
@@ -175,10 +535,39 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Albert Kraft is overcome by gas thawing a frozen radiator in a Brooklyn garage.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "accident",
+        "gas asphyxiation"
+      ],
+      "topics": [
+        {
+          "id": "t-health-and-medicine",
+          "label": "Health & Medicine",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-albert-kraft",
+          "label": "Albert Kraft",
+          "type": "person"
+        },
+        {
+          "id": "n-person-e-engler",
+          "label": "E. Engler",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-12",
+      "id": "co-308",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 11,
@@ -190,10 +579,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-13",
+      "id": "co-309",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 12,
@@ -205,10 +603,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-14",
+      "id": "co-310",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 13,
@@ -220,10 +627,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-15",
+      "id": "co-311",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 14,
@@ -235,10 +651,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "The W. J. Lodrick Motor Co. adds a reconditioning garage as one of several Brooklyn businesses reporting a strong start to 1924.",
+      "contextHint": "The 'Reports Show Business Is Good' banner grouped several advertiser-flattering business items — booster content in news form.",
+      "eventType": null,
+      "tags": [
+        "business growth",
+        "used cars",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-w-j-lodrick-motor-co",
+          "label": "W. J. Lodrick Motor Co.",
+          "type": "organization"
+        },
+        {
+          "id": "n-place-pearl-road",
+          "label": "Pearl Road",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-16",
+      "id": "co-312",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 15,
@@ -250,10 +696,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Brooklyn Coal and Coke Co. reports its biggest-tonnage January and plans to hire.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "coal",
+        "business report",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-coal-and-coke-co",
+          "label": "Brooklyn Coal and Coke Co.",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-w-b-mcdiarmid",
+          "label": "W. B. McDiarmid",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-17",
+      "id": "co-313",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 16,
@@ -265,10 +741,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Southwest Battery Co. president reports January business running well ahead of usual.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "batteries",
+        "business report",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-southwest-battery-co",
+          "label": "Southwest Battery Co.",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-david-frey",
+          "label": "David Frey",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-18",
+      "id": "co-314",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 17,
@@ -280,10 +786,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "Managers of Brooklyn basketball teams are called to a February 4 meeting to form a league at Glenn Hall.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "basketball",
+        "league",
+        "Glenn Hall"
+      ],
+      "topics": [
+        {
+          "id": "t-sports-and-recreation",
+          "label": "Sports & Recreation",
+          "confidence": "high"
+        },
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "low"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-venue-glenn-hall",
+          "label": "Glenn Hall",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-19",
+      "id": "co-315",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 18,
@@ -295,10 +831,36 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": true,
+      "summary": "The Broadview Market promises free Sunkist oranges to every Brooklyn adult who brings the coupon from its ad in this issue.",
+      "contextHint": "This news item is a straight cross-promotion of the market's own coupon ad elsewhere in the issue — booster content shading into advertorial.",
+      "eventType": "other",
+      "tags": [
+        "grocery promotion",
+        "free oranges",
+        "Broadview Market",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-broadview-market",
+          "label": "Broadview Market",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-20",
+      "id": "co-316",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 19,
@@ -310,10 +872,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "The Knights of Pythias plan a new Broadview Road lodge home with ground-floor stores; a deputy makes his official visit February 7.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "Knights of Pythias",
+        "lodge home",
+        "fraternal order"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        },
+        {
+          "id": "t-real-estate-and-building",
+          "label": "Real Estate & Building",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-south-brooklyn-lodge-no-426-k-of-p",
+          "label": "South Brooklyn Lodge No. 426, K. of P.",
+          "type": "organization"
+        },
+        {
+          "id": "n-place-broadview-road",
+          "label": "Broadview Road",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-21",
+      "id": "co-317",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 20,
@@ -325,10 +922,51 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "The Brooklyn YWCA plans a February 7 evening on China and the lives of Chinese women, with a returned missionary and a Chinese student speaking.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "YWCA",
+        "China",
+        "missionary",
+        "women"
+      ],
+      "topics": [
+        {
+          "id": "t-churches-and-religion",
+          "label": "Churches & Religion",
+          "confidence": "high"
+        },
+        {
+          "id": "t-national-and-world",
+          "label": "National & World",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-branch-y-w-c-a",
+          "label": "Brooklyn Branch Y. W. C. A.",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-pearl-rd-m-e-church",
+          "label": "Pearl Rd. M. E. Church",
+          "type": "venue"
+        },
+        {
+          "id": "n-place-china",
+          "label": "China",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-22",
+      "id": "co-318",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 21,
@@ -340,10 +978,44 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "obituary",
+      "isAdvertorial": false,
+      "summary": "Miss Rose Drazil, 21, dies at the tuberculosis sanitarium; funeral held at Our Lady of Good Counsel.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "obituary",
+        "tuberculosis"
+      ],
+      "topics": [
+        {
+          "id": "t-obituaries-and-deaths",
+          "label": "Obituaries & Deaths",
+          "confidence": "high"
+        },
+        {
+          "id": "t-health-and-medicine",
+          "label": "Health & Medicine",
+          "confidence": "low"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-rose-drazil",
+          "label": "Rose Drazil",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-our-lady-of-good-counsel-catholic-church",
+          "label": "Our Lady of Good Counsel Catholic Church",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-23",
+      "id": "co-319",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 22,
@@ -355,10 +1027,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "The Maccabees' Riverside Review holds its annual dance February 9 at Herriman Hall with Kasper's orchestra.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "W.B.A. of Maccabees",
+        "annual dance",
+        "fraternal order"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-riverside-review-no-29-w-b-a-of-maccabees",
+          "label": "Riverside Review No. 29, W. B. A. of Maccabees",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-herriman-hall",
+          "label": "Herriman Hall",
+          "type": "venue"
+        },
+        {
+          "id": "n-performer-kasper-s-orchestra",
+          "label": "Kasper's Orchestra",
+          "type": "performer"
+        }
+      ]
     },
     {
-      "id": "co-24",
+      "id": "co-320",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 23,
@@ -370,10 +1077,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "feature",
+      "isAdvertorial": false,
+      "summary": "Judge Geltman's three small children — aged 3, 6 and 9 — are in demand as an orchestra, playing the Parma school entertainment tonight.",
+      "contextHint": null,
+      "eventType": "other",
+      "tags": [
+        "child performers",
+        "Geltman orchestra",
+        "entertainment"
+      ],
+      "topics": [
+        {
+          "id": "t-schools-and-education",
+          "label": "Schools & Education",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-performer-geltman-orchestra",
+          "label": "Geltman Orchestra",
+          "type": "performer"
+        },
+        {
+          "id": "n-person-judge-herman-geltman",
+          "label": "Judge Herman Geltman",
+          "type": "person"
+        },
+        {
+          "id": "n-place-parma",
+          "label": "Parma",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-25",
+      "id": "co-321",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 24,
@@ -385,10 +1127,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Chiropractor C. A. Hohler opens an office at 4402 Pearl Road.",
+      "contextHint": "Hohler also runs a display ad in this same issue (p4) — the news brief doubles as free publicity.",
+      "eventType": null,
+      "tags": [
+        "chiropractor",
+        "business opening",
+        "Hohler"
+      ],
+      "topics": [
+        {
+          "id": "t-health-and-medicine",
+          "label": "Health & Medicine",
+          "confidence": "high"
+        },
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-c-a-hohler",
+          "label": "C. A. Hohler",
+          "type": "person"
+        },
+        {
+          "id": "n-place-pearl-road",
+          "label": "Pearl Road",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-26",
+      "id": "co-322",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 25,
@@ -400,10 +1177,41 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "The Y Theater installs two new projectors it bills as the first of their kind on the West Side.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "movie theater",
+        "projectors",
+        "Y Theater",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-venue-y-theater",
+          "label": "Y Theater",
+          "type": "venue"
+        },
+        {
+          "id": "n-person-sam-schachtel",
+          "label": "Sam Schachtel",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-27",
+      "id": "co-323",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 26,
@@ -415,10 +1223,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "YMCA notes: Pearl M. E. hands Archwood its first church-league basketball loss, with a full February 7 schedule.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "YMCA",
+        "church basketball league",
+        "boys' band"
+      ],
+      "topics": [
+        {
+          "id": "t-sports-and-recreation",
+          "label": "Sports & Recreation",
+          "confidence": "high"
+        },
+        {
+          "id": "t-churches-and-religion",
+          "label": "Churches & Religion",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-y-m-c-a",
+          "label": "Y. M. C. A.",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-j-w-buttriss",
+          "label": "J. W. Buttriss",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-28",
+      "id": "co-324",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 27,
@@ -430,10 +1273,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "The Dames of Malta sisterhood fetes two guests of honor at a pink-and-white stork shower on Spring Road.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "stork shower",
+        "Dames of Malta",
+        "social"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-heights-sisterhood-245-dames-of-malta",
+          "label": "Brooklyn Heights Sisterhood 245, Dames of Malta",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-maggie-cutting",
+          "label": "Maggie Cutting",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-29",
+      "id": "co-325",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 28,
@@ -445,10 +1318,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "Glendalia Rebekah Lodge plans a members' surprise at tonight's meeting and an afternoon card party at Glen Hall.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "Rebekah lodge",
+        "card party",
+        "fraternal order"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-glendalia-rebekah-lodge",
+          "label": "Glendalia Rebekah Lodge",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-glen-hall",
+          "label": "Glen Hall",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-30",
+      "id": "co-326",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 29,
@@ -460,10 +1363,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Brooklyn Temple Pythian Sisters honor a grand deputy at inspection; the temple meets second and fourth Tuesdays.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "Pythian Sisters",
+        "inspection",
+        "fraternal order"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-temple-pythian-sisters",
+          "label": "Brooklyn Temple Pythian Sisters",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-castle-hall",
+          "label": "Castle Hall",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-31",
+      "id": "co-327",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 30,
@@ -475,10 +1408,39 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "Clara Bradley hosts a February 4 evening card party at A. I. U. Hall on Pearl Road.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "card party",
+        "social"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-clara-bradley",
+          "label": "Clara Bradley",
+          "type": "person"
+        },
+        {
+          "id": "n-venue-a-i-u-hall",
+          "label": "A. I. U. Hall",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-32",
+      "id": "co-328",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 31,
@@ -490,10 +1452,35 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "The Dames of Malta sisterhood plans a series of evening card parties to raise money for robes.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "Dames of Malta",
+        "card party series",
+        "fundraiser"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-heights-sisterhood-245-dames-of-malta",
+          "label": "Brooklyn Heights Sisterhood 245, Dames of Malta",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-33",
+      "id": "co-329",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 32,
@@ -505,10 +1492,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Fred O. Horn buys the Davis Tire & Repair Shop on Pearl Road while keeping his moving business.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "tire shop",
+        "business sale",
+        "Horn"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-fred-o-horn",
+          "label": "Fred O. Horn",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-davis-tire-and-repair-shop",
+          "label": "Davis Tire & Repair Shop",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-34",
+      "id": "co-330",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 33,
@@ -520,10 +1537,45 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "The weekly Church News directory lists Sunday services and sermon topics for the district's congregations.",
+      "contextHint": "This banner heads a directory of many short like-shaped entries — a register, not independent stories (data-schema §Group banners).",
+      "eventType": "civic",
+      "tags": [
+        "church directory",
+        "Sunday services",
+        "sermons"
+      ],
+      "topics": [
+        {
+          "id": "t-churches-and-religion",
+          "label": "Churches & Religion",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-evangelical-st-luke-s-church",
+          "label": "Evangelical St. Luke's Church",
+          "type": "organization"
+        },
+        {
+          "id": "n-organization-eighth-reformed-church",
+          "label": "Eighth Reformed Church",
+          "type": "organization"
+        },
+        {
+          "id": "n-organization-pearl-road-methodist-episcopal-church",
+          "label": "Pearl Road Methodist Episcopal Church",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-35",
+      "id": "co-331",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 34,
@@ -535,10 +1587,50 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "The Woman's Civic League schedules a February board meeting on 'Peace,' a symphony night, dressmaking classes, and a card party.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "Woman's Civic League",
+        "peace",
+        "women's clubs"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        },
+        {
+          "id": "t-local-government-and-civic",
+          "label": "Local Government & Civic",
+          "confidence": "low"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-woman-s-civic-league",
+          "label": "Woman's Civic League",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-hotel-statler",
+          "label": "Hotel Statler",
+          "type": "venue"
+        },
+        {
+          "id": "n-organization-cleveland-symphony-orchestra",
+          "label": "Cleveland Symphony Orchestra",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-36",
+      "id": "co-332",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 35,
@@ -550,10 +1642,41 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Orville Loesch stocks the new balloon tires and offers to answer buyers' questions.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "tires",
+        "balloon tires",
+        "Loesch",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-orville-loesch",
+          "label": "Orville Loesch",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-loesch-tire-and-repair-shop",
+          "label": "Loesch Tire & Repair Shop",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-37",
+      "id": "co-333",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 36,
@@ -565,10 +1688,39 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Pythian Sisters report a successful card party and set the next for February 19 at Castle Hall.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "Pythian Sisters",
+        "card party"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-pythian-sisters-425",
+          "label": "Pythian Sisters 425",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-castle-hall",
+          "label": "Castle Hall",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-38",
+      "id": "co-334",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 37,
@@ -580,10 +1732,34 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Ernest Engler sells his Spokane Avenue tinshop property.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "property sale",
+        "tinshop"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-ernest-engler",
+          "label": "Ernest Engler",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-39",
+      "id": "co-335",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 38,
@@ -595,10 +1771,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "William Morlock is overcome by auto fumes in his garage and revived by the Engine House No. 24 crew.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "accident",
+        "carbon monoxide",
+        "fire crew"
+      ],
+      "topics": [
+        {
+          "id": "t-health-and-medicine",
+          "label": "Health & Medicine",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-william-morlock",
+          "label": "William Morlock",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-engine-house-no-24",
+          "label": "Engine House No. 24",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-40",
+      "id": "co-336",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 39,
@@ -610,10 +1816,34 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "The Dames of Malta sisterhood holds an initiation at its February 11 meeting.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "Dames of Malta",
+        "initiation"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-heights-sisterhood-245-dames-of-malta",
+          "label": "Brooklyn Heights Sisterhood 245, Dames of Malta",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-41",
+      "id": "co-337",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 40,
@@ -625,10 +1855,35 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Mr. and Mrs. E. Collingwood move into a new Bungalow Gardens home on Creston Avenue.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "new home",
+        "Bungalow Gardens",
+        "society note"
+      ],
+      "topics": [
+        {
+          "id": "t-real-estate-and-building",
+          "label": "Real Estate & Building",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-place-bungalow-gardens",
+          "label": "Bungalow Gardens",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-42",
+      "id": "co-338",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 41,
@@ -640,10 +1895,39 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "obituary",
+      "isAdvertorial": false,
+      "summary": "William Schroeder, 63, dies of injuries from the Cleveland garbage plant and is buried from St. Mark's Lutheran.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "obituary",
+        "industrial accident"
+      ],
+      "topics": [
+        {
+          "id": "t-obituaries-and-deaths",
+          "label": "Obituaries & Deaths",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-william-schroeder",
+          "label": "William Schroeder",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-st-mark-s-lutheran-church",
+          "label": "St. Mark's Lutheran Church",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-43",
+      "id": "co-339",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 42,
@@ -655,10 +1939,50 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "Crowds from across Cleveland pack the Brooklyn U. P. Church for healing evangelists Shaw and Sproul, with testimonies of cures.",
+      "contextHint": null,
+      "eventType": "civic",
+      "tags": [
+        "revival",
+        "faith healing",
+        "evangelists"
+      ],
+      "topics": [
+        {
+          "id": "t-churches-and-religion",
+          "label": "Churches & Religion",
+          "confidence": "high"
+        },
+        {
+          "id": "t-health-and-medicine",
+          "label": "Health & Medicine",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-united-presbyterian-church",
+          "label": "Brooklyn United Presbyterian Church",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-j-lyle-shaw",
+          "label": "J. Lyle Shaw",
+          "type": "person"
+        },
+        {
+          "id": "n-person-john-w-sproul",
+          "label": "John W. Sproul",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-44",
+      "id": "co-340",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 43,
@@ -670,10 +1994,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "The Odd Fellows invite Brooklyn Lodge members to a grand ball at Hotel Cleveland on October 20.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "I.O.O.F.",
+        "grand ball",
+        "fraternal order"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-i-o-o-f",
+          "label": "I. O. O. F.",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-hotel-cleveland",
+          "label": "Hotel Cleveland",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-45",
+      "id": "co-341",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 44,
@@ -685,10 +2039,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "sports_box_score",
+      "isAdvertorial": false,
+      "summary": "The State Road Pals beat the high-school team 20–14 in a practice game, with the Schaaf Road girls also winning.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "basketball",
+        "box score",
+        "State Road Pals"
+      ],
+      "topics": [
+        {
+          "id": "t-sports-and-recreation",
+          "label": "Sports & Recreation",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-state-road-pals",
+          "label": "State Road Pals",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-brooklyn-heights-gym",
+          "label": "Brooklyn Heights Gym",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-46",
+      "id": "co-342",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 45,
@@ -700,10 +2084,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-47",
+      "id": "co-343",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 46,
@@ -715,10 +2108,35 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Friends fill James Day's housewarming at his new Pearl Road sign-painting headquarters.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "housewarming",
+        "sign painting",
+        "James Day"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-james-day",
+          "label": "James Day",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-48",
+      "id": "co-344",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 47,
@@ -730,10 +2148,46 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": true,
+      "summary": "Holden Motor Sales reports the new Chrysler Six booked solid for demonstrations, with dealer sales records touted.",
+      "contextHint": "Reads as a news item but is dealer promotion built entirely from the dealer's own quotes — booster content shading into advertorial.",
+      "eventType": null,
+      "tags": [
+        "automobiles",
+        "Chrysler",
+        "car dealer",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-holden-motor-sales-co",
+          "label": "Holden Motor Sales Co.",
+          "type": "organization"
+        },
+        {
+          "id": "n-person-floyd-o-holden",
+          "label": "Floyd O. Holden",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-chrysler",
+          "label": "Chrysler",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-49",
+      "id": "co-345",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 48,
@@ -745,10 +2199,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-50",
+      "id": "co-346",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 49,
@@ -760,10 +2223,46 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_report",
+      "isAdvertorial": false,
+      "summary": "Father and son Kennedy both sell Brooklyn-territory homesites for the Findlay Co.'s Orchard and Broadview Acres.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "real estate",
+        "homesites",
+        "Findlay Co.",
+        "advertiser booster"
+      ],
+      "topics": [
+        {
+          "id": "t-real-estate-and-building",
+          "label": "Real Estate & Building",
+          "confidence": "high"
+        },
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-robert-kennedy-sr",
+          "label": "Robert Kennedy, Sr.",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-findlay-co",
+          "label": "Findlay Co.",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-51",
+      "id": "co-347",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 50,
@@ -775,10 +2274,46 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "review",
+      "isAdvertorial": false,
+      "summary": "A rave for Harold Lloyd's farce 'Why Worry,' running next Wednesday at the Y Theatre.",
+      "contextHint": "Part film review, part showtime plug — the community-weekly blend of criticism and theater promotion.",
+      "eventType": "film",
+      "tags": [
+        "movie review",
+        "Harold Lloyd",
+        "Y Theatre",
+        "Why Worry"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-performer-harold-lloyd",
+          "label": "Harold Lloyd",
+          "type": "performer"
+        },
+        {
+          "id": "n-creative-work-why-worry",
+          "label": "Why Worry",
+          "type": "creative_work"
+        },
+        {
+          "id": "n-venue-y-theatre",
+          "label": "Y Theatre",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-52",
+      "id": "co-348",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 51,
@@ -790,10 +2325,35 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Mr. and Mrs. George H. Owens move into a new Creston Avenue home in Bungalow Gardens.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "new home",
+        "Bungalow Gardens",
+        "society note"
+      ],
+      "topics": [
+        {
+          "id": "t-real-estate-and-building",
+          "label": "Real Estate & Building",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-place-bungalow-gardens",
+          "label": "Bungalow Gardens",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-53",
+      "id": "co-349",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 52,
@@ -805,10 +2365,35 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Mr. and Mrs. Wm. Swaysland move to a new Creston Avenue home in Bungalow Gardens.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "new home",
+        "Bungalow Gardens",
+        "society note"
+      ],
+      "topics": [
+        {
+          "id": "t-real-estate-and-building",
+          "label": "Real Estate & Building",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-place-bungalow-gardens",
+          "label": "Bungalow Gardens",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-54",
+      "id": "co-350",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 53,
@@ -820,10 +2405,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-55",
+      "id": "co-351",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7618,
       "seq": 54,
@@ -835,10 +2429,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-56",
+      "id": "co-352",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 0,
@@ -850,10 +2453,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-57",
+      "id": "co-353",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 1,
@@ -865,10 +2477,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "editorial",
+      "isAdvertorial": false,
+      "summary": "An editorial defends the widely discussed Bok peace plan and marvels that anyone could ask who Bok is.",
+      "contextHint": "Edward Bok's 1923 American Peace Award drew national debate over U.S. cooperation with the World Court and League.",
+      "eventType": null,
+      "tags": [
+        "editorial",
+        "Bok peace plan",
+        "world peace"
+      ],
+      "topics": [
+        {
+          "id": "t-national-and-world",
+          "label": "National & World",
+          "confidence": "high"
+        },
+        {
+          "id": "t-local-government-and-civic",
+          "label": "Local Government & Civic",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-edward-bok",
+          "label": "Edward Bok",
+          "type": "person"
+        }
+      ]
     },
     {
-      "id": "co-58",
+      "id": "co-354",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 2,
@@ -880,10 +2522,19 @@
       "occurrences": 6,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-59",
+      "id": "co-355",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 3,
@@ -895,10 +2546,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-60",
+      "id": "co-356",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 4,
@@ -910,10 +2570,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-61",
+      "id": "co-357",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 5,
@@ -925,10 +2594,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-62",
+      "id": "co-358",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 6,
@@ -940,10 +2618,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-63",
+      "id": "co-359",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 7,
@@ -955,10 +2642,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-64",
+      "id": "co-360",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 8,
@@ -970,10 +2666,46 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": "The Y Theater's weekend program: 'The Silent Command' with a juvenile revue Friday, a William Russell picture Saturday.",
+      "contextHint": null,
+      "eventType": "film",
+      "tags": [
+        "movie theater",
+        "Y Theater",
+        "film program",
+        "silent film"
+      ],
+      "topics": [
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-venue-y-theater",
+          "label": "Y Theater",
+          "type": "venue"
+        },
+        {
+          "id": "n-creative-work-the-silent-command",
+          "label": "The Silent Command",
+          "type": "creative_work"
+        },
+        {
+          "id": "n-performer-william-russell",
+          "label": "William Russell",
+          "type": "performer"
+        }
+      ]
     },
     {
-      "id": "co-65",
+      "id": "co-361",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 9,
@@ -985,10 +2717,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": "The Knights of Malta Brooklyn Commandery holds its first social dance February 1 at the Labor Auditorium, 65 cents.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "social dance",
+        "Knights of Malta",
+        "fraternal order"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-brooklyn-commandery-k-of-m",
+          "label": "Brooklyn Commandery, K. of M.",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-labor-auditorium",
+          "label": "Labor Auditorium",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-66",
+      "id": "co-362",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 10,
@@ -1000,10 +2762,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-67",
+      "id": "co-363",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 11,
@@ -1015,10 +2786,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-68",
+      "id": "co-364",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 12,
@@ -1030,10 +2810,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-69",
+      "id": "co-365",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 13,
@@ -1045,10 +2834,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-70",
+      "id": "co-366",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 14,
@@ -1060,10 +2858,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-71",
+      "id": "co-367",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 15,
@@ -1075,10 +2882,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-72",
+      "id": "co-368",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 16,
@@ -1090,10 +2906,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-73",
+      "id": "co-369",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 17,
@@ -1105,10 +2930,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-74",
+      "id": "co-370",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 18,
@@ -1120,10 +2954,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-75",
+      "id": "co-371",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 19,
@@ -1135,10 +2978,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-76",
+      "id": "co-372",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 20,
@@ -1150,10 +3002,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-77",
+      "id": "co-373",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 21,
@@ -1165,10 +3026,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-78",
+      "id": "co-374",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 22,
@@ -1180,10 +3050,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-79",
+      "id": "co-375",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 23,
@@ -1195,10 +3074,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-80",
+      "id": "co-376",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 24,
@@ -1210,10 +3098,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-81",
+      "id": "co-377",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 25,
@@ -1225,10 +3122,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-82",
+      "id": "co-378",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 26,
@@ -1240,10 +3146,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-83",
+      "id": "co-379",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 27,
@@ -1255,10 +3170,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-84",
+      "id": "co-380",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 28,
@@ -1270,10 +3194,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-85",
+      "id": "co-381",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 29,
@@ -1285,10 +3218,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-86",
+      "id": "co-382",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 30,
@@ -1300,10 +3242,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-87",
+      "id": "co-383",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 31,
@@ -1315,10 +3266,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-88",
+      "id": "co-384",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 32,
@@ -1330,10 +3290,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-89",
+      "id": "co-385",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 33,
@@ -1345,10 +3314,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-90",
+      "id": "co-386",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 34,
@@ -1360,10 +3338,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-91",
+      "id": "co-387",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 35,
@@ -1375,10 +3362,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-92",
+      "id": "co-388",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7619,
       "seq": 36,
@@ -1390,10 +3386,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-93",
+      "id": "co-389",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 0,
@@ -1405,10 +3410,35 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "A fifth child, Dorothy Virginia, is born to the Weiss family of Ridgewood in Parma Township.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "birth",
+        "society note",
+        "Weiss family"
+      ],
+      "topics": [
+        {
+          "id": "t-agriculture-and-rural-life",
+          "label": "Agriculture & Rural Life",
+          "confidence": "low"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-place-ridgewood-parma-township",
+          "label": "Ridgewood, Parma Township",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-94",
+      "id": "co-390",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 1,
@@ -1420,10 +3450,39 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "announcement",
+      "isAdvertorial": false,
+      "summary": "The Glendalia Rebekah Lodge holds a Friday-afternoon card party at Glenn Hall on February 1.",
+      "contextHint": null,
+      "eventType": "club_engagement",
+      "tags": [
+        "Rebekah lodge",
+        "card party"
+      ],
+      "topics": [
+        {
+          "id": "t-clubs-and-societies",
+          "label": "Clubs & Societies",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-organization-glendalia-rebekah-lodge",
+          "label": "Glendalia Rebekah Lodge",
+          "type": "organization"
+        },
+        {
+          "id": "n-venue-glenn-hall",
+          "label": "Glenn Hall",
+          "type": "venue"
+        }
+      ]
     },
     {
-      "id": "co-95",
+      "id": "co-391",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 2,
@@ -1435,10 +3494,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-96",
+      "id": "co-392",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 3,
@@ -1450,10 +3518,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "structured",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-97",
+      "id": "co-393",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 4,
@@ -1465,10 +3542,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "structured",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-98",
+      "id": "co-394",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 5,
@@ -1480,10 +3566,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "structured",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-99",
+      "id": "co-395",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 6,
@@ -1495,10 +3590,19 @@
       "occurrences": 5,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-100",
+      "id": "co-396",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 7,
@@ -1510,10 +3614,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-101",
+      "id": "co-397",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 8,
@@ -1525,10 +3638,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-102",
+      "id": "co-398",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 9,
@@ -1540,10 +3662,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-103",
+      "id": "co-399",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 10,
@@ -1555,10 +3686,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-104",
+      "id": "co-400",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 11,
@@ -1570,10 +3710,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-105",
+      "id": "co-401",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 12,
@@ -1585,10 +3734,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-106",
+      "id": "co-402",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 13,
@@ -1600,10 +3758,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-107",
+      "id": "co-403",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 14,
@@ -1615,10 +3782,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-108",
+      "id": "co-404",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 15,
@@ -1630,10 +3806,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-109",
+      "id": "co-405",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 16,
@@ -1645,10 +3830,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-110",
+      "id": "co-406",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 17,
@@ -1660,10 +3854,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-111",
+      "id": "co-407",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 18,
@@ -1675,10 +3878,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-112",
+      "id": "co-408",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 19,
@@ -1690,10 +3902,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-113",
+      "id": "co-409",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 20,
@@ -1705,10 +3926,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-114",
+      "id": "co-410",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 21,
@@ -1720,10 +3950,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-115",
+      "id": "co-411",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 22,
@@ -1735,10 +3974,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-116",
+      "id": "co-412",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 23,
@@ -1750,10 +3998,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-117",
+      "id": "co-413",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 24,
@@ -1765,10 +4022,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-118",
+      "id": "co-414",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 25,
@@ -1780,10 +4046,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-119",
+      "id": "co-415",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 26,
@@ -1795,10 +4070,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-120",
+      "id": "co-416",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 27,
@@ -1810,10 +4094,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-121",
+      "id": "co-417",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 28,
@@ -1825,10 +4118,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-122",
+      "id": "co-418",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7620,
       "seq": 29,
@@ -1840,10 +4142,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-123",
+      "id": "co-419",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 0,
@@ -1855,10 +4166,40 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "George Knaupe of Henritze Avenue is home with a broken leg after an East Cleveland auto accident.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "accident",
+        "broken leg",
+        "automobile"
+      ],
+      "topics": [
+        {
+          "id": "t-health-and-medicine",
+          "label": "Health & Medicine",
+          "confidence": "high"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-george-knaupe",
+          "label": "George Knaupe",
+          "type": "person"
+        },
+        {
+          "id": "n-place-east-cleveland",
+          "label": "East Cleveland",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-124",
+      "id": "co-420",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 1,
@@ -1870,10 +4211,35 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "news_brief",
+      "isAdvertorial": false,
+      "summary": "Mr. and Mrs. R. Pallas move to a new Bungalow Gardens home on Creston Avenue.",
+      "contextHint": null,
+      "eventType": null,
+      "tags": [
+        "new home",
+        "Bungalow Gardens",
+        "society note"
+      ],
+      "topics": [
+        {
+          "id": "t-real-estate-and-building",
+          "label": "Real Estate & Building",
+          "confidence": "medium"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-place-bungalow-gardens",
+          "label": "Bungalow Gardens",
+          "type": "place"
+        }
+      ]
     },
     {
-      "id": "co-125",
+      "id": "co-421",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 2,
@@ -1885,10 +4251,46 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "heavy",
+      "articleType": "feature",
+      "isAdvertorial": true,
+      "summary": "A jokey Tut-ankh-amen essay that resolves into a paid pitch for chiropractor C. A. Hohler — an advertorial dressed as a feature.",
+      "contextHint": "GAP D, load-bearing: this reads as a reflective feature essay but is a paid chiropractic advertisement; leaving is_advertorial false would poison the journalism corpus and any RAG citation.",
+      "eventType": null,
+      "tags": [
+        "chiropractic",
+        "native advertising",
+        "Tut-ankh-amen",
+        "paid placement"
+      ],
+      "topics": [
+        {
+          "id": "t-health-and-medicine",
+          "label": "Health & Medicine",
+          "confidence": "medium"
+        },
+        {
+          "id": "t-business-and-commerce",
+          "label": "Business & Commerce",
+          "confidence": "low"
+        }
+      ],
+      "names": [
+        {
+          "id": "n-person-c-a-hohler",
+          "label": "C. A. Hohler",
+          "type": "person"
+        },
+        {
+          "id": "n-organization-universal-chiropractors-association",
+          "label": "Universal Chiropractors' Association",
+          "type": "organization"
+        }
+      ]
     },
     {
-      "id": "co-126",
+      "id": "co-422",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 3,
@@ -1900,10 +4302,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-127",
+      "id": "co-423",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 4,
@@ -1915,10 +4326,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "structured",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-128",
+      "id": "co-424",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 5,
@@ -1930,10 +4350,19 @@
       "occurrences": 4,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "capture_only",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-129",
+      "id": "co-425",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 6,
@@ -1945,10 +4374,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-130",
+      "id": "co-426",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 7,
@@ -1960,10 +4398,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-131",
+      "id": "co-427",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 8,
@@ -1975,10 +4422,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-132",
+      "id": "co-428",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 9,
@@ -1990,10 +4446,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-133",
+      "id": "co-429",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 10,
@@ -2005,10 +4470,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-134",
+      "id": "co-430",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 11,
@@ -2020,10 +4494,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-135",
+      "id": "co-431",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 12,
@@ -2035,10 +4518,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-136",
+      "id": "co-432",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 13,
@@ -2050,10 +4542,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-137",
+      "id": "co-433",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 14,
@@ -2065,10 +4566,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-138",
+      "id": "co-434",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 15,
@@ -2080,10 +4590,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-139",
+      "id": "co-435",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 16,
@@ -2095,10 +4614,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-140",
+      "id": "co-436",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 17,
@@ -2110,10 +4638,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-141",
+      "id": "co-437",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 18,
@@ -2125,10 +4662,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-142",
+      "id": "co-438",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 19,
@@ -2140,10 +4686,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-143",
+      "id": "co-439",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 20,
@@ -2155,10 +4710,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-144",
+      "id": "co-440",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 21,
@@ -2170,10 +4734,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-145",
+      "id": "co-441",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 22,
@@ -2185,10 +4758,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-146",
+      "id": "co-442",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 23,
@@ -2200,10 +4782,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-147",
+      "id": "co-443",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 24,
@@ -2215,10 +4806,19 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
     },
     {
-      "id": "co-148",
+      "id": "co-444",
       "issueId": "brooklynnews_1924-02-01",
       "page": 7621,
       "seq": 25,
@@ -2230,7 +4830,576 @@
       "occurrences": 1,
       "confidence": null,
       "runId": "slice01-v1_fixture_run1",
-      "model": "session-vlm:claude/dry-run"
+      "model": "session-vlm:claude/dry-run",
+      "enrichmentTier": "light",
+      "articleType": null,
+      "isAdvertorial": false,
+      "summary": null,
+      "contextHint": null,
+      "eventType": null,
+      "tags": [],
+      "topics": [],
+      "names": []
+    }
+  ],
+  "topicFacet": [
+    {
+      "id": "t-clubs-and-societies",
+      "label": "Clubs & Societies",
+      "count": 19
+    },
+    {
+      "id": "t-business-and-commerce",
+      "label": "Business & Commerce",
+      "count": 17
+    },
+    {
+      "id": "t-schools-and-education",
+      "label": "Schools & Education",
+      "count": 8
+    },
+    {
+      "id": "t-health-and-medicine",
+      "label": "Health & Medicine",
+      "count": 7
+    },
+    {
+      "id": "t-real-estate-and-building",
+      "label": "Real Estate & Building",
+      "count": 6
+    },
+    {
+      "id": "t-churches-and-religion",
+      "label": "Churches & Religion",
+      "count": 5
+    },
+    {
+      "id": "t-local-government-and-civic",
+      "label": "Local Government & Civic",
+      "count": 4
+    },
+    {
+      "id": "t-sports-and-recreation",
+      "label": "Sports & Recreation",
+      "count": 4
+    },
+    {
+      "id": "t-national-and-world",
+      "label": "National & World",
+      "count": 2
+    },
+    {
+      "id": "t-obituaries-and-deaths",
+      "label": "Obituaries & Deaths",
+      "count": 2
+    },
+    {
+      "id": "t-agriculture-and-rural-life",
+      "label": "Agriculture & Rural Life",
+      "count": 1
+    }
+  ],
+  "nameFacet": [
+    {
+      "id": "n-place-bungalow-gardens",
+      "label": "Bungalow Gardens",
+      "count": 4,
+      "type": "place"
+    },
+    {
+      "id": "n-organization-brooklyn-heights-sisterhood-245-dames-of-malta",
+      "label": "Brooklyn Heights Sisterhood 245, Dames of Malta",
+      "count": 3,
+      "type": "organization"
+    },
+    {
+      "id": "n-place-pearl-road",
+      "label": "Pearl Road",
+      "count": 3,
+      "type": "place"
+    },
+    {
+      "id": "n-person-c-a-hohler",
+      "label": "C. A. Hohler",
+      "count": 2,
+      "type": "person"
+    },
+    {
+      "id": "n-venue-castle-hall",
+      "label": "Castle Hall",
+      "count": 2,
+      "type": "venue"
+    },
+    {
+      "id": "n-organization-glendalia-rebekah-lodge",
+      "label": "Glendalia Rebekah Lodge",
+      "count": 2,
+      "type": "organization"
+    },
+    {
+      "id": "n-venue-glenn-hall",
+      "label": "Glenn Hall",
+      "count": 2,
+      "type": "venue"
+    },
+    {
+      "id": "n-place-parma",
+      "label": "Parma",
+      "count": 2,
+      "type": "place"
+    },
+    {
+      "id": "n-organization-southwestern-civic-and-business-men-s-association",
+      "label": "Southwestern Civic and Business Men's Association",
+      "count": 2,
+      "type": "organization"
+    },
+    {
+      "id": "n-venue-y-theater",
+      "label": "Y Theater",
+      "count": 2,
+      "type": "venue"
+    }
+  ],
+  "events": [
+    {
+      "id": "ev-61",
+      "title": "Southwestern Civic and Business Men's Association meeting",
+      "eventType": "civic",
+      "venue": "Association hall, 4154 Pearl Rd.",
+      "startText": "Monday evening",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Southwestern Civic and Business Men's Association opens its 1924 season pushing a slate of neighborhood improvements despite an icy first meeting."
+    },
+    {
+      "id": "ev-62",
+      "title": "Broadview PTA prize masquerade",
+      "eventType": "civic",
+      "venue": "Broadview School",
+      "startText": "Sat. evening, Feb. 9",
+      "recurrenceText": null,
+      "performers": [
+        "Gimbel's Orchestra"
+      ],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Broadview PTA plans a prize masquerade dance for February 9 with Gimbel's orchestra and costume prizes."
+    },
+    {
+      "id": "ev-63",
+      "title": "Ben Franklin PTA meeting",
+      "eventType": "civic",
+      "venue": "Ben Franklin School",
+      "startText": "Feb. 20",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Ben Franklin PTA hears a talk on Korea and new school-orchestra music; its next meeting is February 20."
+    },
+    {
+      "id": "ev-64",
+      "title": "Parma-Ridgewood PTA meeting",
+      "eventType": "civic",
+      "venue": null,
+      "startText": "Tuesday, Feb. 6",
+      "recurrenceText": null,
+      "performers": [
+        "Mrs. Elsie Cleverdon"
+      ],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Parma-Ridgewood PTA meets February 6 to hear a county board of education speaker."
+    },
+    {
+      "id": "ev-65",
+      "title": "Denison PTA all-day quilting",
+      "eventType": "civic",
+      "venue": "Denison School",
+      "startText": "Thursday, Feb. 7",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Denison PTA holds an all-day quilting at the school on February 7."
+    },
+    {
+      "id": "ev-66",
+      "title": "Dawning Mothers' Club meeting",
+      "eventType": "civic",
+      "venue": "Dawning School",
+      "startText": "Thursday, Feb. 14",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Dawning Mothers' Club meets February 14 to prepare its bazaar and coordinate a trip to the Congress of Mothers."
+    },
+    {
+      "id": "ev-67",
+      "title": "Brooklyn Heights PTA oyster supper and dance",
+      "eventType": "civic",
+      "venue": "Brooklyn Heights School",
+      "startText": "February 15",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Brooklyn Heights PTA holds an all-day sewing meeting February 5 and an oyster supper and dance February 15."
+    },
+    {
+      "id": "ev-68",
+      "title": "Basketball league organizing meeting",
+      "eventType": "civic",
+      "venue": "Glenn Hall",
+      "startText": "February 4, 8 p.m.",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Managers of Brooklyn basketball teams are called to a February 4 meeting to form a league at Glenn Hall."
+    },
+    {
+      "id": "ev-69",
+      "title": "Broadview Market free-orange giveaway",
+      "eventType": "other",
+      "venue": "Broadview Market",
+      "startText": "Saturday, 7 a.m.–noon",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": "Free",
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Broadview Market promises free Sunkist oranges to every Brooklyn adult who brings the coupon from its ad in this issue."
+    },
+    {
+      "id": "ev-70",
+      "title": "K. of P. County Deputy official visit",
+      "eventType": "club_engagement",
+      "venue": "South Brooklyn Lodge",
+      "startText": "February 7",
+      "recurrenceText": null,
+      "performers": [
+        "County Deputy G. C. J. Hall"
+      ],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Knights of Pythias plan a new Broadview Road lodge home with ground-floor stores; a deputy makes his official visit February 7."
+    },
+    {
+      "id": "ev-71",
+      "title": "YWCA program on China",
+      "eventType": "civic",
+      "venue": "Pearl Rd. M. E. Church",
+      "startText": "Feb. 7, 8 o'clock",
+      "recurrenceText": null,
+      "performers": [
+        "Miss Hwang"
+      ],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Brooklyn YWCA plans a February 7 evening on China and the lives of Chinese women, with a returned missionary and a Chinese student speaking."
+    },
+    {
+      "id": "ev-72",
+      "title": "Riverside Review annual dance",
+      "eventType": "club_engagement",
+      "venue": "Herriman Hall, 3025 Vega Ave.",
+      "startText": "Sat. evening, Feb. 9",
+      "recurrenceText": null,
+      "performers": [
+        "Kasper's Orchestra"
+      ],
+      "priceText": "small admission fee",
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Maccabees' Riverside Review holds its annual dance February 9 at Herriman Hall with Kasper's orchestra."
+    },
+    {
+      "id": "ev-73",
+      "title": "Parma school entertainment (Geltman Orchestra)",
+      "eventType": "other",
+      "venue": "Parma School",
+      "startText": "Tonight (Friday)",
+      "recurrenceText": null,
+      "performers": [
+        "Geltman Orchestra"
+      ],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Judge Geltman's three small children — aged 3, 6 and 9 — are in demand as an orchestra, playing the Parma school entertainment tonight."
+    },
+    {
+      "id": "ev-74",
+      "title": "Church League Basketball night",
+      "eventType": "civic",
+      "venue": "Y. M. C. A.",
+      "startText": "Thursday, Feb. 7 (7:30, 8:15, 9:00)",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "YMCA notes: Pearl M. E. hands Archwood its first church-league basketball loss, with a full February 7 schedule."
+    },
+    {
+      "id": "ev-75",
+      "title": "Glendalia Rebekah Lodge meeting and card party",
+      "eventType": "club_engagement",
+      "venue": "Glen Hall, Broadview and Pearl Rd.",
+      "startText": "Tonight (Friday)",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Glendalia Rebekah Lodge plans a members' surprise at tonight's meeting and an afternoon card party at Glen Hall."
+    },
+    {
+      "id": "ev-76",
+      "title": "Brooklyn Temple Pythian Sisters meeting",
+      "eventType": "club_engagement",
+      "venue": "Castle Hall, Broadview Rd.",
+      "startText": null,
+      "recurrenceText": "second and fourth Tuesday of each month",
+      "performers": [],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Brooklyn Temple Pythian Sisters honor a grand deputy at inspection; the temple meets second and fourth Tuesdays."
+    },
+    {
+      "id": "ev-77",
+      "title": "Card party (Clara Bradley)",
+      "eventType": "club_engagement",
+      "venue": "A. I. U. Hall, 4154 Pearl Rd.",
+      "startText": "Monday, February 4, 8 p.m.",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Clara Bradley hosts a February 4 evening card party at A. I. U. Hall on Pearl Road."
+    },
+    {
+      "id": "ev-78",
+      "title": "Dames of Malta card party series",
+      "eventType": "club_engagement",
+      "venue": null,
+      "startText": null,
+      "recurrenceText": "series of evening card parties",
+      "performers": [],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Dames of Malta sisterhood plans a series of evening card parties to raise money for robes."
+    },
+    {
+      "id": "ev-79",
+      "title": "Sunday church services (district directory)",
+      "eventType": "civic",
+      "venue": "Various Brooklyn-district churches",
+      "startText": "next Sunday",
+      "recurrenceText": "weekly",
+      "performers": [],
+      "priceText": null,
+      "confidence": "low",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The weekly Church News directory lists Sunday services and sermon topics for the district's congregations."
+    },
+    {
+      "id": "ev-80",
+      "title": "Woman's Civic League board meeting ('Peace')",
+      "eventType": "civic",
+      "venue": "League House",
+      "startText": "Tuesday, Feb. 5, 3:00 p.m.",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Woman's Civic League schedules a February board meeting on 'Peace,' a symphony night, dressmaking classes, and a card party."
+    },
+    {
+      "id": "ev-81",
+      "title": "Woman's Civic League monthly card party",
+      "eventType": "civic",
+      "venue": "League House",
+      "startText": "Feb. 21",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Woman's Civic League schedules a February board meeting on 'Peace,' a symphony night, dressmaking classes, and a card party."
+    },
+    {
+      "id": "ev-82",
+      "title": "Pythian Sisters card party",
+      "eventType": "club_engagement",
+      "venue": "Castle Hall",
+      "startText": "Tuesday, Feb. 19",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Pythian Sisters report a successful card party and set the next for February 19 at Castle Hall."
+    },
+    {
+      "id": "ev-83",
+      "title": "Dames of Malta meeting and initiation",
+      "eventType": "club_engagement",
+      "venue": null,
+      "startText": "February 11",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Dames of Malta sisterhood holds an initiation at its February 11 meeting."
+    },
+    {
+      "id": "ev-84",
+      "title": "Healing services (Shaw & Sproul)",
+      "eventType": "civic",
+      "venue": "Brooklyn United Presbyterian Church, Pearl and Spokane",
+      "startText": null,
+      "recurrenceText": "nightly meetings",
+      "performers": [
+        "J. Lyle Shaw",
+        "John W. Sproul"
+      ],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "Crowds from across Cleveland pack the Brooklyn U. P. Church for healing evangelists Shaw and Sproul, with testimonies of cures."
+    },
+    {
+      "id": "ev-85",
+      "title": "I. O. O. F. grand ball",
+      "eventType": "club_engagement",
+      "venue": "Hotel Cleveland",
+      "startText": "Oct. 20",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "The Odd Fellows invite Brooklyn Lodge members to a grand ball at Hotel Cleveland on October 20."
+    },
+    {
+      "id": "ev-86",
+      "title": "'Why Worry' (Harold Lloyd)",
+      "eventType": "film",
+      "venue": "Y Theatre, State and W. 35th",
+      "startText": "next Wednesday",
+      "recurrenceText": null,
+      "performers": [
+        "Harold Lloyd"
+      ],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7618,
+      "sourceClass": "article",
+      "sourceSummary": "A rave for Harold Lloyd's farce 'Why Worry,' running next Wednesday at the Y Theatre."
+    },
+    {
+      "id": "ev-87",
+      "title": "The Silent Command (with Juvenile Frivolities)",
+      "eventType": "film",
+      "venue": "Y Theater",
+      "startText": "Friday, Feb. 1",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7619,
+      "sourceClass": "advertisement",
+      "sourceSummary": "The Y Theater's weekend program: 'The Silent Command' with a juvenile revue Friday, a William Russell picture Saturday."
+    },
+    {
+      "id": "ev-88",
+      "title": "William Russell picture",
+      "eventType": "film",
+      "venue": "Y Theater",
+      "startText": "Saturday, Feb. 2",
+      "recurrenceText": null,
+      "performers": [
+        "William Russell"
+      ],
+      "priceText": null,
+      "confidence": "medium",
+      "sourcePage": 7619,
+      "sourceClass": "advertisement",
+      "sourceSummary": "The Y Theater's weekend program: 'The Silent Command' with a juvenile revue Friday, a William Russell picture Saturday."
+    },
+    {
+      "id": "ev-89",
+      "title": "K. of M. Boosters first social dance",
+      "eventType": "club_engagement",
+      "venue": "Labor Auditorium, 8167 W. 25th St.",
+      "startText": "Fri. eve., Feb. 1",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": "65c",
+      "confidence": "high",
+      "sourcePage": 7619,
+      "sourceClass": "advertisement",
+      "sourceSummary": "The Knights of Malta Brooklyn Commandery holds its first social dance February 1 at the Labor Auditorium, 65 cents."
+    },
+    {
+      "id": "ev-90",
+      "title": "Glendalia Rebekah Lodge card party",
+      "eventType": "club_engagement",
+      "venue": "Glenn Hall",
+      "startText": "Friday, Feb. 1, 2 o'clock",
+      "recurrenceText": null,
+      "performers": [],
+      "priceText": null,
+      "confidence": "high",
+      "sourcePage": 7620,
+      "sourceClass": "article",
+      "sourceSummary": "The Glendalia Rebekah Lodge holds a Friday-afternoon card party at Glenn Hall on February 1."
     }
   ]
 }

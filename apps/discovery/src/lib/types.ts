@@ -13,6 +13,8 @@ export interface Fact {
 /** Calendar event (This Week, Then). */
 export interface CalendarEvent {
   id: string;
+  eventType: string; // schema event_type (concert|film|civic|club_engagement|…) — drives grouping
+  sourceKind?: 'article' | 'ad' | 'listing' | 'mixed'; // where it was extracted from (honesty copy)
   stamp: string; // mono venue/date stamp
   title: string;
   blurb: string;
@@ -25,7 +27,8 @@ export interface CalendarEvent {
 }
 
 export interface CalendarSection {
-  name: string; // MUSIC / FILM / THEATER / SPORT & MORE
+  name: string; // display group, DERIVED from event_type (SLICE-04) — not a fixed template
+  color?: string; // group swatch (from the shared event_type→group map)
   events: CalendarEvent[];
 }
 

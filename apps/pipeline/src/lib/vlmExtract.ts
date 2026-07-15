@@ -8,40 +8,66 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { VLM_PROVIDER, VLM_MODEL, VLM_MAX_EDGE, FIXTURES_DIR } from "../config.ts";
+import type { VlmProvider } from "../config.ts";
 import { buildUserPrompt, SYSTEM_PROMPT, OBJECT_CLASSES } from "./vlm-prompt.ts";
 import type { VlmBlock, ObjectClass } from "./vlm-prompt.ts";
 import { conditionedImage } from "./condition.ts";
+
+export interface VlmUsage {
+  inputTokens: number | null;
+  outputTokens: number | null;
+}
 
 export interface VlmResult {
   blocks: VlmBlock[];
   model: string;
   provider: string;
+  usage?: VlmUsage; // token counts when the provider reports them (cost axis)
+  latencyMs?: number; // wall-clock of the provider call (stability/throughput)
 }
 
 export interface VlmArgs {
   imagePath: string;
   pageRecord: number;
   pageNumber: number;
+  // SLICE-03: override the module-configured provider/model so a harness can loop
+  // several engines in one process (the bake-off). Omit → use config (SLICE-01/02).
+  provider?: VlmProvider;
+  model?: string;
+}
+
+interface RawCall {
+  raw: unknown;
+  usage?: VlmUsage;
 }
 
 // Public entry: one page image in, ordered content-object blocks out.
 export async function vlmExtract(args: VlmArgs): Promise<VlmResult> {
-  let raw: unknown;
-  switch (VLM_PROVIDER) {
+  const provider = args.provider ?? VLM_PROVIDER;
+  const model = args.model ?? VLM_MODEL;
+  const started = performance.now();
+  let out: RawCall;
+  switch (provider) {
     case "gemini":
-      raw = await callGemini(args);
+      out = await callGemini(args, model);
       break;
     case "anthropic":
-      raw = await callAnthropic(args);
+      out = await callAnthropic(args, model);
       break;
     case "openai":
-      raw = await callOpenAI(args);
+      out = await callOpenAI(args, model);
       break;
     case "fixture":
     default:
-      raw = await loadFixture(args.pageRecord);
+      out = { raw: await loadFixture(args.pageRecord) };
   }
-  return { blocks: validateBlocks(raw), model: VLM_MODEL, provider: VLM_PROVIDER };
+  return {
+    blocks: validateBlocks(out.raw),
+    model,
+    provider,
+    usage: out.usage,
+    latencyMs: Math.round(performance.now() - started),
+  };
 }
 
 // --- fixture provider -------------------------------------------------------
@@ -64,11 +90,11 @@ function requireKey(name: string, provider: string): string {
 }
 
 // --- gemini provider --------------------------------------------------------
-async function callGemini(args: VlmArgs): Promise<unknown> {
+async function callGemini(args: VlmArgs, model: string): Promise<RawCall> {
   const key = requireKey("GEMINI_API_KEY", "gemini");
   const img = conditionedImage(args.imagePath, VLM_MAX_EDGE);
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${VLM_MODEL}:generateContent?key=${key}`;
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
   const body = {
     system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: [
@@ -97,18 +123,25 @@ async function callGemini(args: VlmArgs): Promise<unknown> {
   if (!res.ok) throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
   };
   const text =
     json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  return parseLooseArray(text);
+  return {
+    raw: parseLooseArray(text),
+    usage: {
+      inputTokens: json.usageMetadata?.promptTokenCount ?? null,
+      outputTokens: json.usageMetadata?.candidatesTokenCount ?? null,
+    },
+  };
 }
 
 // --- anthropic provider -----------------------------------------------------
-async function callAnthropic(args: VlmArgs): Promise<unknown> {
+async function callAnthropic(args: VlmArgs, model: string): Promise<RawCall> {
   const key = requireKey("ANTHROPIC_API_KEY", "anthropic");
   const img = conditionedImage(args.imagePath, VLM_MAX_EDGE);
   const body = {
-    model: VLM_MODEL,
+    model,
     max_tokens: 32000,
     system: SYSTEM_PROMPT,
     messages: [
@@ -136,17 +169,29 @@ async function callAnthropic(args: VlmArgs): Promise<unknown> {
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
-  const json = (await res.json()) as { content: Array<{ text?: string }> };
-  return parseLooseArray(json.content.map((c) => c.text ?? "").join(""));
+  const json = (await res.json()) as {
+    content: Array<{ text?: string }>;
+    usage?: { input_tokens?: number; output_tokens?: number };
+  };
+  return {
+    raw: parseLooseArray(json.content.map((c) => c.text ?? "").join("")),
+    usage: {
+      inputTokens: json.usage?.input_tokens ?? null,
+      outputTokens: json.usage?.output_tokens ?? null,
+    },
+  };
 }
 
 // --- openai provider --------------------------------------------------------
-async function callOpenAI(args: VlmArgs): Promise<unknown> {
+async function callOpenAI(args: VlmArgs, model: string): Promise<RawCall> {
   const key = requireKey("OPENAI_API_KEY", "openai");
   const img = conditionedImage(args.imagePath, VLM_MAX_EDGE);
   const body = {
-    model: VLM_MODEL,
+    model,
     temperature: 0,
+    // Dense pages can run long; give room, then recover any truncated tail below
+    // (parity with the anthropic/gemini paths, which already repair truncation).
+    max_tokens: 16000,
     response_format: { type: "json_object" },
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
@@ -175,10 +220,26 @@ async function callOpenAI(args: VlmArgs): Promise<unknown> {
   if (!res.ok) throw new Error(`OpenAI API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     choices: Array<{ message: { content: string } }>;
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
-  const parsed = JSON.parse(stripCodeFence(json.choices[0].message.content));
-  // response_format=json_object forces an object wrapper; unwrap to the array.
-  return Array.isArray(parsed) ? parsed : (parsed.blocks ?? parsed.objects ?? parsed);
+  // json_object mode wraps the array in {"blocks":[…]}. Parse the object normally;
+  // only if it's truncated (throws) fall back to array-tail recovery — same
+  // resilience the anthropic/gemini paths have, without breaking the clean case.
+  const content = json.choices[0].message.content;
+  let raw: unknown;
+  try {
+    const parsed = JSON.parse(stripCodeFence(content));
+    raw = Array.isArray(parsed) ? parsed : (parsed.blocks ?? parsed.objects ?? parsed);
+  } catch {
+    raw = parseLooseArray(content); // truncated tail → recover the largest valid prefix
+  }
+  return {
+    raw,
+    usage: {
+      inputTokens: json.usage?.prompt_tokens ?? null,
+      outputTokens: json.usage?.completion_tokens ?? null,
+    },
+  };
 }
 
 function stripCodeFence(s: string): string {

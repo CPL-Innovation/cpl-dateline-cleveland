@@ -16,6 +16,7 @@
     "view": "npm run view --workspace @dateline/pipeline",
     "probe": "npm run probe --workspace @dateline/pipeline",
     "pipeline": "npm run slice01 --workspace @dateline/pipeline",
+    "enrich": "npm run enrich --workspace @dateline/pipeline",
     "export-real": "npm run export-real --workspace @dateline/discovery",
     "dev": "npm run dev --workspace @dateline/discovery",
     "build": "npm run build --workspace @dateline/discovery",

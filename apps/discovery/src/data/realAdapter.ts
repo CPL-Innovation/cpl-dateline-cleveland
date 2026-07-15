@@ -1,21 +1,29 @@
-// Adapt the real SLICE-01 content_objects (exported to real.generated.json) into
-// the discovery Dataset shape. This is the "REAL DATA" toggle.
+// Adapt the real content_objects (exported to real.generated.json) into the
+// discovery Dataset shape. This is the "REAL DATA" toggle.
 //
-// Honesty is the whole point of showing this: SLICE-01 produced typed, ordered
-// transcriptions but NO entity/topic/event enrichment. So:
-//   • The Index's TYPE and PICTURES & ADS facets are real (derived from object_class).
-//   • TOPIC and NAME facets are shown but empty, with a note saying why.
-//   • The Calendar is unavailable (no events were extracted) → honest empty state.
-//   • Non-publication objects (filler slugs, manuscript annotations) are dropped
-//     per Principle 15 — captured in the pipeline, kept out of the patron index.
+// SLICE-01 produced typed, ordered transcriptions; SLICE-02 added the enrichment
+// overlay (topics, entities, events). When the export carries that overlay
+// (`enriched: true`):
+//   • TYPE + PICTURES & ADS facets are real (from object_class), as before.
+//   • TOPIC + NAME facets bind to machine-extracted topics + recurring entities.
+//   • The Calendar assembles from extracted EVENTS (civic/club/film for this issue).
+// When the export is pre-enrichment, the old honest empty states are kept.
+// Non-publication objects (filler, manuscript marks) are dropped per Principle 15.
 
 import type {
   Dataset,
   FacetGroup,
   IndexItem,
   FacetValue,
+  CalendarEvent,
+  CalendarSection,
+  Fact,
 } from '../lib/types';
+import { buildSections, groupFor } from '../lib/calendar';
 import raw from './real.generated.json';
+
+interface RawTopicRef { id: string; label: string; confidence: string }
+interface RawNameRef { id: string; label: string; type: string }
 
 interface RawObject {
   id: string;
@@ -31,16 +39,49 @@ interface RawObject {
   confidence: number | null;
   runId: string;
   model: string;
+  enrichmentTier?: string | null;
+  articleType?: string | null;
+  isAdvertorial?: boolean | null;
+  summary?: string | null;
+  contextHint?: string | null;
+  eventType?: string | null;
+  tags?: string[];
+  topics?: RawTopicRef[];
+  names?: RawNameRef[];
+}
+
+interface RawEvent {
+  id: string;
+  title: string;
+  eventType: string;
+  venue: string | null;
+  startText: string | null;
+  recurrenceText: string | null;
+  performers: string[];
+  priceText: string | null;
+  confidence: string;
+  sourcePage: number;
+  sourceClass: string;
+  sourceSummary: string | null;
 }
 
 interface RawPayload {
   generatedAt: string | null;
+  enriched?: boolean;
   issue: { id: string; model: string; runId: string } | null;
   pages: number[];
   objects: RawObject[];
+  topicFacet?: FacetValue[];
+  nameFacet?: Array<FacetValue & { type: string }>;
+  events?: RawEvent[];
 }
 
 const payload = raw as RawPayload;
+const enriched = payload.enriched === true;
+const topicFacetValues: FacetValue[] = payload.topicFacet ?? [];
+const nameFacetValues: Array<FacetValue & { type: string }> = payload.nameFacet ?? [];
+// Only names promoted to the NAME facet (recurring) are shown/filterable.
+const facetedNameIds = new Set(nameFacetValues.map((n) => n.id));
 
 // First page_record in the issue → printed page 1. (7618→P.1 … 7621→P.4)
 const firstRecord = payload.pages.length ? Math.min(...payload.pages) : 0;
@@ -133,6 +174,10 @@ function toItem(o: RawObject): IndexItem {
   const stamp = `CLEVELAND · FEB 1 1924 · P.${printedPage(o.page)}`;
   const typeLabel = (TYPE_LABELS[type] || 'Object').toUpperCase();
   const roleNote = o.role ? o.role : o.objectClass.replace(/_/g, ' ');
+  // The one-sentence machine summary is the browse pitch when enrichment ran.
+  const snippet = o.summary && o.summary.trim() ? o.summary : snippetOf(o);
+  const topics = (o.topics ?? []).map((t) => t.id);
+  const names = (o.names ?? []).map((n) => n.id).filter((id) => facetedNameIds.has(id));
   return {
     id: o.id,
     typeLabel,
@@ -142,13 +187,13 @@ function toItem(o: RawObject): IndexItem {
     wallHeight: WALL_HEIGHTS[type] || '200px',
     stamp,
     title: toTitle(o),
-    snippet: snippetOf(o),
-    topics: [],
-    names: [],
+    snippet,
+    topics,
+    names,
     cropNote: isVisual ? `${typeLabel} — ${roleNote.toUpperCase()}` : '',
     caption: firstLine(o.text),
     credit: `SOURCE: BROOKLYN NEWS · FEB 1 1924 · ${o.issueId} · P.${printedPage(o.page)} · SEQ ${o.seq}`,
-    clipNote: roleNote,
+    clipNote: o.isAdvertorial ? `${roleNote} · flagged advertorial` : roleNote,
     transcript: o.text,
   };
 }
@@ -193,35 +238,92 @@ const facetDefs: FacetGroup[] = [
     key: 'topic',
     name: 'TOPIC',
     note: 'MULTI',
-    values: [],
-    emptyNote: 'No topics extracted yet — subject enrichment is beyond SLICE-01.',
+    values: topicFacetValues,
+    emptyNote: enriched
+      ? 'No topics extracted for this issue.'
+      : 'No topics extracted yet — run the SLICE-02 enrichment pass.',
   },
   {
     key: 'name',
     name: 'NAME',
-    note: 'PEOPLE · PLACES · ORGS',
-    values: [],
-    emptyNote: 'No entities extracted yet — name/place enrichment is beyond SLICE-01.',
+    note: 'RECURRING · PEOPLE · PLACES · ORGS',
+    values: nameFacetValues.map(({ id, label, count }) => ({ id, label, count })),
+    emptyNote: enriched
+      ? 'No entity recurs across ≥2 objects in this single issue.'
+      : 'No entities extracted yet — run the SLICE-02 enrichment pass.',
   },
   { key: 'type', name: 'TYPE', note: 'MULTI', values: typeValues },
   { key: 'visual', name: 'PICTURES & ADS', note: 'VISUAL MODE', values: visValues },
 ];
 
+// --- Calendar: assemble CalendarEvents from extracted events -----------------
+// Grouping is DERIVED from each event's event_type via the shared buildSections
+// (SLICE-04) — the SAME logic MOCK uses. Brooklyn News 1924 yields civic/club/film,
+// so the columns come out Civic Life / Clubs & Societies / Film, not a nightlife
+// template. No section names hardcoded here.
+function sourceKindOf(sourceClass: string): CalendarEvent['sourceKind'] {
+  if (sourceClass === 'advertisement') return 'ad';
+  if (sourceClass === 'article') return 'article';
+  if (sourceClass === 'listing' || sourceClass === 'classified_section') return 'listing';
+  return 'mixed';
+}
+
+function eventToCalendar(ev: RawEvent): CalendarEvent {
+  const when = ev.startText || ev.recurrenceText || 'FEB 1924';
+  const groupName = groupFor(ev.eventType).group;
+  const fromWhat = ev.sourceClass === 'advertisement' ? 'FROM A DISPLAY AD' : 'FROM AN ARTICLE';
+  const facts: Fact[] = [
+    ...(ev.venue ? [{ label: 'VENUE', value: ev.venue }] : []),
+    { label: 'DATE / TIME', value: ev.startText || ev.recurrenceText || 'as printed' },
+    ...(ev.recurrenceText && ev.startText ? [{ label: 'RECURS', value: ev.recurrenceText }] : []),
+    ...(ev.performers.length ? [{ label: 'PERFORMER', value: ev.performers.join(', ') }] : []),
+    { label: 'PRICE AS PRINTED', value: ev.priceText || 'none listed' },
+    { label: 'EVENT TYPE', value: ev.eventType.replace(/_/g, ' ') },
+    { label: 'CONFIDENCE', value: ev.confidence.toUpperCase() },
+    { label: 'EXTRACTED FROM', value: `${ev.sourceClass.replace(/_/g, ' ')}, p.${printedPage(ev.sourcePage)}` },
+  ];
+  return {
+    id: ev.id,
+    eventType: ev.eventType,
+    sourceKind: sourceKindOf(ev.sourceClass),
+    stamp: `${(ev.venue || 'BROOKLYN').toUpperCase()} · ${when.toUpperCase()}`,
+    title: ev.title,
+    blurb: ev.sourceSummary || `${ev.eventType.replace(/_/g, ' ')} extracted from a ${ev.sourceClass.replace(/_/g, ' ')}.`,
+    price: ev.priceText ? `${ev.priceText} — as printed` : 'No admission listed',
+    section: `${groupName.toUpperCase()} · ${fromWhat}`,
+    credit: `SOURCE: BROOKLYN NEWS · FEB 1 1924 · P.${printedPage(ev.sourcePage)} · ${ev.sourceClass.replace(/_/g, ' ').toUpperCase()}`,
+    clipNote: `${ev.eventType.replace(/_/g, ' ')} — extracted from ${ev.sourceClass.replace(/_/g, ' ')}`,
+    transcript: `[${ev.title}] ${ev.venue ? ev.venue + ' — ' : ''}${when}. ${ev.sourceSummary || ''}`.trim(),
+    facts,
+  };
+}
+
+const rawEvents = payload.events ?? [];
+const sections: CalendarSection[] = buildSections(rawEvents.map(eventToCalendar));
+const calendarAvailable = enriched && rawEvents.length > 0;
+
 export const realDataset: Dataset = {
   mode: 'real',
-  weeks: [{ year: '1924', sub: 'FEB 1', hasData: false }],
-  sections: [],
-  eventCount: 0,
-  calendarAvailable: false,
-  calendarNote:
-    'The calendar assembles from machine-extracted EVENTS. SLICE-01 transcribed and typed this issue but did not run event extraction — so there is nothing to place on the timeline yet. Switch to MOCK DATA to see the intended calendar.',
+  weeks: [{ year: '1924', sub: 'FEB 1', hasData: calendarAvailable }],
+  sections,
+  eventCount: rawEvents.length,
+  calendarAvailable,
+  calendarNote: enriched
+    ? 'Event extraction ran on this issue. A 1924 community weekly is civic, not commercial — its calendar is club meetings, socials, church programs, and a couple of movie nights, not the concert/theater nightlife a modern alt-weekly carries.'
+    : 'The calendar assembles from machine-extracted EVENTS. Run the SLICE-02 enrichment pass to place this issue on the timeline. Switch to MOCK DATA to see the intended calendar.',
   indexItems: items,
   facetDefs,
-  indexHero: {
-    kicker: 'THE INDEX · REAL SLICE-01 DATA',
-    headline: 'The Brooklyn News, as the pipeline actually read it.',
-    deck: `${items.length} typed content objects from one issue (Feb 1 1924, pages 1–${payload.pages.length}), transcribed by the SLICE-01 VLM pass. Type and picture facets are real; topic and name facets await enrichment.`,
-  },
+  indexHero: enriched
+    ? {
+        kicker: 'THE INDEX · REAL ENRICHED DATA',
+        headline: 'Browse the paper the catalog never indexed — for real.',
+        deck: `${items.length} typed content objects from one issue (Feb 1 1924), now enriched: ${topicFacetValues.length} machine-extracted subjects, ${nameFacetValues.length} recurring names, ${rawEvents.length} events. Every facet here is real.`,
+      }
+    : {
+        kicker: 'THE INDEX · REAL SLICE-01 DATA',
+        headline: 'The Brooklyn News, as the pipeline actually read it.',
+        deck: `${items.length} typed content objects from one issue (Feb 1 1924, pages 1–${payload.pages.length}), transcribed by the VLM pass. Type and picture facets are real; topic and name facets await enrichment.`,
+      },
   countsAreMock: false,
 };
 
@@ -230,4 +332,8 @@ export const realMeta = {
   runId: payload.issue?.runId ?? 'unknown',
   pageCount: payload.pages.length,
   objectCount: items.length,
+  enriched,
+  topicCount: topicFacetValues.length,
+  nameCount: nameFacetValues.length,
+  eventCount: rawEvents.length,
 };

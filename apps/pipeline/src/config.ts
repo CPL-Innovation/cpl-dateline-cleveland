@@ -47,3 +47,25 @@ export const DB_PATH = resolve(ROOT, "data", "slice01.sqlite");
 export const FIXTURES_DIR = resolve(ROOT, "fixtures");
 export const OUT_DIR = resolve(ROOT, "out");
 export const PROMPT_VERSION = "slice01-v1";
+
+// --- Enrichment provider selection (SLICE-02) -------------------------------
+// Same swap-a-model spine as the VLM adapter. "fixture" (default) replays the
+// session-model enrichment committed under fixtures/enrichment/ — the SLICE-01
+// method, applied to Stage 4 (read the real object TEXT, produce the judgement).
+// The real providers are wired for when a key is provisioned to the local env.
+// Model tiering (Principle 10) is a config swap, not a rewrite: cheap model for
+// bulk classify, stronger for summaries/events — one issue runs fine on one model.
+export type EnrichProvider = "fixture" | "anthropic" | "gemini" | "openai";
+export const ENRICH_PROVIDER = (process.env.ENRICH_PROVIDER ??
+  "fixture") as EnrichProvider;
+
+const DEFAULT_ENRICH_MODEL: Record<EnrichProvider, string> = {
+  fixture: "session-model:claude/slice02",
+  anthropic: "claude-sonnet-5",
+  gemini: "gemini-2.5-flash",
+  openai: "gpt-4o",
+};
+export const ENRICH_MODEL =
+  process.env.ENRICH_MODEL ?? DEFAULT_ENRICH_MODEL[ENRICH_PROVIDER];
+
+export const ENRICH_PROMPT_VERSION = "slice02-v1";

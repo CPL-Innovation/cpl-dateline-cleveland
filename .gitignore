@@ -18,3 +18,11 @@ apps/pipeline/inbox/*.jpeg
 apps/pipeline/inbox/*.png
 apps/pipeline/out/
 apps/pipeline/scratch/
+
+# SLICE-03 Scene bake-off — Scene is IN-COPYRIGHT (CC BY-NC-ND, © Northeast Scene).
+# The ENTIRE working dir is withheld from the public repo: page images, raw
+# transcriptions, scored outputs, gold set — anything Scene-derived. Only generic
+# CODE (the adapter, the runner, the scorer) is committable, and it lives in src/.
+# This is the commit-allowlist rule (BUILD-SPEC divergence #5) as an operational
+# constraint for the first time. See build/SLICE-03-scene.md §RIGHTS GATE.
+apps/pipeline/scene-eval/
