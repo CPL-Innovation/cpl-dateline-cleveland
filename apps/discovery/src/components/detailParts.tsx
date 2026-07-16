@@ -60,8 +60,11 @@ export function ClippingFrame({
   pageImage?: string | null;
   iiifId?: string | null;
 }) {
-  // Vite serves public/ under BASE_URL; images live at `<base>/pages/…`.
-  const src = pageImage ? import.meta.env.BASE_URL + pageImage : null;
+  // Committed images live at `<base>/pages/…` (BASE-prefixed); live-ingested pages
+  // (SLICE-08) carry an absolute ContentDM IIIF URL — pass those through as-is.
+  const src = pageImage
+    ? (/^https?:\/\//.test(pageImage) ? pageImage : import.meta.env.BASE_URL + pageImage)
+    : null;
   // Full-res deep-zoom is ContentDM's own IIIF viewer — no tiling server of our own.
   const readerHref = iiifId ? `${iiifId}/full/full/0/default.jpg` : undefined;
   return (

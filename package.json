@@ -15,6 +15,7 @@
     "ingest": "npm run ingest --workspace @dateline/pipeline",
     "view": "npm run view --workspace @dateline/pipeline",
     "probe": "npm run probe --workspace @dateline/pipeline",
+    "catalog": "npm run catalog --workspace @dateline/pipeline",
     "pipeline": "npm run slice01 --workspace @dateline/pipeline",
     "enrich": "npm run enrich --workspace @dateline/pipeline",
     "export-real": "npm run export-real --workspace @dateline/discovery",

@@ -1,0 +1,493 @@
+<!-- SLICE-07 — the coverage dashboard: the workbench HOME, one level ABOVE a
+     single issue. Reads catalog.json (harvested live from ContentDM's query API
+     by `npm run catalog`) and shows CPL's WHOLE collection — every issue with an
+     honest status (enriched · ready · rights-locked · unknown · inert), grouped
+     by serial. The one enriched issue clicks through to the per-issue workbench
+     (staff.html). Reuses the workbench design tokens verbatim (reuse, don't
+     repaint). Self-contained; hosted at /staff (see src/lib/router.ts). -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dateline Cleveland — Editorial Workbench · Collection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#FFFFFF; --ink:#0F1215; --body:#2B3340; --secondary:#505A69;
+  --tertiary:#8A94A3; --brand:#0057B7; --brand-press:#004591; --accent:#F1C400;
+  --hair:#E6E9EE; --hair-2:#C9CFD8; --sunken:#F2F4F7;
+  --ok:#56944F; --warn:#C58A00; --danger:#C4462F; --orchid:#B36BC7;
+  --serif:'Spectral',Georgia,serif; --sans:'Work Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--serif);color:var(--body);background:var(--canvas);font-size:16.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+a{color:inherit;text-decoration:none}
+.mono{font-family:var(--mono);font-weight:400}
+.kicker{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--secondary)}
+
+/* top strip + appbar (mirror of the workbench chrome) */
+.utility{background:var(--ink);color:#C9CFD8;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding:5px 20px;display:flex;justify-content:space-between;align-items:center}
+.utility b{color:var(--accent);font-weight:500}
+.appbar{display:flex;align-items:stretch;border-bottom:2px solid var(--brand);background:var(--canvas)}
+.brand{padding:14px 22px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--hair);min-width:270px}
+.wordmark{font-family:var(--serif);font-weight:800;font-size:23px;color:var(--brand);letter-spacing:-.01em;line-height:1}
+.wordmark .co{color:var(--ink)}
+.brand .sub{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--secondary);margin-top:6px}
+.runbar{flex:1;display:flex;align-items:center;gap:20px;padding:0 22px;flex-wrap:wrap}
+.crumb{font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.04em;color:var(--ink);display:flex;align-items:center;gap:8px}
+.crumb .here{border-left:2px solid var(--accent);background:var(--sunken);padding:6px 12px}
+.toplink{margin-left:auto;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);border:1px solid var(--brand);padding:8px 12px;white-space:nowrap}
+.toplink:hover{background:var(--brand);color:#fff}
+
+/* shell: left pipeline rail + main (mirror of the workbench shell) */
+.shell{display:flex;height:calc(100vh - 92px)}
+.rail{width:270px;flex:none;border-right:1px solid var(--hair);background:var(--canvas);overflow-y:auto;padding:14px 0 40px}
+.rail .grp{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tertiary);padding:16px 22px 8px}
+.navitem{width:100%;text-align:left;display:flex;align-items:center;gap:12px;padding:11px 22px;border-left:3px solid transparent;color:var(--secondary);font-family:var(--sans);font-weight:600;font-size:13.5px;letter-spacing:.01em;text-decoration:none}
+.navitem:hover{background:var(--sunken)}
+.navitem.active{border-left-color:var(--accent);background:var(--sunken);color:var(--ink)}
+.navitem .ord{font-family:var(--mono);font-size:11px;color:var(--tertiary);width:18px;flex:none}
+.navitem.active .ord{color:var(--brand)}
+.navitem .count{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--tertiary)}
+.navitem.active .count{color:var(--brand)}
+.navitem .count.hot{color:var(--danger)}
+.rail .foot{padding:20px 22px;margin-top:12px;border-top:1px solid var(--hair);font-family:var(--mono);font-size:10px;line-height:1.7;color:var(--tertiary)}
+.main{flex:1;overflow-y:auto;background:var(--canvas)}
+
+/* coverage header */
+.cover{padding:26px 34px 20px;border-bottom:1px solid var(--hair)}
+.cover h1{font-family:var(--serif);font-weight:700;font-size:30px;color:var(--ink);line-height:1.05;letter-spacing:-.01em}
+.cover .lede{font-family:var(--serif);font-size:16px;color:var(--secondary);margin-top:8px;max-width:78ch}
+.rollup{display:grid;grid-template-columns:repeat(5,max-content);gap:0;border:1px solid var(--hair-2);margin-top:20px;width:max-content;max-width:100%}
+.rollup .cell{padding:14px 22px;border-right:1px solid var(--hair)}
+.rollup .cell:last-child{border-right:none}
+.rollup .n{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--ink);line-height:1}
+.rollup .n.brand{color:var(--brand)} .rollup .n.warn{color:var(--warn)} .rollup .n.ok{color:var(--ok)} .rollup .n.navy{color:var(--brand-press)}
+.rollup .k{font-family:var(--sans);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--secondary);margin-top:8px}
+
+/* controls */
+.controls{display:flex;align-items:center;gap:12px;padding:16px 34px;border-bottom:1px solid var(--hair);flex-wrap:wrap;position:sticky;top:0;background:var(--canvas);z-index:5}
+.search{flex:1;min-width:220px;max-width:420px;display:flex;align-items:center;gap:8px;border:1px solid var(--hair-2);padding:8px 12px}
+.search input{border:none;outline:none;font-family:var(--serif);font-size:15px;color:var(--ink);width:100%;background:transparent}
+.search .mag{color:var(--tertiary);font-family:var(--mono)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{font-family:var(--sans);font-weight:600;font-size:11.5px;letter-spacing:.03em;padding:7px 12px;border:1px solid var(--hair-2);color:var(--secondary);display:flex;align-items:center;gap:7px}
+.fchip .sw{width:9px;height:9px;border-radius:50%}
+.fchip.on{border-color:var(--ink);color:var(--ink);background:var(--sunken)}
+.fchip .c{font-family:var(--mono);font-size:10.5px;color:var(--tertiary)}
+
+/* serial groups */
+.body{padding:8px 0 80px}
+.serial{border-bottom:1px solid var(--hair)}
+.shead{width:100%;display:flex;align-items:center;gap:14px;padding:15px 34px;text-align:left}
+.shead:hover{background:var(--sunken)}
+.shead .tw{font-family:var(--mono);font-size:12px;color:var(--tertiary);width:14px;flex:none}
+.shead .nm{font-family:var(--serif);font-weight:700;font-size:18px;color:var(--ink)}
+.shead .yr{font-family:var(--mono);font-size:11px;color:var(--tertiary)}
+.shead .bars{margin-left:auto;display:flex;align-items:center;gap:10px}
+.minibar{width:180px;height:8px;background:var(--sunken);display:flex;overflow:hidden;border:1px solid var(--hair)}
+.minibar i{height:100%}
+.shead .ct{font-family:var(--mono);font-size:12px;color:var(--secondary);width:78px;text-align:right}
+.rights-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.issues{display:none}
+.serial.open .issues{display:block}
+.serial.open .shead .tw{color:var(--brand)}
+
+.irow{display:grid;grid-template-columns:18px 104px 1fr 92px 150px;gap:14px;align-items:center;padding:9px 34px 9px 44px;border-top:1px solid var(--hair);font-size:14px}
+.irow:hover{background:var(--sunken)}
+.irow.expandable,.irow.clickable{cursor:pointer}
+.irow.clickable:hover{background:rgba(0,87,183,.05)}
+.irow .itw{font-family:var(--mono);font-size:11px;color:var(--tertiary);text-align:center}
+.issue-block.open > .irow{background:var(--sunken)}
+.issue-block.open > .irow .itw{color:var(--brand)}
+.irow .date{font-family:var(--mono);font-size:11.5px;color:var(--secondary)}
+.irow .ttl{font-family:var(--serif);font-size:14px;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.irow .pg{font-family:var(--mono);font-size:11px;color:var(--tertiary);text-align:right}
+/* level 3 — the pages of an issue, nested inline */
+.pages{display:none}
+.issue-block.open > .pages{display:block}
+.pgnote{font-family:var(--sans);font-size:11.5px;color:var(--secondary);padding:8px 34px 8px 80px;background:var(--sunken);border-top:1px solid var(--hair)}
+.pgnote.lock{color:var(--danger)}
+.pgact{font-family:var(--sans);font-weight:700;font-size:11px;color:var(--brand);border:none;background:none;cursor:pointer;text-decoration:underline;padding:0}
+.prow{display:grid;grid-template-columns:70px 1fr 84px;gap:14px;align-items:center;padding:7px 34px 7px 80px;border-top:1px solid var(--hair);font-size:13px}
+.prow.clickable{cursor:pointer}
+.prow.clickable:hover{background:rgba(0,87,183,.06)}
+.prow .pn{font-family:var(--mono);font-size:12px;color:var(--brand)}
+.prow .pmeta{font-family:var(--mono);font-size:11px;color:var(--tertiary)}
+.prow .pgo{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);text-align:right;opacity:0}
+.prow.clickable:hover .pgo{opacity:1}
+.pill{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:5px 9px;display:inline-flex;align-items:center;gap:6px;justify-self:start;white-space:nowrap}
+.pill .d{width:7px;height:7px;border-radius:50%}
+.pill.full{background:var(--ok);color:#fff}
+.pill.partial{color:var(--brand-press);border:1px solid var(--brand-press)}
+.pill.uningested{color:var(--tertiary);border:1px solid var(--hair-2)}
+.pill.rights_locked{color:var(--danger);border:1px solid var(--danger)}
+.pill.inert{color:var(--tertiary);border:1px dashed var(--hair-2)}
+.morebtn{display:block;width:100%;padding:10px 34px 10px 62px;text-align:left;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--brand);border-top:1px solid var(--hair)}
+.morebtn:hover{background:var(--sunken)}
+
+/* start-ingestion stub toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:var(--sans);font-size:13px;padding:14px 20px;max-width:520px;box-shadow:0 8px 30px rgba(0,0,0,.25);display:none;z-index:20}
+.toast.show{display:block}
+.toast b{color:var(--accent)}
+.toast .x{float:right;margin-left:16px;color:var(--tertiary);font-family:var(--mono);cursor:pointer}
+
+.loading,.err{padding:60px 34px;font-family:var(--serif);font-size:16px;color:var(--secondary)}
+.err b{color:var(--danger)}
+
+/* footer honesty band */
+.hband{background:var(--brand);color:#fff;padding:10px 34px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.hband b{color:var(--accent);font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="utility">
+  <span id="u-banner">Internal Editorial Workbench · <b>Collection view</b> · loading catalog…</span>
+  <span>ContentDM catalog · <b>metadata only</b> · rights gate before production</span>
+</div>
+
+<header class="appbar">
+  <div class="brand">
+    <div class="wordmark">Dateline<span class="co"> Cleveland</span></div>
+    <div class="sub">Editorial Workbench</div>
+  </div>
+  <div class="runbar">
+    <div class="crumb"><span class="here">The collection</span></div>
+    <a class="toplink" href="./" target="_top">Patron prototype →</a>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- LEFT RAIL — the pipeline stage flow. At the collection level, "Run &
+       progress" IS this coverage dashboard (per the original mental model); the
+       downstream per-issue stages open the review workbench for the issue. -->
+  <nav class="rail">
+    <div class="grp">Pipeline · Stage 5 workbench</div>
+    <a class="navitem active" href="./staff" target="_top"><span class="ord">01</span>Run &amp; progress<span class="count" id="nav-run">—</span></a>
+    <a class="navitem" href="staff.html#review" target="_top"><span class="ord">02</span>Review<span class="count" id="nav-review">—</span></a>
+    <a class="navitem" href="staff.html#topics" target="_top"><span class="ord">03</span>Proposed topics<span class="count" id="nav-topics">—</span></a>
+    <a class="navitem" href="staff.html#entities" target="_top"><span class="ord">04</span>Entities &amp; merge<span class="count" id="nav-entities">—</span></a>
+    <a class="navitem" href="staff.html#shape" target="_top"><span class="ord">05</span>Shape review<span class="count" id="nav-shape">—</span></a>
+    <a class="navitem" href="staff.html#lowconf" target="_top"><span class="ord">06</span>Low-confidence<span class="count" id="nav-lowconf">—</span></a>
+    <a class="navitem" href="staff.html#illus" target="_top"><span class="ord">07</span>Illustrations<span class="count" id="nav-illus">—</span></a>
+    <a class="navitem" href="staff.html#export" target="_top"><span class="ord">08</span>Export<span class="count">—</span></a>
+    <div class="foot">
+      Pilot posture — corpus treated as public domain for prototyping.<br><br>
+      Hard rights gate before production. Every machine field ships flagged until a human confirms.
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+<section class="cover">
+  <div class="kicker">Pipeline · corpus coverage — the level above a single issue</div>
+  <h1 id="cov-h1">CPL newspaper &amp; magazine collection</h1>
+  <div class="lede" id="cov-lede">Every issue in ContentDM (<span class="mono">p16014coll5</span>), harvested live from CPL's catalog. Enriched issues open into the review workbench; the rest are staged — and the in-copyright serials are visibly locked until the production rights gate is resolved.</div>
+  <div class="rollup" id="rollup"></div>
+</section>
+
+<div class="controls" id="controls" style="display:none">
+  <label class="search"><span class="mag">⌕</span><input id="q" type="text" placeholder="Filter by title or serial…" autocomplete="off"></label>
+  <div class="chips" id="statuschips"></div>
+</div>
+
+<main class="body" id="body"><div class="loading" id="loading">Loading collection catalog…</div></main>
+
+  </div><!-- .main -->
+</div><!-- .shell -->
+
+<div class="toast" id="toast"></div>
+
+<div class="hband">
+  <span id="hband-left">Dateline Cleveland · Editorial Workbench · collection</span>
+  <span><b>Metadata harvested from ContentDM</b> · no in-copyright content · pilot treats PD issues as workable</span>
+</div>
+
+<script>
+(function(){
+  // Status is now INGESTION progress (per-page ingestion means an issue can be
+  // partly done). Rights-locked + web-archive stay their own buckets (can't ingest).
+  var STATUS = {
+    full:          { label:'Fully ingested', color:'var(--ok)',         order:0 },
+    partial:       { label:'Partial',        color:'var(--brand-press)', order:1 }, // navy
+    uningested:    { label:'Uningested',     color:'var(--tertiary)',   order:2 },
+    rights_locked: { label:'Rights-locked',  color:'var(--danger)',     order:3 },
+    inert:         { label:'Web archive',    color:'var(--hair-2)',     order:4 }
+  };
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function el(id){ return document.getElementById(id); }
+
+  var STATE = { issues:[], enriched:new Set(), q:'', status:'all', serials:[], expanded:new Set(), expandedIssues:new Set(), shown:{}, run:null, issuePages:{}, collection:'p16014coll5', ingestByIssue:{} };
+  // done() / total() / progress for an issue's ingestion state.
+  function doneOf(it){ return STATE.ingestByIssue[it.pointer] || 0; }
+  // The live ingestion service (SLICE-08). Per-page structure + ingest state come
+  // from it; the review panel ingests page by page against it.
+  var API = 'http://'+location.hostname+':5170';
+  function slugify(s){ return String(s||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+  function issueIdOf(it){ return slugify(it.serial)+'_'+(it.sortda||it.pointer); }
+  var PAGE = 40; // issues shown per serial before "show more"
+
+  function statusOf(it){
+    if(it.filetype==='url') return 'inert';
+    if(it.rights.status==='in_copyright') return 'rights_locked';
+    var done=doneOf(it), total=it.pageCount||0;
+    if(done>0 && done>=total) return 'full';
+    if(done>0) return 'partial';
+    return 'uningested';
+  }
+
+  fetch('catalog.json',{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(d){
+      // pull per-issue ingestion state (live) + the run stats (for the rail)
+      var run = fetch('staff-run.json',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; });
+      var ing = fetch(API+'/api/ingest-status').then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; });
+      return Promise.all([run, ing]).then(function(a){ return {d:d, run:a[0], ing:a[1]}; });
+    })
+    .then(function(b){ if(b.ing && b.ing.issues) STATE.ingestByIssue=b.ing.issues; build(b.d, b.run); })
+    .catch(function(e){
+      el('body').innerHTML='<div class="err"><b>Catalog unavailable.</b> Run <span class="mono">npm run catalog</span> from the repo root to harvest it from ContentDM. ('+esc(e.message)+')</div>';
+      el('u-banner').innerHTML='Internal Editorial Workbench · <b>catalog unavailable</b>';
+    });
+
+  function build(d, run){
+    STATE.issues = d.issues||[];
+    STATE.collection = (d.meta && d.meta.collection) || 'p16014coll5';
+    STATE.enriched = new Set(d.enrichedPointers||[]);
+    STATE.runObjects = run && run.loaded ? run.objectCount : null;
+    STATE.run = run && run.loaded ? run : null;
+
+    // group by serial
+    var groups = {};
+    STATE.issues.forEach(function(it){ (groups[it.serial]=groups[it.serial]||[]).push(it); });
+    STATE.serials = Object.keys(groups).map(function(name){
+      var list = groups[name].slice().sort(function(a,b){ return (a.sortda||'').localeCompare(b.sortda||'') || a.pointer-b.pointer; });
+      var years = list.map(function(i){return i.year;}).filter(Boolean);
+      var counts = {full:0,partial:0,uningested:0,rights_locked:0,inert:0};
+      var hasIngested=false;
+      list.forEach(function(it){ var s=statusOf(it); counts[s]++; if(s==='full'||s==='partial')hasIngested=true; });
+      return { name:name, list:list, counts:counts, hasIngested:hasIngested,
+               yMin:years.length?Math.min.apply(null,years):null, yMax:years.length?Math.max.apply(null,years):null };
+    }).sort(function(a,b){
+      if(a.hasIngested!==b.hasIngested) return a.hasIngested?-1:1; // serials with ingested pages first
+      return b.list.length-a.list.length;
+    });
+    // expand serials that have any ingested pages by default
+    STATE.serials.forEach(function(s){ if(s.hasIngested) STATE.expanded.add(s.name); });
+
+    renderRollup();
+    renderRail(run);
+    renderChips();
+    el('controls').style.display='flex';
+    render();
+
+    el('u-banner').innerHTML='Internal Editorial Workbench · <b>Collection view</b> · '+STATE.issues.length+' issues live from ContentDM';
+    el('q').addEventListener('input', function(e){ STATE.q=e.target.value.toLowerCase(); render(); });
+  }
+
+  function totals(){
+    var t={total:STATE.issues.length,full:0,partial:0,uningested:0,rights_locked:0,inert:0};
+    STATE.issues.forEach(function(it){ t[statusOf(it)]++; });
+    t.serials = STATE.serials.length;
+    return t;
+  }
+
+  // Rail counts: "Run & progress" carries the collection size; the per-issue
+  // stages carry the enriched issue's real numbers (from staff-run.json) so the
+  // rail reads as continuous with the workbench you drill into.
+  function renderRail(run){
+    var t=totals();
+    el('nav-run').textContent = t.total.toLocaleString()+' issues';
+    function set(id,v,hot){ var e=el(id); if(!e)return; e.textContent=(v==null?'—':v); if(hot)e.classList.add('hot'); }
+    if(run && run.loaded){
+      set('nav-review', (run.review?run.review.unreviewed:0)+' left');
+      set('nav-topics', (run.proposedTopics||[]).length);
+      set('nav-entities', run.entities);
+      set('nav-shape', run.unknownShapes, run.unknownShapes>0);
+      set('nav-lowconf', run.lowConfidence);
+      set('nav-illus', run.illustrations);
+    }
+  }
+
+  function renderRollup(){
+    var t=totals();
+    el('rollup').innerHTML =
+      cell(t.full.toLocaleString(),'Fully ingested','ok') +
+      cell(t.partial.toLocaleString(),'Partially ingested','navy') +
+      cell(t.total.toLocaleString(),'Issues in ContentDM','') +
+      cell(t.serials,'Serials','') +
+      cell(t.rights_locked.toLocaleString(),'Rights-locked','warn');
+    el('cov-lede').innerHTML =
+      '<b>'+(t.full+t.partial).toLocaleString()+' of '+t.total.toLocaleString()+'</b> issues have ingested pages ('+t.full+' fully, '+t.partial+' partially), across '+t.serials+' serials — every one harvested live from CPL’s ContentDM (<span class="mono">p16014coll5</span>). '+
+      'Ingestion happens page by page; <b>'+t.rights_locked.toLocaleString()+'</b> in-copyright issues are locked until the production rights gate is resolved.';
+  }
+  function cell(n,k,cls){ return '<div class="cell"><div class="n '+cls+'">'+n+'</div><div class="k">'+k+'</div></div>'; }
+
+  function renderChips(){
+    var t=totals();
+    var order=['all','full','partial','uningested','rights_locked','inert'];
+    var labels={all:'All',full:'Fully ingested',partial:'Partial',uningested:'Uningested',rights_locked:'Rights-locked',inert:'Web archive'};
+    var counts={all:t.total,full:t.full,partial:t.partial,uningested:t.uningested,rights_locked:t.rights_locked,inert:t.inert};
+    el('statuschips').innerHTML = order.map(function(k){
+      var sw = k==='all' ? '' : '<span class="sw" style="background:'+STATUS[k].color+'"></span>';
+      return '<button class="fchip'+(STATE.status===k?' on':'')+'" data-s="'+k+'">'+sw+labels[k]+'<span class="c">'+counts[k].toLocaleString()+'</span></button>';
+    }).join('');
+    Array.prototype.forEach.call(el('statuschips').querySelectorAll('.fchip'),function(b){
+      b.addEventListener('click',function(){ STATE.status=b.dataset.s; renderChips(); render(); });
+    });
+  }
+
+  function matches(it){
+    if(STATE.status!=='all' && statusOf(it)!==STATE.status) return false;
+    if(STATE.q){ if((it.title+' '+it.serial).toLowerCase().indexOf(STATE.q)<0) return false; }
+    return true;
+  }
+
+  function render(){
+    var html='';
+    var anyShown=false;
+    STATE.serials.forEach(function(s){
+      var list = s.list.filter(matches);
+      if(!list.length) return;
+      anyShown=true;
+      var open = STATE.expanded.has(s.name) || !!STATE.q || STATE.status!=='all';
+      var span = s.yMin ? (s.yMin===s.yMax? s.yMin : s.yMin+'–'+s.yMax) : '';
+      html += '<div class="serial'+(open?' open':'')+'" data-serial="'+esc(s.name)+'">';
+      html +=   '<button class="shead" data-toggle="'+esc(s.name)+'">';
+      html +=     '<span class="tw">'+(open?'▾':'▸')+'</span>';
+      html +=     '<span class="nm">'+esc(s.name)+'</span>';
+      html +=     '<span class="yr">'+span+'</span>';
+      html +=     '<span class="bars">'+miniBar(s.counts, s.list.length)+'<span class="ct">'+list.length+(list.length!==s.list.length?'/'+s.list.length:'')+'</span></span>';
+      html +=   '</button>';
+      html +=   '<div class="issues">';
+      var limit = STATE.shown[s.name] || PAGE;
+      list.slice(0, limit).forEach(function(it){ html += issueRow(it); });
+      if(list.length>limit){ html += '<button class="morebtn" data-more="'+esc(s.name)+'">Show '+Math.min(PAGE,list.length-limit)+' more of '+list.length+'…</button>'; }
+      html +=   '</div>';
+      html += '</div>';
+    });
+    el('body').innerHTML = anyShown ? html : '<div class="loading">No issues match this filter.</div>';
+    wire();
+  }
+
+  function miniBar(counts,total){
+    var segs=['full','partial','uningested','rights_locked','inert'];
+    return '<span class="minibar">'+segs.map(function(k){
+      var w = total? (100*counts[k]/total):0;
+      return w? '<i style="width:'+w+'%;background:'+STATUS[k].color+'" title="'+STATUS[k].label+': '+counts[k]+'"></i>':'';
+    }).join('')+'</span>';
+  }
+
+  // An issue is a collapsible block: a header row (irow) + its pages (level 3).
+  // Any compound issue with pages can expand; url stubs (0 pages) cannot.
+  function issueRow(it){
+    var s=statusOf(it);
+    var expandable = it.filetype==='cpd' && it.pageCount>0;
+    var open = STATE.expandedIssues.has(it.pointer);
+    var pages = it.pageCount==null ? '—' : (it.pageCount+(it.pageCount===1?' pg':' pp'));
+    var date = it.sortda || it.date || '';
+    // ingestion progress shown as X/N next to the status label (partial + full)
+    var done=doneOf(it), total=it.pageCount||0;
+    var pillExtra = (s==='partial'||s==='full') ? ' · '+done+'/'+total : '';
+    var h = '<div class="issue-block'+(open?' open':'')+'" data-ptr="'+it.pointer+'">';
+    h += '<div class="irow'+(expandable?' expandable':'')+'" data-ptr="'+it.pointer+'" data-status="'+s+'" data-expandable="'+(expandable?1:0)+'">'+
+      '<span class="itw">'+(expandable?(open?'▾':'▸'):'')+'</span>'+
+      '<span class="date">'+esc(date)+'</span>'+
+      '<span class="ttl" title="'+esc(it.title)+'">'+esc(it.title)+'</span>'+
+      '<span class="pg">'+pages+'</span>'+
+      '<span class="pill '+s+'"><span class="d" style="background:'+(s==='full'?'#fff':STATUS[s].color)+'"></span>'+STATUS[s].label+pillExtra+'</span>'+
+      '</div>';
+    h += '<div class="pages">'+(open?pagesMarkup(it,s):'')+'</div>';
+    h += '</div>';
+    return h;
+  }
+
+  // PD issues (open) resolve their real page structure + per-page ingest state
+  // from the live service; each page opens the review panel to ingest/review.
+  function ingestable(s){ return s==='full' || s==='partial' || s==='uningested'; }
+  function pagesMarkup(it,s){
+    if(ingestable(s)){
+      var pages = STATE.issuePages[it.pointer];
+      if(pages===undefined || pages==='loading') return '<div class="pgnote">Loading pages…</div>';
+      if(pages==='error') return '<div class="pgnote lock">Couldn’t reach the ingestion service — start it with <span class="mono">npm run server</span>.</div>';
+      var rows = '<div class="pgnote">Open a page to <b>ingest &amp; review it, one page at a time.</b></div>';
+      pages.forEach(function(p){
+        var done = p.status==='done';
+        rows += '<div class="prow clickable" data-record="'+p.record+'" data-page="'+p.page+'" data-ptr="'+it.pointer+'">'+
+          '<span class="pn">P.'+p.page+'</span>'+
+          '<span class="pmeta">'+(done? (p.object_count+' objects · ingested') : 'not ingested yet')+'</span>'+
+          '<span class="pgo">'+(done?'Review →':'Ingest →')+'</span></div>';
+      });
+      return rows;
+    }
+    var n=it.pageCount||0, pp=[]; for(var i=1;i<=n;i++) pp.push(i);
+    var rows='';
+    if(s==='rights_locked') rows += '<div class="pgnote lock">Rights-locked · '+esc(it.rights.label)+' — the service refuses ingestion until the rights gate is resolved.</div>';
+    else if(s==='rights_unknown') rows += '<div class="pgnote">Rights not evaluated — ingestion gated until confirmed.</div>';
+    pp.forEach(function(p){ rows += '<div class="prow"><span class="pn">Page '+p+'</span></div>'; });
+    return rows;
+  }
+
+  // Fetch an issue's page structure + ingest state from the service (once).
+  function fetchIssuePages(it){
+    if(STATE.issuePages[it.pointer] && STATE.issuePages[it.pointer]!=='error') return;
+    STATE.issuePages[it.pointer]='loading';
+    fetch(API+'/api/issue-pages?collection='+encodeURIComponent(STATE.collection)+'&pointer='+it.pointer)
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(d){ STATE.issuePages[it.pointer]=d.pages||[]; render(); })
+      .catch(function(){ STATE.issuePages[it.pointer]='error'; render(); });
+  }
+
+  function wire(){
+    Array.prototype.forEach.call(document.querySelectorAll('.shead'),function(b){
+      b.addEventListener('click',function(){ var n=b.dataset.toggle; if(STATE.expanded.has(n))STATE.expanded.delete(n); else STATE.expanded.add(n); render(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.morebtn'),function(b){
+      b.addEventListener('click',function(){ var n=b.dataset.more; STATE.shown[n]=(STATE.shown[n]||PAGE)+PAGE; render(); });
+    });
+    // issue header → expand/collapse its pages; expanding a PD issue loads its
+    // real page structure + per-page ingest state from the service.
+    Array.prototype.forEach.call(document.querySelectorAll('.irow'),function(row){
+      row.addEventListener('click',function(){
+        var ptr=+row.dataset.ptr;
+        var it=STATE.issues.find(function(x){ return x.pointer===ptr; });
+        if(row.dataset.expandable==='1'){
+          var opening=!STATE.expandedIssues.has(ptr);
+          if(opening) STATE.expandedIssues.add(ptr); else STATE.expandedIssues.delete(ptr);
+          if(opening && ingestable(statusOf(it))) fetchIssuePages(it);
+          render();
+        } else {
+          toast('<b>Web archive.</b> This entry is an external link with no pages digitized in ContentDM — nothing to ingest here. <span class="x">dismiss</span>');
+        }
+      });
+    });
+    // page → open the review panel for THAT page (ingest &amp; review in place)
+    Array.prototype.forEach.call(document.querySelectorAll('.prow.clickable'),function(row){
+      row.addEventListener('click',function(e){
+        e.stopPropagation();
+        var it=STATE.issues.find(function(x){ return x.pointer===+row.dataset.ptr; });
+        var url='staff.html?api=1&collection='+encodeURIComponent(STATE.collection)+
+          '&pointer='+it.pointer+'&issueId='+encodeURIComponent(issueIdOf(it))+
+          '&record='+row.dataset.record+'&page='+row.dataset.page+'&rights='+statusOf(it);
+        window.top.location.href=url;
+      });
+    });
+  }
+
+  function toast(html){ var t=el('toast'); t.innerHTML=html; t.classList.add('show');
+    var x=t.querySelector('.x'); if(x)x.addEventListener('click',function(){t.classList.remove('show');});
+    clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},6000);
+  }
+})();
+</script>
+</body>
+</html>

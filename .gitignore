@@ -12,6 +12,10 @@ apps/*/tsconfig.tsbuildinfo
 **/data/*.sqlite
 **/data/*.sqlite-*
 
+# SLICE-07 catalog harvest resume-cache (pointer→pageCount). Just a re-run
+# accelerator; the resolved counts are baked into the committed catalog.json.
+apps/pipeline/harvest/catalog-pages.json
+
 # pipeline inputs & scratch artifacts
 apps/pipeline/inbox/*.jpg
 apps/pipeline/inbox/*.jpeg

@@ -213,7 +213,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .guard .mono{margin-left:auto;font-size:10.5px;color:var(--tertiary)}
 
 .batchtable{margin-top:34px;border:1px solid var(--hair-2)}
-.batchtable .r{display:grid;grid-template-columns:120px 1fr 100px 110px 90px;gap:12px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--hair)}
+.batchtable .r{display:grid;grid-template-columns:120px 1fr 100px 110px 90px 92px;gap:12px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--hair)}
+.batchtable .r.clickable{cursor:pointer}
+.batchtable .r.clickable:hover{background:var(--sunken)}
+.batchtable .r.clickable:hover .id{color:var(--brand-press)}
+.batchtable .go{font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);text-align:right;opacity:0}
+.batchtable .r.clickable:hover .go{opacity:1}
 .batchtable .r.hd{background:var(--ink)}
 .batchtable .r.hd span{font-family:var(--sans);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:#C9CFD8}
 .batchtable .r:last-child{border-bottom:none}
@@ -229,15 +234,36 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
    REVIEW  — the heart. image-left / claims-right / verdict
    ============================================================ */
 .review{display:grid;grid-template-columns:230px 1fr;height:100%}
-/* filter/worklist rail */
-.wl{border-right:1px solid var(--hair);overflow-y:auto;padding:16px 0 40px}
-.wl .fbox{padding:0 18px 16px;border-bottom:1px solid var(--hair);margin-bottom:12px}
-.wl .fbox h4{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary);margin:14px 0 8px}
-.fopt{display:flex;align-items:center;gap:8px;padding:5px 0;font-family:var(--sans);font-size:12.5px;color:var(--secondary)}
+/* filter/worklist rail — flex column so dropdown panels overlay without being
+   clipped (only the rows list scrolls, not the whole rail). */
+.wl{border-right:1px solid var(--hair);display:flex;flex-direction:column;min-height:0;padding:0}
+#wl-rows{flex:1 1 auto;overflow-y:auto;min-height:0;padding:4px 0 40px}
+.wl .fbox{flex:none;padding:12px 18px 14px;border-bottom:1px solid var(--hair);display:flex;flex-direction:column;gap:8px}
+.wl .fbox h4{display:none}
+/* dropdown filter controls */
+.dropdown{position:relative}
+.ddbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;border:1px solid var(--hair-2);background:var(--canvas);font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.02em;color:var(--secondary);cursor:pointer}
+.ddbtn:hover{border-color:var(--brand);color:var(--ink)}
+.ddbtn.sel{border-color:var(--brand);color:var(--ink)}
+.ddbtn .rt{display:flex;align-items:center;gap:7px}
+.ddbtn .badge{font-family:var(--mono);font-size:9.5px;font-weight:500;background:var(--brand);color:#fff;padding:1px 6px;border-radius:9px}
+.ddbtn .badge.zero{background:transparent;color:var(--tertiary)}
+.ddbtn .car{font-size:9px;color:var(--tertiary);transition:transform .12s}
+.dropdown.open .ddbtn{border-color:var(--brand);color:var(--ink)}
+.dropdown.open .car{color:var(--brand);transform:rotate(180deg)}
+.ddpanel{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;min-width:190px;background:var(--canvas);border:1px solid var(--hair-2);box-shadow:0 10px 28px rgba(15,18,21,.14);z-index:30;padding:5px;max-height:300px;overflow-y:auto}
+.dropdown.open .ddpanel{display:block}
+.ddhead{display:flex;align-items:center;justify-content:space-between;padding:4px 10px 7px;margin-bottom:3px;border-bottom:1px solid var(--hair);font-family:var(--sans);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tertiary)}
+.ddclear{font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.02em;text-transform:none;color:var(--brand);cursor:pointer;border:none;background:none;padding:0}
+.ddclear:hover{text-decoration:underline}
+.ddclear.hidden{visibility:hidden}
+.fopt{display:flex;align-items:center;gap:8px;padding:7px 10px;font-family:var(--sans);font-size:12.5px;color:var(--secondary);cursor:pointer;white-space:nowrap}
+.fopt:hover{background:var(--sunken)}
 .fopt .sw{width:9px;height:9px;flex:none}
 .fopt .c{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--tertiary)}
-.fopt.on{color:var(--ink);font-weight:600}
-.wl .prog{padding:6px 18px 14px;font-family:var(--mono);font-size:11px;color:var(--tertiary)}
+.fopt.on{color:var(--ink);font-weight:600;background:rgba(0,87,183,.06)}
+.fopt.on .c{color:var(--brand)}
+.wl .prog{flex:none;padding:10px 18px 12px;font-family:var(--mono);font-size:11px;color:var(--tertiary)}
 .wl .prog b{color:var(--brand);font-weight:500}
 .wlrow{display:flex;gap:10px;align-items:flex-start;padding:9px 18px;border-left:3px solid transparent;cursor:pointer}
 .wlrow:hover{background:var(--sunken)}
@@ -256,6 +282,17 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* the review stage itself */
 .rstage{display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
 .source{border-right:1px solid var(--hair);padding:22px 26px;overflow-y:auto;background:#FCFCFD}
+/* page map — a filmstrip of the issue's pages at the top of the source panel */
+.pagemap{display:flex;gap:8px;overflow-x:auto;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--hair)}
+.pagemap:empty{display:none}
+.pmap{flex:none;width:48px;cursor:pointer;background:#fff;border:1px solid var(--hair-2);padding:2px}
+.pmap:hover{border-color:var(--brand)}
+.pmap.active{border-color:var(--brand);box-shadow:0 0 0 2px rgba(0,87,183,.28)}
+.pmap .thumb{width:100%;height:60px;object-fit:cover;object-position:top;display:block;background:repeating-linear-gradient(45deg,transparent,transparent 4px,#EEF1F5 4px,#EEF1F5 5px)}
+.pmap .pl{font-family:var(--mono);font-size:9px;color:var(--tertiary);text-align:center;padding:3px 0 1px}
+.pmap.active .pl{color:var(--brand);font-weight:500}
+.pmap.done{border-color:var(--ok)}
+.pmap.done .pl::after{content:" ✓";color:var(--ok)}
 .source .cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
 .source .cap .kicker{margin:0}
 .zoomctl{display:flex;gap:6px}
@@ -271,6 +308,16 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bbox{position:absolute;border:1.5px solid;font-family:var(--mono);font-size:8.5px;letter-spacing:.04em;text-transform:uppercase}
 .bbox span{position:absolute;top:-15px;left:-1px;padding:1px 4px;color:#fff;white-space:nowrap}
 .bbox.sel{box-shadow:0 0 0 2px rgba(241,196,0,.55)}
+/* SLICE-09: soft, approximate region highlight over the real page image. Reads as
+   "roughly this region", NOT a forensic crop — the VLM localizes imprecisely. */
+.pagewrap{position:relative;display:block}
+.pagewrap img{width:100%;display:block}
+.bbox-hl{position:absolute;background:rgba(241,196,0,.15);border:1.5px solid rgba(241,196,0,.85);
+  border-radius:3px;box-shadow:0 0 0 1px rgba(15,18,21,.12),0 0 14px rgba(241,196,0,.4);
+  pointer-events:none;transition:left .18s ease,top .18s ease,width .18s ease,height .18s ease}
+.region-note{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--tertiary);margin-top:8px}
+.region-note b{color:var(--warn);font-weight:500}
+.region-note.none b{color:var(--tertiary)}
 .source .credit{font-family:var(--mono);font-size:10px;color:var(--tertiary);margin-top:12px;line-height:1.6}
 .iiif-cta{
   display:inline-flex;align-items:center;gap:8px;margin-top:16px;
@@ -404,7 +451,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
       <span class="val" id="h-run">loading…</span>
     </div>
     <span class="overlay-badge">edits = overlay · raw immutable</span>
-    <a href="./" target="_top" style="font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);text-decoration:none;border:1px solid var(--brand);padding:8px 12px;white-space:nowrap;" onmouseover="this.style.background='var(--brand)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='var(--brand)'">← Patron prototype</a>
+    <a href="./staff" target="_top" style="font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);text-decoration:none;border:1px solid var(--brand);padding:8px 12px;white-space:nowrap;" onmouseover="this.style.background='var(--brand)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='var(--brand)'">← All issues</a>
+    <a href="./" target="_top" style="font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--secondary);text-decoration:none;border:1px solid var(--hair-2);padding:8px 12px;white-space:nowrap;" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--hair-2)';this.style.color='var(--secondary)'">Patron prototype</a>
     <div class="runmeta">
       <div class="cell"><span class="n" id="h-pages">—</span><span class="k">pages</span></div>
       <div class="cell"><span class="n" id="h-objects">—</span><span class="k">content objects</span></div>
@@ -493,10 +541,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
           <span class="mono" id="guard-mono">—</span>
         </div>
 
-        <div style="margin-top:34px" class="kicker">Per-page ingest — content objects by page (this run)</div>
-        <div class="batchtable" id="perpage">
-          <div class="r hd"><span>Page</span><span>Source record</span><span>Objects</span><span>Articles</span><span>Ads</span></div>
-        </div>
       </div>
     </section>
 
@@ -508,10 +552,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         <aside class="wl">
           <div class="prog" id="wl-prog">loading run…</div>
           <div class="fbox" id="wl-fbox">
-            <h4>Object class</h4>
-            <div id="wl-classes"></div>
-            <h4>Flags</h4>
-            <div id="wl-flags"></div>
+            <div class="dropdown" id="dd-class">
+              <button class="ddbtn" data-dd="dd-class"><span>Object class</span><span class="rt"><span class="badge zero" id="badge-class">All</span><span class="car">▾</span></span></button>
+              <div class="ddpanel">
+                <div class="ddhead"><span>Object class</span><button class="ddclear hidden" data-clear="class">Clear</button></div>
+                <div id="wl-classes"></div>
+              </div>
+            </div>
+            <div class="dropdown" id="dd-flags">
+              <button class="ddbtn" data-dd="dd-flags"><span>Flags</span><span class="rt"><span class="badge zero" id="badge-flags">All</span><span class="car">▾</span></span></button>
+              <div class="ddpanel">
+                <div class="ddhead"><span>Flags</span><button class="ddclear hidden" data-clear="flags">Clear</button></div>
+                <div id="wl-flags"></div>
+              </div>
+            </div>
           </div>
           <div id="wl-rows"></div>
         </aside>
@@ -520,6 +574,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         <div class="rstage">
           <!-- SOURCE -->
           <div class="source">
+            <!-- page map: thumbnails of every page in the issue; click to jump -->
+            <div class="pagemap" id="rv-pagemap"></div>
             <div class="cap">
               <span class="kicker">The source, as printed</span>
               <div class="zoomctl"><button>−</button><button>⌂</button><button>+</button></div>
@@ -528,6 +584,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <div class="col-rule" style="left:33%"></div>
               <div class="col-rule" style="left:66%"></div>
             </div>
+            <div class="region-note" id="rv-region"></div>
             <div class="credit" id="rv-credit">—</div>
             <br>
             <a class="iiif-cta">Open in page reader <span class="df">deferred surface</span></a>
@@ -747,6 +804,12 @@ document.querySelectorAll('.navitem').forEach(function(btn){
     if(v){ v.classList.add('active'); document.querySelector('.main').scrollTop=0; }
   });
 });
+/* deep-link: the collection dashboard's rail links here as staff.html#<view>
+   (e.g. #review, #shape) — open that stage on load instead of the default. */
+(function(){
+  var h = (location.hash || '').replace('#','');
+  if(h){ var btn = document.querySelector('.navitem[data-view="'+h+'"]'); if(btn) btn.click(); }
+})();
 /* worklist selection */
 document.querySelectorAll('.wlrow').forEach(function(row){
   row.addEventListener('click', function(){
@@ -754,9 +817,23 @@ document.querySelectorAll('.wlrow').forEach(function(row){
     row.classList.add('sel');
   });
 });
-/* filter toggle (visual only) */
-document.querySelectorAll('.fopt').forEach(function(o){
-  o.addEventListener('click', ()=>o.classList.toggle('on'));
+/* Review facet filtering (object class + flags) is wired in the run-binding
+   script below, per-facet, so it composes with the page scope. The dropdown
+   open/close is bound here (buttons + panels are static; options fill per run). */
+document.querySelectorAll('.ddbtn').forEach(function(btn){
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    var dd = document.getElementById(btn.dataset.dd);
+    var isOpen = dd.classList.contains('open');
+    document.querySelectorAll('.dropdown').forEach(function(x){ x.classList.remove('open'); });
+    if(!isOpen) dd.classList.add('open');
+  });
+});
+document.querySelectorAll('.ddpanel').forEach(function(p){
+  p.addEventListener('click', function(e){ e.stopPropagation(); }); // multi-select: keep open
+});
+document.addEventListener('click', function(){
+  document.querySelectorAll('.dropdown').forEach(function(x){ x.classList.remove('open'); });
 });
 /* verdict feedback (visual only) */
 document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
@@ -771,6 +848,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
    show an honest empty state, never mock rows.
    ============================================================ */
 (function(){
+  // Page mode sets this so the page-map filmstrip navigates between an issue's
+  // pages (load/ingest each) instead of scoping the worklist (issue mode).
+  var pageNavHandler = null;
   var CLASS_VAR = { article:'--c-article', ad:'--c-ad', photo:'--c-photo',
                     listing:'--c-listing', unknown:'--c-unknown' };
   function colorVar(key){ return 'var(' + (CLASS_VAR[key] || '--c-article') + ')'; }
@@ -782,14 +862,230 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
   function markLoss(t){ return esc(t).replace(/\[(loss|illegible)\]/gi,
     function(m){ return '<span class="loss">'+m+'</span>'; }); }
 
+  // SLICE-09: normalized [x,y,w,h] (0-1) → percentage rect for the overlay. Returns
+  // null for a missing/degenerate box OR one that isn't normalized (>1 → likely
+  // pixels; refuse rather than mis-draw). Honest nulls over false precision.
+  function bboxPct(bb){
+    if(!Array.isArray(bb) || bb.length<4) return null;
+    var x=+bb[0], y=+bb[1], w=+bb[2], h=+bb[3];
+    if(![x,y,w,h].every(function(n){ return isFinite(n); })) return null;
+    if(Math.max(x,y,w,h) > 1.2 || w<=0 || h<=0) return null;
+    x=Math.max(0,Math.min(1,x)); y=Math.max(0,Math.min(1,y));
+    if(x+w>1) w=1-x; if(y+h>1) h=1-y;
+    return { x:(x*100).toFixed(2), y:(y*100).toFixed(2), w:(w*100).toFixed(2), h:(h*100).toFixed(2) };
+  }
+
   function fail(msg){
     html('u-banner', 'Internal Editorial Workbench · <b>'+esc(msg)+'</b>');
   }
 
-  fetch('staff-run.json', { cache:'no-store' })
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-    .then(render)
-    .catch(function(e){ fail('run stats unavailable — run the pipeline export ('+esc(e.message)+')'); });
+  // Two data paths:
+  //  • PAGE MODE (?api=1&record=…): SLICE-08 live per-page ingestion against the
+  //    service — load the page, and if not ingested, ingest it live in place.
+  //  • ISSUE MODE (default): the committed staff-run.json (the enriched issue demo).
+  var _p = new URLSearchParams(location.search);
+  if (_p.get('api') === '1') {
+    runPageMode(_p);
+  } else {
+    fetch('staff-run.json', { cache:'no-store' })
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(render)
+      .catch(function(e){ fail('run stats unavailable — run the pipeline export ('+esc(e.message)+')'); });
+  }
+
+  function runPageMode(p){
+    var API = 'http://' + location.hostname + ':5170';
+    var collection = p.get('collection') || 'p16014coll5';
+    var record = Number(p.get('record'));
+    var pointer = p.get('pointer') || '';
+    var issueId = p.get('issueId') || ('issue_' + record);
+    var pageNum = Number(p.get('page') || 1);
+    var rights = p.get('rights') || 'ready';
+    var allPages = null; // the issue's full page list (for the filmstrip)
+    function thumbUrl(rec){ return 'https://cdm16014.contentdm.oclc.org/digital/iiif/' + collection + '/' + rec + '/full/240,/0/default.jpg'; }
+    // Filmstrip navigation: clicking another page opens ITS review (load/ingest).
+    pageNavHandler = function(rec, page){
+      window.top.location.href = 'staff.html?api=1&collection=' + encodeURIComponent(collection) + '&pointer=' + pointer +
+        '&issueId=' + encodeURIComponent(issueId) + '&record=' + rec + '&page=' + page + '&rights=' + encodeURIComponent(rights);
+    };
+    var CLASS_LABEL = { article:'Article', advertisement:'Advertisement', illustration:'Illustration',
+      legal_notice:'Legal notice', classified_section:'Classified', coupon:'Coupon', masthead:'Masthead',
+      caption:'Caption', unknown:'Unknown' };
+    var CLASS_COLOR = { article:'article', advertisement:'ad', illustration:'photo', legal_notice:'listing',
+      classified_section:'listing', coupon:'ad', masthead:'listing', unknown:'unknown' };
+    function firstLine(t){ var L=(t||'').split('\n'); for(var i=0;i<L.length;i++){ var s=L[i].replace(/\[[^\]]*\]/g,'').trim(); if(s) return s; } return (t||'').slice(0,80); }
+
+    html('u-banner', 'Internal Editorial Workbench · <b>Live per-page ingestion</b> · ' + esc(issueId) + ' · P.' + pageNum);
+    var rv = document.querySelector('.navitem[data-view="review"]'); if (rv) rv.click();
+    // Load the issue's full page list first (so the filmstrip shows every page),
+    // then load/ingest the selected page.
+    (pointer
+      ? fetch(API + '/api/issue-pages?collection=' + encodeURIComponent(collection) + '&pointer=' + pointer)
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){ if (d && d.pages) allPages = d.pages; })
+          .catch(function(){})
+      : Promise.resolve()
+    ).then(loadPage);
+
+    function loadPage(){
+      fetch(API + '/api/page?collection=' + encodeURIComponent(collection) + '&record=' + record)
+        .then(function(r){ return r.json(); })
+        .then(function(pg){
+          showImage(pg.imageUrl);
+          // keep the filmstrip's done-marker for THIS page in sync after ingest/import
+          if (allPages && pg.state) {
+            var e = allPages.find(function(p){ return Number(p.record) === record; });
+            if (e) { e.status = pg.state.status; e.object_count = (pg.objects||[]).length; }
+          }
+          if (pg.state && pg.state.status === 'done' && pg.objects.length) render(buildD(pg));
+          else showIngestPrompt(pg);
+        })
+        .catch(function(e){ html('wl-rows', '<div class="prog">Ingestion service unreachable — start it with <span class="mono">npm run server</span>. ('+esc(e.message)+')</div>'); });
+    }
+
+    function showImage(imageUrl){
+      var page = document.getElementById('rv-page');
+      if (page && imageUrl){ page.style.backgroundImage='none'; page.style.background='var(--sunken)'; page.style.aspectRatio='auto';
+        page.innerHTML = '<div class="pagewrap"><img src="'+esc(imageUrl)+'" alt="page image"></div>'; }
+    }
+
+    // The filmstrip of the WHOLE issue's pages (page mode) — click to hop to any
+    // page's review. Done pages are marked; the current one is active.
+    function renderStrip(active){
+      var box=document.getElementById('rv-pagemap'); if(!box) return;
+      if(!allPages || !allPages.length){ box.innerHTML=''; return; }
+      box.innerHTML = allPages.map(function(pp){
+        var done = pp.status==='done';
+        return '<div class="pmap'+(pp.page===active?' active':'')+(done?' done':'')+'" data-record="'+pp.record+'" data-page="'+pp.page+'" title="Review page '+pp.page+(done?' ('+pp.object_count+' objects)':' — not ingested')+'">'+
+          '<img class="thumb" src="'+esc(thumbUrl(pp.record))+'" alt="page '+pp.page+'"><div class="pl">P.'+pp.page+'</div></div>';
+      }).join('');
+      box.querySelectorAll('.pmap').forEach(function(elm){
+        elm.addEventListener('click', function(){ pageNavHandler(elm.dataset.record, elm.dataset.page); });
+      });
+    }
+
+    function showIngestPrompt(pg){
+      renderStrip(pageNum); // show the issue's pages even before this one is ingested
+      set('wl-prog', 'page not ingested');
+      html('wl-rows', '<div class="prog">No objects yet — ingest this page.</div>');
+      var chip=document.getElementById('rv-chip'); chip.textContent='PAGE '+pageNum; chip.style.background='var(--warn)';
+      set('rv-oid', esc(issueId)); set('rv-pg', 'page '+pageNum+' · not ingested');
+      html('rv-transcript',
+        '<div style="font-family:var(--sans);font-size:14px;color:var(--body);line-height:1.6">'+
+        'This page has <b>not been ingested yet.</b> Either run the live pipeline (<i>harvest → VLM → assembly → enrichment → Postgres</i>), '+
+        'or <b>import</b> an already-enriched, schema-compliant JSON to skip ingestion.'+
+        '<div id="ing-prog" style="margin:16px 0"></div>'+
+        '<button id="ing-btn" class="vbtn primary" style="border:1px solid var(--brand)">⚡ Ingest this page</button>'+
+        '<button id="imp-btn" class="vbtn" style="margin-left:8px;border:1px solid var(--hair-2)">⬆ Import JSON</button>'+
+        '<input id="imp-file" type="file" accept="application/json,.json" style="display:none">'+
+        '<div class="mono" style="font-size:10.5px;color:var(--tertiary);margin-top:12px;line-height:1.6">'+
+        'JSON = an array of content objects (or <span class="mono">{"objects":[…]}</span>). Each: '+
+        '<span class="mono">object_class</span>, <span class="mono">text</span> (required), plus optional '+
+        '<span class="mono">seq · role · region_bbox · enrichment_tier · summary · article_type · event_type · '+
+        'topics[] · entities[] · events[]</span>.</div>'+
+        '</div>');
+      html('rv-facts',''); html('rv-confline',''); html('rv-flag','');
+      var btn=document.getElementById('ing-btn');
+      if(btn) btn.addEventListener('click', function(){ btn.disabled=true; btn.textContent='Ingesting…'; doIngest(); });
+      var impBtn=document.getElementById('imp-btn'), impFile=document.getElementById('imp-file');
+      if(impBtn && impFile){
+        impBtn.addEventListener('click', function(){ impFile.click(); });
+        impFile.addEventListener('change', function(){
+          var f=impFile.files && impFile.files[0]; if(!f) return;
+          var reader=new FileReader();
+          reader.onload=function(){ doImport(String(reader.result), f.name); };
+          reader.onerror=function(){ progressBar(0, 'Could not read file.'); };
+          reader.readAsText(f);
+        });
+      }
+    }
+
+    function doImport(text, filename){
+      var body;
+      try { JSON.parse(text); body=text; }
+      catch(e){ progressBar(0, esc(filename||'file')+' is not valid JSON: '+e.message); return; }
+      progressBar(30, 'Importing '+esc(filename||'JSON')+'…');
+      fetch(API + '/api/import?collection=' + encodeURIComponent(collection) + '&pointer=' + pointer +
+        '&issueId=' + encodeURIComponent(issueId) + '&record=' + record + '&page=' + pageNum,
+        { method:'POST', headers:{'content-type':'application/json'}, body: body })
+        .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); })
+        .then(function(x){
+          if(!x.ok){ progressBar(0, (x.j.rights?'Rights-locked: ':'Import failed: ')+(x.j.error||'unknown error')); return; }
+          progressBar(100, 'Imported '+((x.j.objects||[]).length)+' objects — loading…');
+          loadPage();
+        })
+        .catch(function(e){ progressBar(0, 'Import failed: '+e.message); });
+    }
+
+    function progressBar(pct, msg){
+      html('ing-prog',
+        '<div class="bar" style="height:10px"><span style="width:'+(pct||0)+'%;background:var(--accent)"></span></div>'+
+        '<div class="mono" style="font-size:11px;color:var(--secondary);margin-top:8px">'+esc(msg||'')+'</div>');
+    }
+
+    function doIngest(){
+      progressBar(2, 'Starting…');
+      fetch(API + '/api/ingest?collection=' + encodeURIComponent(collection) + '&pointer=' + pointer +
+        '&issueId=' + encodeURIComponent(issueId) + '&record=' + record + '&page=' + pageNum)
+        .then(function(res){
+          var reader=res.body.getReader(), dec=new TextDecoder(), buf='';
+          (function pump(){ return reader.read().then(function(r){
+            if(r.done) return;
+            buf += dec.decode(r.value, {stream:true});
+            var parts = buf.split('\n\n'); buf = parts.pop();
+            parts.forEach(handleSSE);
+            return pump();
+          }); })();
+        })
+        .catch(function(e){ progressBar(0, 'Failed: '+e.message); });
+    }
+
+    function handleSSE(chunk){
+      var ev=null, data=null;
+      chunk.split('\n').forEach(function(line){
+        if(line.indexOf('event:')===0) ev=line.slice(6).trim();
+        else if(line.indexOf('data:')===0) data=line.slice(5).trim();
+      });
+      if(!ev || data==null) return;
+      var d; try{ d=JSON.parse(data); }catch(e){ return; }
+      if(ev==='progress') progressBar(d.pct, d.message);
+      else if(ev==='result'){ progressBar(100, 'Done — loading objects…'); loadPage(); }
+      else if(ev==='error') progressBar(0, (d.rights? 'Rights-locked: ' : 'Error: ') + d.message);
+    }
+
+    // Map the service's page payload into the staff-run.json shape render() expects.
+    function buildD(pg){
+      var objs = pg.objects || [];
+      var pub = objs.filter(function(o){ return o.isPublication; });
+      var wl = pub.map(function(o){ return {
+        id:o.id, class:o.class, classLabel:CLASS_LABEL[o.class]||o.class, color:CLASS_COLOR[o.class]||'article',
+        title:firstLine(o.text), page:pageNum, seq:o.seq, role:o.role, tier:o.tier, status:o.status||'unreviewed',
+        isAdvertorial:o.isAdvertorial, articleType:o.articleType, summary:o.summary, contextHint:null, eventType:o.eventType,
+        transcript:o.text, topics:(o.topics||[]).map(function(t){ return {name:t.name,confidence:t.confidence,proposed:false}; }),
+        entities:o.entities||[], pageImage:pg.imageUrl, iiifId:pg.iiifId, bbox:(o.bbox===undefined?null:o.bbox) };
+      });
+      var classCounts={}; objs.forEach(function(o){ classCounts[o.class]=(classCounts[o.class]||0)+1; });
+      var wcc={}; wl.forEach(function(w){ wcc[w.class]=(wcc[w.class]||0)+1; });
+      var tiers={heavy:0,light:0,structured:0,capture_only:0}; objs.forEach(function(o){ if(o.tier&&tiers[o.tier]!=null) tiers[o.tier]++; });
+      var ent={}; objs.forEach(function(o){ (o.entities||[]).forEach(function(n){ ent[n]=1; }); });
+      return {
+        loaded:true, live:true,
+        issue:{ id:issueId, label:issueId+' · P.'+pageNum, date:'' },
+        run:{ runId:(pg.state&&pg.state.run_id)||'live', vlm:{provider:'anthropic',engine:(pg.state&&pg.state.vlm_model)||'claude-sonnet-5'},
+          enrich:{provider:'anthropic',engine:(pg.state&&pg.state.enrich_model)||'claude-sonnet-5'}, enriched:true },
+        source:{ kind:'contentdm-iiif', collection:collection, server:'cdm16014.contentdm.oclc.org', pageCount:(allPages?allPages.length:1) },
+        pages:(allPages?allPages.length:1),
+        perPage:(allPages && allPages.length
+          ? allPages.map(function(pp){ return { page:pp.page, record:pp.record, image:thumbUrl(pp.record), objects:pp.object_count, status:pp.status }; })
+          : [{ page:pageNum, record:record, image:thumbUrl(record), objects:objs.length, articles:classCounts['article']||0, ads:classCounts['advertisement']||0 }]),
+        objectCount:objs.length, publicationCount:pub.length, classCounts:classCounts,
+        articles:classCounts['article']||0, ads:classCounts['advertisement']||0, illustrations:classCounts['illustration']||0,
+        unknownShapes:classCounts['unknown']||0, tiers:tiers, events:0, entities:Object.keys(ent).length,
+        controlledTopicsMatched:0, proposedTopics:[], review:{ total:pub.length, reviewed:0, flagged:0, unreviewed:pub.length },
+        lowConfidence:0, worklist:wl, worklistClassCounts:wcc
+      };
+    }
+  }
 
   function render(d){
     if(!d || !d.loaded){ fail((d && d.reason) || 'no run loaded'); return; }
@@ -835,17 +1131,38 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     if(barReview && d.review && d.review.total) barReview.style.width = Math.round(100*d.review.reviewed/d.review.total)+'%';
     html('guard-mono', 'pinned ' + esc(engine) + ' · truncation guard armed');
 
-    var pp = '<div class="r hd"><span>Page</span><span>Source record</span><span>Objects</span><span>Articles</span><span>Ads</span></div>';
-    (d.perPage||[]).forEach(function(p){
-      pp += '<div class="r"><div class="id">P.'+p.page+'</div><div class="nm2">rec '+p.record+
-        '</div><div class="num">'+p.objects+'</div><div class="num">'+p.articles+'</div><div class="num">'+p.ads+'</div></div>';
-    });
-    html('perpage', pp);
+    // Review scope: null = whole issue, N = a single page. Set from the page-map
+    // (source panel) or a ?page= deep-link. The old Run & progress per-page table
+    // was dropped — pages are navigated from the dashboard nesting + the page-map.
+    var pageFilter = null;
 
     // ---- REVIEW: worklist + filters + detail ------------------------------
     var wl = d.worklist || [];
     set('wl-prog', 'reviewed ' + (d.review?d.review.reviewed:0) + ' / ' + (d.review?d.review.total:wl.length) +
       ' · ' + (d.review?d.review.unreviewed:wl.length) + ' left');
+
+    // Page map: a filmstrip of every page in the issue at the top of the source
+    // panel — click a thumbnail to jump to (scope Review to) that page. Real page
+    // images come from the run's objects (each carries its page's pageImage).
+    var pageImages = {};
+    wl.forEach(function(o){ if(o.pageImage && !pageImages[o.page]) pageImages[o.page]=o.pageImage; });
+    // perPage entries may carry their own thumbnail (page mode, all issue pages);
+    // otherwise fall back to the current run's per-page image.
+    var pagesList = (d.perPage||[]).map(function(p){ return { page:p.page, record:p.record||null, image:p.image||pageImages[p.page]||null, status:p.status||null }; });
+    function renderPageMap(active){
+      var box=document.getElementById('rv-pagemap'); if(!box) return;
+      box.innerHTML = pagesList.map(function(p){
+        var thumb = p.image ? '<img class="thumb" src="'+esc(p.image)+'" alt="page '+p.page+'">' : '<div class="thumb"></div>';
+        return '<div class="pmap'+(p.page===active?' active':'')+(p.status==='done'?' done':'')+'" data-page="'+p.page+'" data-record="'+(p.record||'')+'" title="Review page '+p.page+'">'+thumb+'<div class="pl">P.'+p.page+'</div></div>';
+      }).join('');
+      box.querySelectorAll('.pmap').forEach(function(elm){
+        elm.addEventListener('click', function(){
+          // Page mode: hop to that page's review (load/ingest it). Issue mode: scope the worklist.
+          if(pageNavHandler && elm.dataset.record) pageNavHandler(elm.dataset.record, elm.dataset.page);
+          else { pageFilter=+elm.dataset.page; renderWorklist(); }
+        });
+      });
+    }
 
     // object-class filter facets from real distribution
     var LABEL = { article:'Article', advertisement:'Advertisement', illustration:'Illustration',
@@ -853,10 +1170,13 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       masthead:'Masthead', caption:'Caption', unknown:'Unknown' };
     var COLORKEY = { article:'article', advertisement:'ad', illustration:'photo',
       legal_notice:'listing', classified_section:'listing', coupon:'ad', masthead:'listing', unknown:'unknown' };
+    // Active filter state (composes with pageFilter). Empty set = no constraint.
+    var classFilter = new Set();
+    var flagFilter = new Set();
     var cc = d.worklistClassCounts || {};
     var classHtml = '';
-    Object.keys(cc).sort(function(a,b){ return cc[b]-cc[a]; }).forEach(function(k, i){
-      classHtml += '<div class="fopt'+(i===0?' on':'')+'"><span class="sw" style="background:'+
+    Object.keys(cc).sort(function(a,b){ return cc[b]-cc[a]; }).forEach(function(k){
+      classHtml += '<div class="fopt" data-class="'+esc(k)+'"><span class="sw" style="background:'+
         colorVar(COLORKEY[k]||'article')+'"></span>'+esc(LABEL[k]||k.replace(/_/g,' '))+
         '<span class="c">'+cc[k]+'</span></div>';
     });
@@ -865,21 +1185,51 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     var advCount = wl.filter(function(o){ return o.isAdvertorial; }).length;
     var lossCount = wl.filter(function(o){ return /\[(loss|illegible)\]/i.test(o.transcript||''); }).length;
     html('wl-flags',
-      '<div class="fopt"><span class="sw" style="background:var(--danger)"></span>Advertorial suspect<span class="c">'+advCount+'</span></div>'+
-      '<div class="fopt"><span class="sw" style="background:var(--warn)"></span>Faithfulness marks <span class="c">'+lossCount+'</span></div>'+
-      '<div class="fopt"><span class="sw" style="background:var(--tertiary)"></span>Low transcription<span class="c">'+d.lowConfidence+'</span></div>');
+      '<div class="fopt" data-flag="advertorial"><span class="sw" style="background:var(--danger)"></span>Advertorial suspect<span class="c">'+advCount+'</span></div>'+
+      '<div class="fopt" data-flag="loss"><span class="sw" style="background:var(--warn)"></span>Faithfulness marks <span class="c">'+lossCount+'</span></div>'+
+      '<div class="fopt" data-flag="lowconf"><span class="sw" style="background:var(--tertiary)"></span>Low transcription<span class="c">'+d.lowConfidence+'</span></div>');
+    // Reflect selection counts on the dropdown buttons (badge + active border).
+    function updateBadges(){
+      var bc=document.getElementById('badge-class'), bf=document.getElementById('badge-flags');
+      var dc=document.getElementById('dd-class'), df=document.getElementById('dd-flags');
+      if(bc){ bc.textContent=classFilter.size?String(classFilter.size):'All'; bc.classList.toggle('zero', classFilter.size===0); }
+      if(bf){ bf.textContent=flagFilter.size?String(flagFilter.size):'All'; bf.classList.toggle('zero', flagFilter.size===0); }
+      if(dc) dc.querySelector('.ddbtn').classList.toggle('sel', classFilter.size>0);
+      if(df) df.querySelector('.ddbtn').classList.toggle('sel', flagFilter.size>0);
+      var clc=document.querySelector('.ddclear[data-clear="class"]');
+      var clf=document.querySelector('.ddclear[data-clear="flags"]');
+      if(clc) clc.classList.toggle('hidden', classFilter.size===0);
+      if(clf) clf.classList.toggle('hidden', flagFilter.size===0);
+    }
+    // Reset a single facet group from inside its own dropdown (leaves the other
+    // group + any page scope untouched).
+    function clearGroup(which){
+      var set = which==='class' ? classFilter : flagFilter;
+      set.clear();
+      document.querySelectorAll((which==='class'?'#wl-classes':'#wl-flags')+' .fopt').forEach(function(f){ f.classList.remove('on'); });
+      updateBadges();
+      renderWorklist();
+    }
+    document.querySelectorAll('.ddclear').forEach(function(b){
+      b.addEventListener('click', function(e){ e.stopPropagation(); clearGroup(b.dataset.clear); });
+    });
+    // Wire both facet groups to actually filter (multi-select; empty = all).
+    function bindFacet(sel, set){
+      document.querySelectorAll(sel).forEach(function(o){
+        var key = o.dataset.class || o.dataset.flag;
+        o.addEventListener('click', function(){
+          if(set.has(key)){ set.delete(key); o.classList.remove('on'); }
+          else { set.add(key); o.classList.add('on'); }
+          updateBadges();
+          renderWorklist();
+        });
+      });
+    }
+    bindFacet('#wl-classes .fopt', classFilter);
+    bindFacet('#wl-flags .fopt', flagFilter);
+    updateBadges();
 
     var STDOT = { unreviewed:'u', reviewed:'r', flagged:'f' };
-    var rowsHtml = '';
-    wl.forEach(function(o, i){
-      var dot = STDOT[o.status] || 'u';
-      var meta = 'p'+o.page+' · '+esc(o.class.replace(/_/g,' '))+(o.tier?' · '+esc(o.tier):'');
-      rowsHtml += '<div class="wlrow'+(i===0?' sel':'')+'" data-i="'+i+'">'+
-        '<div class="th"><b style="background:'+colorVar(o.color)+'"></b></div>'+
-        '<div class="m"><div class="t">'+esc(o.title)+'</div>'+
-        '<div class="s"><span class="dot-st '+dot+'"></span>'+meta+'</div></div></div>';
-    });
-    html('wl-rows', rowsHtml || '<div class="prog">No publication objects in this run.</div>');
 
     function renderDetail(o){
       if(!o) return;
@@ -887,22 +1237,34 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       chip.textContent=o.classLabel||o.class; chip.style.background=colorVar(o.color);
       set('rv-oid', o.id);
       set('rv-pg', 'page '+o.page+' · seq '+o.seq);
+      renderPageMap(o.page); // keep the page-map's active thumbnail in sync
       // The REAL page image (SLICE-06), harvested from ContentDM. Render it in the
       // source frame; fall back to the striped column-rule placeholder if absent.
       var page=document.getElementById('rv-page');
+      var pct=bboxPct(o.bbox); // SLICE-09: normalized region → % overlay (or null)
       if(page){
         if(o.pageImage){
           var href=o.iiifId ? o.iiifId+'/full/full/0/default.jpg' : null;
           page.style.background='var(--sunken)';
           page.style.backgroundImage='none';
-          page.innerHTML='<a '+(href?'href="'+esc(href)+'" target="_blank" rel="noreferrer" title="Open full-res on ContentDM IIIF"':'')+
-            ' style="display:block;position:absolute;inset:0;overflow:auto">'+
-            '<img src="'+esc(o.pageImage)+'" alt="source page, as printed" style="width:100%;display:block">'+
-            '</a>';
+          page.style.aspectRatio='auto'; // let the image define its own height so the overlay tracks it
+          page.innerHTML='<a '+(href?'href="'+esc(href)+'" target="_blank" rel="noreferrer" title="Open full-res on ContentDM IIIF"':'')+' style="display:block">'+
+            '<div class="pagewrap">'+
+            '<img src="'+esc(o.pageImage)+'" alt="source page, as printed">'+
+            (pct? '<div class="bbox-hl" style="left:'+pct.x+'%;top:'+pct.y+'%;width:'+pct.w+'%;height:'+pct.h+'%"></div>' : '')+
+            '</div></a>';
         } else {
           page.style.backgroundImage='';
+          page.style.aspectRatio='';
           page.innerHTML='<div class="col-rule" style="left:33%"></div><div class="col-rule" style="left:66%"></div>';
         }
+      }
+      // region note — honest about approximation, and honest when there is no box
+      var rn=document.getElementById('rv-region');
+      if(rn){
+        if(pct){ rn.className='region-note'; rn.innerHTML='<b>◈</b> region highlighted — approximate (VLM-located)'; }
+        else if(o.bbox===null){ rn.className='region-note none'; rn.innerHTML='<b>—</b> no region located for this object'; }
+        else { rn.className='region-note'; rn.innerHTML=''; } // undefined → not a live-ingested object
       }
       html('rv-credit', 'SOURCE: BROOKLYN NEWS · '+esc((d.issue&&d.issue.label)||'')+
         ' · P.'+o.page+' · SEQ '+o.seq+'<br>'+
@@ -948,16 +1310,83 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       }
       html('rv-flag', flag);
     }
-    if(wl.length) renderDetail(wl[0]);
-
-    // rebind worklist selection to the real rows
-    document.querySelectorAll('#wl-rows .wlrow').forEach(function(row){
-      row.addEventListener('click', function(){
-        document.querySelectorAll('#wl-rows .wlrow').forEach(function(r){ r.classList.remove('sel'); });
-        row.classList.add('sel');
-        renderDetail(wl[+row.dataset.i]);
+    // Render the worklist, optionally scoped to a single page (pageFilter). Rows
+    // index into the full `wl` array (data-i), so the detail pane still resolves
+    // regardless of scope. Called on load (whole issue) and when a page is picked
+    // from the Run & progress per-page table.
+    // A flag facet's per-object predicate. lowconf has no per-object signal this
+    // run (transcription_confidence null, count 0), so it honestly matches none.
+    function matchesFlag(o){
+      return [...flagFilter].some(function(f){
+        if(f==='advertorial') return !!o.isAdvertorial;
+        if(f==='loss') return /\[(loss|illegible)\]/i.test(o.transcript||'');
+        return false;
       });
-    });
+    }
+    function renderWorklist(){
+      var rowsHtml=''; var firstIdx=null; var shown=0;
+      wl.forEach(function(o,i){
+        if(pageFilter!=null && o.page!==pageFilter) return;
+        if(classFilter.size && !classFilter.has(o.class)) return;
+        if(flagFilter.size && !matchesFlag(o)) return;
+        if(firstIdx==null) firstIdx=i; shown++;
+        var dot = STDOT[o.status] || 'u';
+        var meta = 'p'+o.page+' · '+esc(o.class.replace(/_/g,' '))+(o.tier?' · '+esc(o.tier):'');
+        rowsHtml += '<div class="wlrow" data-i="'+i+'">'+
+          '<div class="th"><b style="background:'+colorVar(o.color)+'"></b></div>'+
+          '<div class="m"><div class="t">'+esc(o.title)+'</div>'+
+          '<div class="s"><span class="dot-st '+dot+'"></span>'+meta+'</div></div></div>';
+      });
+
+      // scope description from every active constraint (page + class + flags)
+      var FLAGLABEL = { advertorial:'advertorial', loss:'faithfulness marks', lowconf:'low transcription' };
+      var parts=[];
+      if(pageFilter!=null) parts.push('page '+pageFilter);
+      if(classFilter.size) parts.push([...classFilter].map(function(k){ return LABEL[k]||k.replace(/_/g,' '); }).join(', '));
+      if(flagFilter.size) parts.push([...flagFilter].map(function(f){ return FLAGLABEL[f]||f; }).join(', '));
+      var active = parts.length>0;
+
+      html('wl-rows', rowsHtml || '<div class="prog">No objects '+
+        (active ? 'match this scope' : 'in this run')+'.</div>');
+
+      // progress line doubles as the scope indicator + clear-scope control
+      if(active){
+        html('wl-prog','<span style="color:var(--brand);font-weight:500">'+esc(parts.join(' · '))+'</span> · '+shown+
+          ' shown · <button id="wl-clear" style="font-family:var(--mono);font-size:11px;color:var(--brand);border:none;background:none;cursor:pointer;padding:0;text-decoration:underline">clear</button>');
+        var clr=document.getElementById('wl-clear');
+        if(clr) clr.addEventListener('click', function(){
+          pageFilter=null; classFilter.clear(); flagFilter.clear();
+          document.querySelectorAll('#wl-classes .fopt, #wl-flags .fopt').forEach(function(f){ f.classList.remove('on'); });
+          updateBadges();
+          renderWorklist();
+        });
+      } else {
+        html('wl-prog','reviewed '+(d.review?d.review.reviewed:0)+' / '+(d.review?d.review.total:wl.length)+
+          ' · '+(d.review?d.review.unreviewed:wl.length)+' left');
+      }
+
+      document.querySelectorAll('#wl-rows .wlrow').forEach(function(row){
+        row.addEventListener('click', function(){
+          document.querySelectorAll('#wl-rows .wlrow').forEach(function(r){ r.classList.remove('sel'); });
+          row.classList.add('sel');
+          renderDetail(wl[+row.dataset.i]);
+        });
+      });
+      if(firstIdx!=null){
+        var f=document.querySelector('#wl-rows .wlrow[data-i="'+firstIdx+'"]');
+        if(f) f.classList.add('sel');
+        renderDetail(wl[firstIdx]);
+      }
+    }
+    renderWorklist();
+
+    // deep-link from the collection dashboard: staff.html?page=N opens Review
+    // already scoped to page N (dashboard: issue → page → review, no detour).
+    var dlPage = new URLSearchParams(location.search).get('page');
+    if(dlPage){
+      var rvNav=document.querySelector('.navitem[data-view="review"]'); if(rvNav) rvNav.click();
+      pageFilter=+dlPage; renderWorklist();
+    }
 
     // ---- SHAPE REVIEW: real queue or honest empty state -------------------
     var sq=document.getElementById('shape-queue');

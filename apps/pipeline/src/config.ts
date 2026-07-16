@@ -22,6 +22,22 @@ export const ISSUE_ID = "brooklynnews_1924-02-01";
 export const CDM_IIIF_BASE =
   process.env.CDM_IIIF_BASE ?? "https://cdm16014.contentdm.oclc.org/digital/iiif";
 export const CDM_COLLECTION = process.env.CDM_COLLECTION ?? "p16014coll5";
+
+// --- ContentDM catalog / query API (SLICE-07) -------------------------------
+// The *other* ContentDM door: the dmwebservices query API. Where the IIIF Image
+// API serves one page's pixels, this LISTS the collection — every top-level issue
+// (dmQuery) and each compound issue's page structure (dmGetCompoundObjectInfo).
+// It returns only PD-safe METADATA (titles, dates, rights labels) — no page
+// images, no in-copyright content — so `npm run catalog` is committable and the
+// rights tripwire stays un-fired. This is the front door for the coverage
+// dashboard (the workbench home), not for enrichment.
+export const CDM_QUERY_BASE =
+  process.env.CDM_QUERY_BASE ??
+  "https://cdm16014.contentdm.oclc.org/digital/bl/dmwebservices/index.php";
+// Committed catalog outputs: the pipeline's provenance copy + the copy the
+// dashboard fetches at runtime (same pattern as harvest.ts's dual manifest write).
+export const CATALOG_HARVEST_DIR = resolve(ROOT, "harvest");
+export const CATALOG_OUT_DIR = resolve(ROOT, "..", "discovery", "public");
 export function iiifId(record: number): string {
   return `${CDM_IIIF_BASE}/${CDM_COLLECTION}/${record}`;
 }
@@ -65,6 +81,21 @@ export const VLM_MODEL = process.env.VLM_MODEL ?? DEFAULT_MODEL[VLM_PROVIDER];
 export const VLM_MAX_EDGE = Number(process.env.VLM_MAX_EDGE ?? 2200);
 
 export const DB_PATH = resolve(ROOT, "data", "slice01.sqlite");
+
+// --- Postgres + pgvector (SLICE-08 live per-page ingestion service) ----------
+// The production store. DATABASE_URL wins if set; otherwise fall back to a local
+// Postgres.app instance over the unix socket (no password). pg also reads PG*
+// env vars natively, so any standard Postgres env works.
+export const PG_CONFIG = {
+  connectionString: process.env.DATABASE_URL || undefined,
+  host: process.env.PGHOST ?? "/tmp",
+  port: Number(process.env.PGPORT ?? 5432),
+  user: process.env.PGUSER ?? process.env.USER ?? "postgres",
+  database: process.env.PGDATABASE ?? "dateline_cleveland",
+};
+export const INGEST_PORT = Number(process.env.INGEST_PORT ?? 5170);
+// Committed catalog the server seeds `issues` (rights source of truth) from.
+export const CATALOG_JSON = resolve(ROOT, "..", "discovery", "public", "catalog.json");
 export const FIXTURES_DIR = resolve(ROOT, "fixtures");
 export const OUT_DIR = resolve(ROOT, "out");
 export const PROMPT_VERSION = "slice01-v1";

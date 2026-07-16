@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-import type { CalendarEvent, DatasetMode, Page } from '../lib/types';
+import { useEffect, useMemo, useState } from 'react';
+import type { CalendarEvent, Dataset, DatasetMode, Page } from '../lib/types';
 import type { Selection } from '../lib/match';
 import { mockDataset } from '../data/mock';
-import { realDataset } from '../data/realAdapter';
+import { realDataset, buildRealDataset } from '../data/realAdapter';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { CalendarBrowse } from './CalendarBrowse';
@@ -20,8 +20,22 @@ export function Discovery() {
   const [selectedId, setSelectedId] = useState<string | null>(null); // calendar event
   const [selected, setSelected] = useState<Selection>({}); // index facets
   const [detailId, setDetailId] = useState<string | null>(null); // index item
+  // SLICE-08: REAL mode reads LIVE from the Postgres store via the ingestion
+  // service; falls back to the committed dataset if the service is offline.
+  const [liveReal, setLiveReal] = useState<Dataset | null>(null);
 
-  const dataset = mode === 'mock' ? mockDataset : realDataset;
+  useEffect(() => {
+    if (mode !== 'real') return;
+    const API = 'http://' + location.hostname + ':5170';
+    let cancelled = false;
+    fetch(API + '/api/discovery')
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then((payload) => { if (!cancelled) setLiveReal(buildRealDataset(payload).dataset); })
+      .catch(() => { if (!cancelled) setLiveReal(null); }); // fall back to committed
+    return () => { cancelled = true; };
+  }, [mode]);
+
+  const dataset = mode === 'mock' ? mockDataset : (liveReal ?? realDataset);
 
   const goto = (p: Page) => {
     setPage(p);

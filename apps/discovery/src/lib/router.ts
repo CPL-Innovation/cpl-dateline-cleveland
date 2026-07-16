@@ -42,5 +42,8 @@ export function navigate(to: Route) {
 /** href for the staff route (so links are middle-click / open-in-new-tab friendly). */
 export const staffHref = STAFF_PATH;
 
-/** URL of the vendored workbench asset served from public/. */
-export const staffAsset = BASE + 'staff.html';
+/** URL of the vendored workbench HOME asset served from public/. SLICE-07: /staff
+ *  now opens the corpus coverage dashboard (the level above a single issue); the
+ *  dashboard links through to the per-issue review workbench (staff.html) for the
+ *  one enriched issue. */
+export const staffAsset = BASE + 'staff-dashboard.html';
