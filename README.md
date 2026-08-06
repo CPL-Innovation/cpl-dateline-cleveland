@@ -72,9 +72,10 @@ cpl-dateline-cleveland/
 - **Design intent** lives vault-side under `build/` (read-only; changes proposed back via
   `build/_FROM-BUILD.md`). Implementation detail lives in this code.
 
-Deferred surfaces (CTA/stub only): IIIF deep-zoom page reader, working search,
-Front Pages / Places / About tabs, real scan crops, semantic-search embeddings,
-cross-issue entity dedup, the staff workbench wired to live run stats.
+Deferred surfaces (CTA/stub only): IIIF deep-zoom page reader (the CTA opens the
+full-res ContentDM image), **semantic** search (the embedding column is
+schema-ready but unpopulated — patron search is a literal text match and says so),
+Front Pages / Places / About tabs, real scan crops, cross-issue entity dedup.
 
 ## License
 

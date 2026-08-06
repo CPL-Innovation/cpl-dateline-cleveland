@@ -13,8 +13,9 @@ import { vlmExtract } from "./vlmExtract.ts";
 import { explodePage } from "./explode.ts";
 import { enrichObject, enrichObjectOptional, type EnrichResult } from "./enrichAdapter.ts";
 import { CONTROLLED_TOPICS, type LightPayload } from "./enrich-prompt.ts";
+import { locateObjects } from "./ocrAnchor.ts";
 import { query, tx } from "./pg.ts";
-import { iiifId, iiifImageUrl, PROMPT_VERSION, ENRICH_PROMPT_VERSION } from "../config.ts";
+import { iiifId, iiifImageUrl, PROMPT_VERSION, ENRICH_PROMPT_VERSION, OCR_ENABLED } from "../config.ts";
 import type { PoolClient } from "pg";
 
 export interface IngestArgs {
@@ -138,6 +139,12 @@ export async function ingestPage(args: IngestArgs, onProgress: Progress = () => 
     onProgress({ phase: "assemble", message: `Assembling ${vlm.blocks.length} blocks into objects…`, pct: 55 });
     const rows = explodePage({ blocks: vlm.blocks, issueId, pageRecord, runId, model: vlm.model, createdAt }) as AssembledRow[];
 
+    // 3b) LOCATE — replace the VLM's estimated region_bbox with one anchored to
+    //     OCR word coordinates. Non-fatal by design: if Tesseract is missing we
+    //     keep the VLM's guess rather than losing the page.
+    onProgress({ phase: "locate", message: "Locating regions against OCR…", pct: 58 });
+    applyOcrRegions(tmp, rows, onProgress);
+
     // 4) tiered enrichment (parallel, bounded)
     onProgress({ phase: "enrich", message: `Enriching ${rows.length} objects…`, pct: 62 });
     const enriched = await pMap(rows, 5, async (o): Promise<Enriched> => {
@@ -177,6 +184,33 @@ export async function ingestPage(args: IngestArgs, onProgress: Progress = () => 
     throw e;
   } finally {
     await unlink(tmp).catch(() => {});
+  }
+}
+
+// Overwrite each row's region_bbox with an OCR-anchored Region. Mutates `rows`.
+// Silent no-op when OCR_ENABLED=0; a warning (not a throw) when OCR is missing or
+// the page is unreadable — a page with weak regions still ingests fine.
+export function applyOcrRegions(imagePath: string, rows: AssembledRow[], onProgress: Progress = () => {}) {
+  if (!OCR_ENABLED || rows.length === 0) return { located: 0, total: rows.length };
+  try {
+    const { regions, meanConf, columns } = locateObjects(imagePath, rows.map((r) => r.text));
+    let located = 0;
+    for (let i = 0; i < rows.length; i++) {
+      // A located region wins; otherwise store null rather than falling back to
+      // the VLM's guess — "no region" is the honest answer, not a worse box.
+      rows[i].region_bbox = regions[i] ? JSON.stringify(regions[i]) : null;
+      if (regions[i]) located++;
+    }
+    onProgress({
+      phase: "locate",
+      message: `Located ${located}/${rows.length} regions (OCR conf ${meanConf}, ${columns} columns).`,
+      pct: 60,
+    });
+    return { located, total: rows.length };
+  } catch (e) {
+    console.warn(`  ⚠ region anchoring skipped: ${(e as Error).message}`);
+    onProgress({ phase: "locate", message: `Region anchoring skipped — keeping VLM estimates.`, pct: 60 });
+    return { located: 0, total: rows.length };
   }
 }
 
@@ -310,6 +344,41 @@ export async function importPage(args: IngestArgs, objects: ImportObject[], onPr
   });
   onProgress({ phase: "done", message: `Imported ${count} objects.`, pct: 100 });
   return { imported: true, ...(await getPageObjects(collection, pageRecord)) };
+}
+
+// ── human region correction (SLICE-09b) ──────────────────────────────────────
+// A curator drags/resizes/draws a box in the workbench and it lands HERE. Per
+// Jungu's call this writes region_bbox in place — one column, no parallel schema.
+// The safeguard against that choice's one real cost (a later `relocate` silently
+// overwriting human work) is the source stamp: 'human' instead of 'ocr-anchor'.
+// relocate skips those unless --force.
+export async function setObjectRegion(objectId: number, rects: unknown) {
+  if (!Number.isFinite(objectId)) throw new Error("objectId must be a number");
+  // null/undefined/[] clear the region; anything else must be a well-formed array.
+  // Do NOT let a malformed body fall through to "clear" — silently wiping a
+  // curator's region because a field was the wrong type is the worst failure here.
+  if (rects != null && !Array.isArray(rects)) throw new Error("rects must be an array of [x,y,w,h]");
+  let region: Record<string, unknown> | null = null;
+  if (Array.isArray(rects) && rects.length) {
+    const clean = rects.map((r, i) => {
+      if (!Array.isArray(r) || r.length < 4) throw new Error(`rect ${i} must be [x,y,w,h]`);
+      const [x, y, w, h] = r.map(Number);
+      if (![x, y, w, h].every(Number.isFinite)) throw new Error(`rect ${i} has non-numeric values`);
+      if (x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > 1.001 || y + h > 1.001) {
+        throw new Error(`rect ${i} must be normalized 0-1 and inside the page`);
+      }
+      return [x, y, w, h].map((n) => Math.round(n * 1e4) / 1e4);
+    });
+    // largest first, same invariant the machine path guarantees — the UI draws rects[0]
+    clean.sort((a, b) => b[2] * b[3] - a[2] * a[3]);
+    region = { rects: clean, source: "human", editedAt: new Date().toISOString() };
+  }
+  const r = await query(
+    "UPDATE content_objects SET region_bbox=$1 WHERE id=$2 RETURNING id",
+    [region ? JSON.stringify(region) : null, objectId],
+  );
+  if (!r.rowCount) throw new Error(`no content object with id ${objectId}`);
+  return region;
 }
 
 // Read back a page's objects (+ overlay) for the review panel — the API's page view.

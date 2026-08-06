@@ -184,6 +184,8 @@ export function buildRealDataset(payload: RawPayload): { dataset: Dataset; meta:
       credit: `SOURCE: ${serial} · ${date} · ${o.issueId} · P.${pp} · SEQ ${o.seq}`,
       clipNote: o.isAdvertorial ? `${roleNote} · flagged advertorial` : roleNote,
       transcript: o.text, pageImage: o.pageImage ?? null, iiifId: o.iiifId ?? null,
+      // carried through so a patron detail can open the exact page in the workbench
+      pageRecord: o.page ?? null, printedPage: printedOf(o),
     };
   }
 

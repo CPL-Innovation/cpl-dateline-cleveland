@@ -53,12 +53,17 @@ export function ClippingFrame({
   credit,
   pageImage,
   iiifId,
+  workbenchHref,
 }: {
   height: number;
   clipNote: string;
   credit: string;
   pageImage?: string | null;
   iiifId?: string | null;
+  /** Staff-only deep link into the editorial workbench for THIS object's page.
+   *  Null in mock mode (no real page behind it) — then the affordance is absent
+   *  rather than present-and-dead. */
+  workbenchHref?: string | null;
 }) {
   // Committed images live at `<base>/pages/…` (BASE-prefixed); live-ingested pages
   // (SLICE-08) carry an absolute ContentDM IIIF URL — pass those through as-is.
@@ -128,32 +133,55 @@ export function ClippingFrame({
           <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', color: C.secondary }}>
             {credit}
           </div>
-          <a
-            className="dc-btn-primary"
-            href={readerHref}
-            target="_blank"
-            rel="noreferrer"
-            title={
-              readerHref
-                ? "Open the full-resolution page on CPL's ContentDM IIIF"
-                : 'Deep-zoom IIIF page reader — surface not built in this prototype'
-            }
-            style={{
-              fontFamily: SANS,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              border: `1px solid ${C.navy}`,
-              padding: '5px 12px',
-              background: C.navy,
-              color: C.canvas,
-              textDecoration: 'none',
-              pointerEvents: readerHref ? 'auto' : 'none',
-              opacity: readerHref ? 1 : 0.85,
-            }}
-          >
-            OPEN IN PAGE READER ⤢
-          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            {workbenchHref && (
+              <a
+                href={workbenchHref}
+                target="_blank"
+                rel="noreferrer"
+                title="Open this object on its page in the staff editorial workbench"
+                style={{
+                  fontFamily: SANS,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  border: `1px solid ${C.hairMed}`,
+                  padding: '5px 12px',
+                  background: C.canvas,
+                  color: C.secondary,
+                  textDecoration: 'none',
+                }}
+              >
+                OPEN IN WORKBENCH ↗
+              </a>
+            )}
+            <a
+              className="dc-btn-primary"
+              href={readerHref}
+              target="_blank"
+              rel="noreferrer"
+              title={
+                readerHref
+                  ? "Open the full-resolution page on CPL's ContentDM IIIF"
+                  : 'Deep-zoom IIIF page reader — surface not built in this prototype'
+              }
+              style={{
+                fontFamily: SANS,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                border: `1px solid ${C.navy}`,
+                padding: '5px 12px',
+                background: C.navy,
+                color: C.canvas,
+                textDecoration: 'none',
+                pointerEvents: readerHref ? 'auto' : 'none',
+                opacity: readerHref ? 1 : 0.85,
+              }}
+            >
+              OPEN IN PAGE READER ⤢
+            </a>
+          </div>
         </div>
       </div>
     </div>

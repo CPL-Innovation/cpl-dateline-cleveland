@@ -111,6 +111,37 @@ tiers, no events.
 8-column front page without scrambling. Early, cheap signal that the Scene explicit-segmentation
 fallback is not needed for community-weekly layouts. Logged to `build/_FROM-BUILD.md`.
 
+## Region location — OCR anchoring, not the VLM
+
+Where an object *sits* on the page is not a VLM question. The SLICE-03 bake-off is the proof: same
+page, same prompt, three engines, three different coordinate conventions and none of them the
+normalized `[x,y,w,h]` the prompt asks for (`gemini-flash` → `[ymin,xmin,ymax,xmax]`/1000, `sonnet` →
+pixels, `gpt-4o` → declined). So the job is split along the grain of what each tool is good at:
+
+- the **VLM** gives accurate *text*, grouped into content objects;
+- **Tesseract** gives accurate *coordinates* for every word;
+- `src/lib/ocrAnchor.ts` matches one to the other and snaps the result to a column grid detected
+  from the page itself.
+
+Deterministic, no model spend, ~25s/page. Requires `tesseract` on PATH (`brew install tesseract`);
+without it the stage warns and leaves regions alone rather than failing the ingest.
+
+```bash
+npm run relocate             # re-derive regions for every ingested page (no VLM calls)
+npm run relocate -- 7618     # one page record
+npm run relocate -- --dry    # report only
+npm run relocate -- --force  # ALSO overwrite curator-corrected regions
+```
+
+`region_bbox` is `{ rects: [[x,y,w,h], …], source, coverage, ocrConf }` — normalized 0–1, largest
+rect first. **Several rects** because a story that jumps columns genuinely occupies several
+rectangles; one box over both would claim 7–31× the page area it holds. `coverage` is matched
+transcript tokens ÷ total — below `OCR_MIN_COVERAGE` the region is stored as `null`, because "no
+region located" beats a confidently drawn wrong box.
+
+Curators correct regions in the workbench (`POST /api/region`). Those are stamped `source:'human'`
+and `relocate` leaves them alone unless `--force`.
+
 ## Implementation notes (not intent — see `_FROM-BUILD` for intent changes)
 
 - The SLICE-01 brief recommended a Next.js scaffold to mirror CN. For this slice's throwaway view
@@ -122,12 +153,14 @@ fallback is not needed for community-weekly layouts. Logged to `build/_FROM-BUIL
 ## Layout
 
 ```
-src/config.ts          knobs: inbox path, page map, provider/model select
+src/config.ts          knobs: inbox path, page map, provider/model select, OCR_* anchoring
 src/lib/vlm-prompt.ts  the transcription contract (vendored)
 src/lib/vlmExtract.ts  the adapter (fixture | anthropic)
 src/lib/db.ts          node:sqlite open + migrate
 src/lib/explode.ts     ordered blocks -> rows (filler collapse, handwriting flag)
+src/lib/ocrAnchor.ts   transcript x OCR words -> measured region rects (Stage 2b "locate")
 src/ingest.ts          the run command
+src/relocate.ts        re-derive regions for already-ingested pages (no VLM spend)
 src/view.ts            "look at it" — console + out/view.html
 fixtures/              session-VLM structured transcriptions (one JSON per page)
 inbox/                 source page images (live providers + probe only; see inbox/README.md)

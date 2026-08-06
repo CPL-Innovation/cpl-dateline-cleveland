@@ -9,6 +9,7 @@ import { CalendarBrowse } from './CalendarBrowse';
 import { EventDetail } from './EventDetail';
 import { IndexBrowse } from './IndexBrowse';
 import { IndexDetail } from './IndexDetail';
+import { SearchResults } from './SearchResults';
 
 // The populated mock week (Jul 23–29 1970) sits at index 4.
 const MOCK_POPULATED_WEEK = 4;
@@ -20,6 +21,8 @@ export function Discovery() {
   const [selectedId, setSelectedId] = useState<string | null>(null); // calendar event
   const [selected, setSelected] = useState<Selection>({}); // index facets
   const [detailId, setDetailId] = useState<string | null>(null); // index item
+  const [query, setQuery] = useState('');           // live text in the header box
+  const [committed, setCommitted] = useState('');   // the query actually being shown
   // SLICE-08: REAL mode reads LIVE from the Postgres store via the ingestion
   // service; falls back to the committed dataset if the service is offline.
   const [liveReal, setLiveReal] = useState<Dataset | null>(null);
@@ -51,6 +54,19 @@ export function Discovery() {
     setDetailId(null);
     setSelected({});
     setWeekIdx(m === 'mock' ? MOCK_POPULATED_WEEK : 0);
+    // A result list from the other dataset would be stale the moment the ids change.
+    if (page === 'search') setPage('index');
+    setQuery('');
+    setCommitted('');
+  };
+
+  const runSearch = () => {
+    const q = query.trim();
+    if (q.length < 2) return;   // one character matches half the paper
+    setCommitted(q);
+    setDetailId(null);
+    setSelectedId(null);
+    setPage('search');
   };
 
   const activeEvent: CalendarEvent | null = useMemo(() => {
@@ -62,14 +78,24 @@ export function Discovery() {
     return null;
   }, [page, selectedId, dataset]);
 
+  // The detail view is shared by the index and by search results — the difference
+  // is only where "back" returns to.
   const activeItem = useMemo(() => {
-    if (page !== 'index' || !detailId) return null;
+    if ((page !== 'index' && page !== 'search') || !detailId) return null;
     return dataset.indexItems.find((i) => i.id === detailId) ?? null;
   }, [page, detailId, dataset]);
 
   return (
     <div className="dc-app">
-      <Header page={page} mode={mode} onNav={goto} onMode={switchMode} />
+      <Header
+        page={page}
+        mode={mode}
+        onNav={goto}
+        onMode={switchMode}
+        query={query}
+        onQuery={setQuery}
+        onSearch={runSearch}
+      />
 
       <div style={{ flex: 1 }}>
         {page === 'calendar' &&
@@ -98,6 +124,27 @@ export function Discovery() {
               onToggle={(id) => setSelected((s) => ({ ...s, [id]: !s[id] }))}
               onClearAll={() => setSelected({})}
               onOpen={setDetailId}
+            />
+          ))}
+
+        {page === 'search' &&
+          (activeItem ? (
+            <IndexDetail
+              item={activeItem}
+              dataset={dataset}
+              onBack={() => setDetailId(null)}
+              backLabel="BACK TO SEARCH RESULTS"
+            />
+          ) : (
+            <SearchResults
+              dataset={dataset}
+              query={committed}
+              onOpen={setDetailId}
+              onClear={() => {
+                setQuery('');
+                setCommitted('');
+                goto('index');
+              }}
             />
           ))}
       </div>

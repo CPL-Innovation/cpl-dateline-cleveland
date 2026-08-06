@@ -7,6 +7,9 @@ interface Props {
   mode: DatasetMode;
   onNav: (p: Page) => void;
   onMode: (m: DatasetMode) => void;
+  query: string;
+  onQuery: (q: string) => void;
+  onSearch: () => void;
 }
 
 const disclaimer: Record<DatasetMode, string> = {
@@ -14,7 +17,7 @@ const disclaimer: Record<DatasetMode, string> = {
   real: 'REAL DATA · PIPELINE OUTPUT — BROOKLYN NEWS, FEB 1 1924 · VLM-TRANSCRIBED, TYPED & ENRICHED (TOPICS · NAMES · EVENTS) · MACHINE-EXTRACTED, CURATOR-REVIEWABLE',
 };
 
-export function Header({ page, mode, onNav, onMode }: Props) {
+export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: Props) {
   const tab = (p: Page, label: string) => {
     const active = page === p;
     return (
@@ -97,21 +100,79 @@ export function Header({ page, mode, onNav, onMode }: Props) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
             <DatasetToggle mode={mode} onMode={onMode} />
-            <input
-              placeholder="Search the collection…"
-              aria-label="Search the collection (non-functional in this demo)"
-              style={{
-                fontFamily: SANS,
-                fontSize: 12,
-                padding: '6px 12px',
-                border: `1px solid ${C.hairMed}`,
-                background: C.canvas,
-                color: C.body,
-                width: 200,
-                borderRadius: 0,
-                outline: 'none',
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSearch();
               }}
-            />
+              style={{ display: 'flex', alignItems: 'center', position: 'relative' }}
+            >
+              <input
+                value={query}
+                // Enter submits. Handled here as well as via the form so the
+                // gesture works regardless of implicit-submission quirks.
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onSearch();
+                  }
+                }}
+                onChange={(e) => onQuery(e.target.value)}
+                placeholder="Search the collection…"
+                aria-label="Search the transcribed text of the collection"
+                style={{
+                  fontFamily: SANS,
+                  fontSize: 12,
+                  padding: '6px 44px 6px 12px',
+                  border: `1px solid ${page === 'search' ? C.navy : C.hairMed}`,
+                  background: C.canvas,
+                  color: C.body,
+                  width: 200,
+                  borderRadius: 0,
+                  outline: 'none',
+                }}
+              />
+              {query && (
+                <span
+                  className="dc-clickable"
+                  onClick={() => {
+                    onQuery('');
+                    if (page === 'search') onNav('index');
+                  }}
+                  title="Clear search"
+                  style={{
+                    position: 'absolute',
+                    right: 30,
+                    fontFamily: MONO,
+                    fontSize: 12,
+                    lineHeight: 1,
+                    color: C.tertiary,
+                  }}
+                >
+                  ✕
+                </span>
+              )}
+              {/* a visible way to run the search — Enter alone is an invisible affordance */}
+              <button
+                type="submit"
+                aria-label="Search"
+                title="Search the collection"
+                className="dc-clickable"
+                style={{
+                  position: 'absolute',
+                  right: 6,
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 13,
+                  lineHeight: 1,
+                  color: query.trim().length >= 2 ? C.navy : C.tertiary,
+                  cursor: 'pointer',
+                }}
+              >
+                ⌕
+              </button>
+            </form>
             <a
               href={staffHref}
               className="dc-btn-ghost"

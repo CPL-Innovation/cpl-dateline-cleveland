@@ -1,7 +1,7 @@
 // Shared shapes for both datasets (mock + real). The UI renders against these;
 // the mock module and the real adapter both produce them.
 
-export type Page = 'calendar' | 'index';
+export type Page = 'calendar' | 'index' | 'search';
 export type DatasetMode = 'mock' | 'real';
 
 /** A single machine-extracted fact row in a page-reader detail. */
@@ -60,6 +60,10 @@ export interface IndexItem {
   transcript: string;
   pageImage?: string | null; // SLICE-06: real ContentDM page image (BASE-relative path)
   iiifId?: string | null; // SLICE-06: canonical IIIF identifier for provenance
+  /** ContentDM record of the page this object sits on — the staff workbench's key.
+   *  Present only in REAL mode; mock items have no page behind them to open. */
+  pageRecord?: number | null;
+  printedPage?: number | null;
 }
 
 export interface FacetValue {

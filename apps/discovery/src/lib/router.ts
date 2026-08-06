@@ -47,3 +47,22 @@ export const staffHref = STAFF_PATH;
  *  dashboard links through to the per-issue review workbench (staff.html) for the
  *  one enriched issue. */
 export const staffAsset = BASE + 'staff-dashboard.html';
+
+/**
+ * Deep link from a patron object straight to that object in the staff workbench.
+ * `object` is the content-object id (`co-N`); the workbench selects and scrolls to
+ * it once the page loads. Returns null when we don't know which page it came from
+ * (mock items have no real page behind them) so the caller can hide the affordance
+ * rather than offer a link that lands nowhere.
+ */
+export function workbenchHref(
+  pageRecord?: number | null,
+  printedPage?: number | null,
+  objectId?: string | null,
+): string | null {
+  if (!pageRecord) return null;
+  const q = new URLSearchParams({ api: '1', record: String(pageRecord) });
+  if (printedPage) q.set('page', String(printedPage));
+  if (objectId) q.set('object', objectId);
+  return BASE + 'staff.html?' + q.toString();
+}

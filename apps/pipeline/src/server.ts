@@ -14,7 +14,7 @@ import { readFile } from "node:fs/promises";
 import { INGEST_PORT, CATALOG_JSON, CDM_QUERY_BASE } from "./config.ts";
 import { fetchRetry } from "./lib/http.ts";
 import { migrate, query, closePool, getPool } from "./lib/pg.ts";
-import { ingestPage, importPage, getPageObjects, RightsBlocked } from "./lib/ingestPage.ts";
+import { ingestPage, importPage, getPageObjects, setObjectRegion, RightsBlocked } from "./lib/ingestPage.ts";
 import { getDiscovery } from "./lib/discovery.ts";
 
 // Resolve an issue's page structure (page number → ContentDM record) so ANY page
@@ -153,6 +153,18 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     if (!record) return json(res, 400, { error: "record required" });
     try { return json(res, 200, await getPageObjects(collection, record)); }
     catch (e) { return json(res, 500, { error: (e as Error).message }); }
+  }
+
+  // The first WRITE route. A curator's corrected region for one content object.
+  // Body: { objectId: number | "co-123", rects: [[x,y,w,h], …] } — an empty/absent
+  // rects array clears the region back to null.
+  if (url.pathname === "/api/region" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      const region = await setObjectRegion(id, body.rects ?? []);
+      return json(res, 200, { ok: true, objectId: id, region });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
 
   if (url.pathname === "/api/import" && req.method === "POST") {

@@ -1,9 +1,20 @@
 import type { Dataset, Fact, IndexItem } from '../lib/types';
 import { TYPE_COLORS } from '../lib/types';
+import { workbenchHref } from '../lib/router';
 import { C, MONO, SANS, SERIF } from '../lib/ui';
 import { BackBar, ClippingFrame, FactsTable, HonestyBox, Transcription } from './detailParts';
 
-export function IndexDetail({ item, dataset, onBack }: { item: IndexItem; dataset: Dataset; onBack: () => void }) {
+export function IndexDetail({
+  item,
+  dataset,
+  onBack,
+  backLabel = 'BACK TO THE INDEX',
+}: {
+  item: IndexItem;
+  dataset: Dataset;
+  onBack: () => void;
+  backLabel?: string;
+}) {
   const labelOf = (id: string): string | null => {
     for (const g of dataset.facetDefs) {
       const v = g.values.find((x) => x.id === id);
@@ -25,11 +36,18 @@ export function IndexDetail({ item, dataset, onBack }: { item: IndexItem; datase
 
   return (
     <div className="dc-shell" style={{ padding: '28px 32px 80px' }}>
-      <BackBar label="BACK TO THE INDEX" right={item.stamp} onBack={onBack} />
+      <BackBar label={backLabel} right={item.stamp} onBack={onBack} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: 48, marginTop: 36 }}>
         <div>
-          <ClippingFrame height={480} clipNote={item.clipNote} credit={item.credit} pageImage={item.pageImage} iiifId={item.iiifId} />
+          <ClippingFrame
+            height={480}
+            clipNote={item.clipNote}
+            credit={item.credit}
+            pageImage={item.pageImage}
+            iiifId={item.iiifId}
+            workbenchHref={workbenchHref(item.pageRecord, item.printedPage, item.id)}
+          />
           <Transcription text={item.transcript} />
         </div>
 

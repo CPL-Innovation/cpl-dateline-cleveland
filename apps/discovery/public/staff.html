@@ -282,10 +282,25 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* the review stage itself */
 .rstage{display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
 .source{border-right:1px solid var(--hair);padding:22px 26px;overflow-y:auto;background:#FCFCFD}
-/* page map — a filmstrip of the issue's pages at the top of the source panel */
-.pagemap{display:flex;gap:8px;overflow-x:auto;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--hair)}
-.pagemap:empty{display:none}
-.pmap{flex:none;width:48px;cursor:pointer;background:#fff;border:1px solid var(--hair-2);padding:2px}
+/* ── page-image surface, Preview.app model ────────────────────────────────────
+   ONE toolbar across the top holding every page-image tool (thumbnails toggle,
+   zoom, region correction), and a collapsible thumbnail rail down the left. The
+   image itself carries no chrome — no caption, no label. */
+.ptoolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:-22px -26px 14px;padding:9px 26px;background:#fff;border-bottom:1px solid var(--hair)}
+.tsep{width:1px;height:20px;background:var(--hair-2);flex:none}
+.tbtn{font-size:13px;line-height:1;color:var(--secondary);border:1px solid var(--hair-2);
+  background:#fff;width:26px;height:26px;cursor:pointer;border-radius:2px}
+.tbtn:hover{border-color:var(--brand);color:var(--brand)}
+.tbtn.on{border-color:var(--brand);color:var(--brand);background:rgba(0,87,183,.07)}
+/* the stage: thumbnail rail | page viewport */
+.pstage{display:flex;gap:14px;align-items:flex-start}
+.pstage .page{flex:1;min-width:0}
+/* page map — a vertical rail of the issue's pages, hideable from the toolbar */
+.pagemap{flex:none;width:66px;display:flex;flex-direction:column;gap:8px;
+  max-height:72vh;overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.pagemap:empty,.pagemap.hidden{display:none}
+.pmap{flex:none;width:100%;cursor:pointer;background:#fff;border:1px solid var(--hair-2);padding:2px}
 .pmap:hover{border-color:var(--brand)}
 .pmap.active{border-color:var(--brand);box-shadow:0 0 0 2px rgba(0,87,183,.28)}
 .pmap .thumb{width:100%;height:60px;object-fit:cover;object-position:top;display:block;background:repeating-linear-gradient(45deg,transparent,transparent 4px,#EEF1F5 4px,#EEF1F5 5px)}
@@ -293,11 +308,18 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .pmap.active .pl{color:var(--brand);font-weight:500}
 .pmap.done{border-color:var(--ok)}
 .pmap.done .pl::after{content:" ✓";color:var(--ok)}
-.source .cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
-.source .cap .kicker{margin:0}
-.zoomctl{display:flex;gap:6px}
-.zoomctl button{font-family:var(--mono);font-size:12px;color:var(--secondary);border:1px solid var(--hair-2);width:26px;height:26px}
+.zoomctl{display:flex;gap:6px;align-items:center}
+.zoomctl button{font-family:var(--mono);font-size:12px;color:var(--secondary);border:1px solid var(--hair-2);width:26px;height:26px;background:#fff;cursor:pointer}
 .zoomctl button:hover{border-color:var(--brand);color:var(--brand)}
+.zoomctl button:disabled{opacity:.4;cursor:default;border-color:var(--hair-2);color:var(--secondary)}
+.zoomctl .lvl{font-family:var(--mono);font-size:10px;color:var(--tertiary);min-width:34px;text-align:right}
+/* The page frame becomes a scrollable viewport once an image is in it, so zooming
+   has somewhere to go. The overlay is positioned in PERCENTAGES of .pagewrap, so
+   boxes track the image at any zoom with no extra math. */
+.page.zoomable{overflow:auto;max-height:72vh;overscroll-behavior:contain}
+.page.zoomable .pagewrap{width:100%}
+.page.panning{cursor:grabbing}
+.page.panning .bx{pointer-events:none}
 .page{
   position:relative;background:#fff;border:1px solid var(--hair-2);
   aspect-ratio:3/4;
@@ -315,6 +337,42 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bbox-hl{position:absolute;background:rgba(241,196,0,.15);border:1.5px solid rgba(241,196,0,.85);
   border-radius:3px;box-shadow:0 0 0 1px rgba(15,18,21,.12),0 0 14px rgba(241,196,0,.4);
   pointer-events:none;transition:left .18s ease,top .18s ease,width .18s ease,height .18s ease}
+/* ── region map: every located object on the page at once ──────────────────────
+   The selected object keeps the strong .bbox-hl glow; every OTHER object gets a
+   thin keyline in its class colour, so the page reads as a map of what the machine
+   found without competing with the thing you're reviewing. Hover any box for its
+   text; double-click to correct it. */
+.bxlayer{position:absolute;inset:0;pointer-events:none}
+.bxlayer.on .bx{pointer-events:auto}
+.bx{position:absolute;border:1px solid var(--bxc,var(--c-article));background:transparent;
+  border-radius:2px;opacity:.55;transition:opacity .12s ease,box-shadow .12s ease;cursor:pointer}
+.bx:hover{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 0 3px var(--bxc,var(--c-article))}
+.bx.sel{opacity:0}                    /* the selected one is drawn by .bbox-hl instead */
+.bx.human{border-style:dashed;border-width:1.5px}
+.bx.editing{opacity:1;border:1.5px solid var(--warn);background:rgba(241,196,0,.12);
+  box-shadow:0 0 0 1px rgba(15,18,21,.25);cursor:move;z-index:6}
+.bx-h{position:absolute;width:11px;height:11px;background:#fff;border:1.5px solid var(--warn);
+  border-radius:2px;z-index:7}
+.bx-h.nw{left:-6px;top:-6px;cursor:nwse-resize}   .bx-h.ne{right:-6px;top:-6px;cursor:nesw-resize}
+.bx-h.sw{left:-6px;bottom:-6px;cursor:nesw-resize} .bx-h.se{right:-6px;bottom:-6px;cursor:nwse-resize}
+/* hover card — headline, then head-and-tail of the body so you can see at a glance
+   whether the box covers the WHOLE story or stops short */
+.bx-tip{position:absolute;z-index:20;max-width:290px;background:var(--ink,#14181d);color:#fff;
+  padding:9px 11px;border-radius:4px;box-shadow:0 6px 22px rgba(0,0,0,.32);pointer-events:none;
+  font-family:var(--sans);font-size:11.5px;line-height:1.5;opacity:0;transition:opacity .1s ease}
+.bx-tip.on{opacity:1}
+.bx-tip .k{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;opacity:.62;display:block;margin-bottom:3px}
+.bx-tip .h{font-weight:700;display:block;margin-bottom:4px}
+.bx-tip .e{opacity:.55}
+/* lives in the page toolbar — flexes to fill, message truncates rather than wraps */
+.bx-editbar{display:flex;gap:8px;align-items:center;flex:1;min-width:0}
+.bx-editbar button{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;
+  padding:5px 11px;border:1px solid var(--hair-2);background:#fff;cursor:pointer;border-radius:2px;flex:none}
+.bx-editbar button.pri{background:var(--navy,#12305c);color:#fff;border-color:var(--navy,#12305c)}
+.bx-editbar button:disabled{opacity:.45;cursor:default}
+.bx-editbar .msg{font-family:var(--mono);font-size:10px;color:var(--tertiary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pagewrap.drawing{cursor:crosshair}
 .region-note{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--tertiary);margin-top:8px}
 .region-note b{color:var(--warn);font-weight:500}
 .region-note.none b{color:var(--tertiary)}
@@ -574,20 +632,30 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         <div class="rstage">
           <!-- SOURCE -->
           <div class="source">
-            <!-- page map: thumbnails of every page in the issue; click to jump -->
-            <div class="pagemap" id="rv-pagemap"></div>
-            <div class="cap">
-              <span class="kicker">The source, as printed</span>
-              <div class="zoomctl"><button>−</button><button>⌂</button><button>+</button></div>
+            <!-- ONE toolbar: every page-image tool lives here (Preview.app model) -->
+            <div class="ptoolbar">
+              <button class="tbtn on" id="pm-toggle" title="Hide page thumbnails">◧</button>
+              <span class="tsep"></span>
+              <div class="zoomctl">
+                <button id="zm-out" title="Zoom out (⌘ + scroll down)">−</button>
+                <button id="zm-fit" title="Fit to width">⌂</button>
+                <button id="zm-in"  title="Zoom in (⌘ + scroll up) · ⌘ + middle-drag to pan">+</button>
+                <span class="lvl" id="zm-lvl">100%</span>
+              </div>
+              <span class="tsep"></span>
+              <div class="bx-editbar" id="rv-editbar"></div>
             </div>
-            <div class="page" id="rv-page">
-              <div class="col-rule" style="left:33%"></div>
-              <div class="col-rule" style="left:66%"></div>
+            <!-- thumbnail rail | page viewport -->
+            <div class="pstage">
+              <div class="pagemap" id="rv-pagemap"></div>
+              <div class="page" id="rv-page">
+                <div class="col-rule" style="left:33%"></div>
+                <div class="col-rule" style="left:66%"></div>
+              </div>
             </div>
             <div class="region-note" id="rv-region"></div>
             <div class="credit" id="rv-credit">—</div>
-            <br>
-            <a class="iiif-cta">Open in page reader <span class="df">deferred surface</span></a>
+            <a class="iiif-cta" id="rv-iiif">Open in page reader <span class="df">deferred surface</span></a>
           </div>
 
           <!-- CLAIMS -->
@@ -862,9 +930,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
   function markLoss(t){ return esc(t).replace(/\[(loss|illegible)\]/gi,
     function(m){ return '<span class="loss">'+m+'</span>'; }); }
 
-  // SLICE-09: normalized [x,y,w,h] (0-1) → percentage rect for the overlay. Returns
-  // null for a missing/degenerate box OR one that isn't normalized (>1 → likely
-  // pixels; refuse rather than mis-draw). Honest nulls over false precision.
+  // Normalized [x,y,w,h] (0-1) → percentage rect for the overlay. Returns null for
+  // a missing/degenerate box OR one that isn't normalized (>1 → likely pixels;
+  // refuse rather than mis-draw). Honest nulls over false precision.
   function bboxPct(bb){
     if(!Array.isArray(bb) || bb.length<4) return null;
     var x=+bb[0], y=+bb[1], w=+bb[2], h=+bb[3];
@@ -875,15 +943,67 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     return { x:(x*100).toFixed(2), y:(y*100).toFixed(2), w:(w*100).toFixed(2), h:(h*100).toFixed(2) };
   }
 
+  // A stored region is EITHER the OCR-anchored shape written by ocrAnchor.ts
+  //   { rects:[[x,y,w,h],…], coverage, source:'ocr-anchor', ocrConf }
+  // OR a legacy single VLM-estimated [x,y,w,h].
+  //
+  // An object CAN occupy several rectangles — a story jumping columns genuinely
+  // does, and one bounding box over both would claim 7-30× the page area it holds
+  // (measured). So the DATA keeps every rect: it is true, and a IIIF region crop
+  // or a patron-side highlight will need it.
+  //
+  // The REVIEW TOOL does not. Its job is "guide my eye to this thing", and two
+  // glows make a reviewer ask which one to trust. So we draw the PRIMARY rect
+  // (largest — ocrAnchor sorts it first) and say in words that there are more.
+  // Honest data, single target for the eye.
+  function regionOf(bb){
+    if(!bb) return null;
+    if(Array.isArray(bb)){
+      var one=bboxPct(bb);
+      return one ? { primary:one, extra:0, source:'vlm', coverage:null, ocrConf:null } : null;
+    }
+    if(!Array.isArray(bb.rects)) return null;
+    var rects=bb.rects.map(bboxPct).filter(Boolean);
+    if(!rects.length) return null;
+    // `primary` drives the single strong glow for the SELECTED object; `all` drives
+    // the region map, where every rect is drawn as a thin keyline. Both are true —
+    // they answer different questions ("where do I look?" vs "what did it find?").
+    return { primary:rects[0], all:rects, extra:rects.length-1, source:bb.source||'ocr-anchor',
+             coverage:bb.coverage, ocrConf:bb.ocrConf };
+  }
+
+  // Hover-card body. Jungu's spec: the headline, then the FIRST ~100 characters and
+  // the LAST 50 — you need both ends to judge whether a box covers the whole story
+  // or stops short of it.
+  function tipParts(text){
+    var lines=String(text||'').split('\n');
+    var head=(lines.shift()||'').trim();
+    var body=lines.join(' ').replace(/\s+/g,' ').trim();
+    if(!body){ body=head; head=''; }
+    var mid = body.length<=170 ? esc(body)
+      : esc(body.slice(0,100).trim())+' <span class="e">…</span> '+esc(body.slice(-50).trim());
+    return { head:head, body:mid };
+  }
+
   function fail(msg){
     html('u-banner', 'Internal Editorial Workbench · <b>'+esc(msg)+'</b>');
   }
+
+  // Set only in live page mode. render() is a top-level function and cannot see
+  // runPageMode's scope, so the region editor reads the service base from here —
+  // and its absence is exactly what makes the static issue-mode demo read-only.
+  // MUST be declared above the dispatch below: `var` hoists the declaration but not
+  // the assignment, so leaving `var REGION_API = null` after the runPageMode() call
+  // re-nulls it immediately after page mode sets it.
+  var REGION_API = null;
 
   // Two data paths:
   //  • PAGE MODE (?api=1&record=…): SLICE-08 live per-page ingestion against the
   //    service — load the page, and if not ingested, ingest it live in place.
   //  • ISSUE MODE (default): the committed staff-run.json (the enriched issue demo).
   var _p = new URLSearchParams(location.search);
+  // ?object=co-N — arriving from a patron detail page, open THAT object.
+  var deepObject = _p.get('object');
   if (_p.get('api') === '1') {
     runPageMode(_p);
   } else {
@@ -895,6 +1015,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
 
   function runPageMode(p){
     var API = 'http://' + location.hostname + ':5170';
+    REGION_API = API;
     var collection = p.get('collection') || 'p16014coll5';
     var record = Number(p.get('record'));
     var pointer = p.get('pointer') || '';
@@ -1231,8 +1352,364 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
 
     var STDOT = { unreviewed:'u', reviewed:'r', flagged:'f' };
 
+    // ══ REGION MAP + INLINE CORRECTION ═══════════════════════════════════════
+    // Every located object on the page is drawn at once as a thin class-coloured
+    // keyline; the object you're reviewing keeps the strong glow. Hover a box for
+    // its text. Double-click to correct it — drag to move, corner handles to
+    // resize. Objects the machine could not place can be drawn from scratch.
+    //
+    // Writes go straight to region_bbox (Jungu's call — simplest, one column) and
+    // are stamped source:'human' so `relocate` won't clobber them on a re-run.
+    var editing = null;   // { oid, ri, el, rects } — a box currently under correction
+    var drawing = null;   // { oid } — armed to draw a region from scratch
+    var tipEl   = null;
+    // Selecting an object must NOT rebuild the page frame. It used to, and that
+    // silently broke both gestures this feature exists for: the first click of a
+    // double-click destroyed the very element the second click needed, and the
+    // trailing click after a drag re-rendered the box back to its stored position.
+    // So the frame is built once per page image; selection only moves the glow and
+    // re-flags which box is `sel`. `frameDirty` forces a rebuild after a save.
+    var frameSrc = null, frameDirty = false, clickTimer = null;
+
+    function objById(id){ for(var i=0;i<wl.length;i++) if(wl[i].id===id) return wl[i]; return null; }
+
+    // ══ ZOOM + PAN ═══════════════════════════════════════════════════════════
+    // Zoom is expressed as the WIDTH of .pagewrap (100% = fit). The image is
+    // width:100% of the wrap and every box is positioned in percentages, so the
+    // whole overlay scales for free — no transform math, and pctAt() keeps working
+    // because getBoundingClientRect() already reports the scaled, scrolled geometry.
+    var zoom = 1, ZMIN = 1, ZMAX = 6, ZSTEP = 1.25;
+
+    function pageEl(){ return document.getElementById('rv-page'); }
+    function wrapEl(){ var p=pageEl(); return p && p.querySelector('.pagewrap'); }
+
+    // Re-zoom, keeping the point under (cx,cy) pinned where it is. Omit cx/cy to
+    // anchor on the middle of the visible frame (what the buttons want).
+    function setZoom(z, cx, cy){
+      var page=pageEl(), wrap=wrapEl(); if(!page || !wrap) return;
+      z = Math.max(ZMIN, Math.min(ZMAX, z));
+      var pr = page.getBoundingClientRect();
+      if(cx==null){ cx = pr.left + pr.width/2; cy = pr.top + pr.height/2; }
+      var before = wrap.getBoundingClientRect();
+      var fx = before.width  ? (cx-before.left)/before.width  : 0;
+      var fy = before.height ? (cy-before.top )/before.height : 0;
+      zoom = z;
+      wrap.style.width = (zoom*100)+'%';
+      var after = wrap.getBoundingClientRect();
+      page.scrollLeft += (after.left + fx*after.width ) - cx;
+      page.scrollTop  += (after.top  + fy*after.height) - cy;
+      paintZoom();
+    }
+    function paintZoom(){
+      var lvl=document.getElementById('zm-lvl'), oi=document.getElementById('zm-in'), oo=document.getElementById('zm-out');
+      if(lvl) lvl.textContent = Math.round(zoom*100)+'%';
+      if(oi) oi.disabled = zoom >= ZMAX - 0.001;
+      if(oo) oo.disabled = zoom <= ZMIN + 0.001;
+    }
+    // Re-apply the current zoom after the frame is rebuilt (a save, a page change).
+    function applyZoom(){ var w=wrapEl(); if(w) w.style.width=(zoom*100)+'%'; paintZoom(); }
+
+    // Buttons. Property assignment, not addEventListener — render() can run more
+    // than once and these elements are static, so this must stay idempotent.
+    (function wireZoom(){
+      // thumbnail rail toggle — the one non-zoom tool in the bar
+      var tg=document.getElementById('pm-toggle'), rail=document.getElementById('rv-pagemap');
+      if(tg && rail) tg.onclick = function(){
+        var hide = !rail.classList.contains('hidden');
+        rail.classList.toggle('hidden', hide);
+        tg.classList.toggle('on', !hide);
+        tg.title = hide ? 'Show page thumbnails' : 'Hide page thumbnails';
+      };
+
+      var oi=document.getElementById('zm-in'), oo=document.getElementById('zm-out'), fit=document.getElementById('zm-fit');
+      if(oi)  oi.onclick  = function(){ setZoom(zoom*ZSTEP); };
+      if(oo)  oo.onclick  = function(){ setZoom(zoom/ZSTEP); };
+      if(fit) fit.onclick = function(){ var p=pageEl(); setZoom(1); if(p){ p.scrollLeft=0; p.scrollTop=0; } };
+
+      var page=pageEl(); if(!page) return;
+      // ⌘ + wheel: scroll UP zooms OUT, scroll DOWN zooms IN, anchored on the cursor.
+      page.onwheel = function(ev){
+        if(!ev.metaKey) return;              // plain scrolling still scrolls
+        ev.preventDefault();
+        // Scroll UP (deltaY<0) zooms IN — the standard map/image convention.
+        // Exponential so the feel is the same at every zoom level: 0.001 puts one
+        // mouse-wheel notch (~120) at ~1.13×, and a trackpad's small deltas at
+        // ~1.01× each; the clamp stops one huge delta (some mice report 300+) from
+        // slamming to the limit in a single event.
+        var f = Math.min(1.5, Math.max(1/1.5, Math.exp(-ev.deltaY * 0.001)));
+        setZoom(zoom*f, ev.clientX, ev.clientY);
+      };
+      // ⌘ + middle mouse button held: drag to pan.
+      page.onmousedown = function(ev){
+        if(ev.button !== 1 || !ev.metaKey) return;
+        ev.preventDefault();
+        var sx=ev.clientX, sy=ev.clientY, l=page.scrollLeft, t=page.scrollTop;
+        page.classList.add('panning');
+        function mv(e2){ page.scrollLeft = l-(e2.clientX-sx); page.scrollTop = t-(e2.clientY-sy); }
+        function up(){ page.classList.remove('panning');
+          document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); }
+        document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+      };
+      // middle-click otherwise opens links / pastes on some platforms — not here
+      page.onauxclick = function(ev){ if(ev.button===1) ev.preventDefault(); };
+      paintZoom();
+    })();
+
+    function pctAt(ev, img){
+      var r = img.getBoundingClientRect();
+      return { x: Math.max(0, Math.min(1, (ev.clientX-r.left)/r.width)),
+               y: Math.max(0, Math.min(1, (ev.clientY-r.top)/r.height)) };
+    }
+    function rectsOf(o){ // stored rects as plain [x,y,w,h] numbers (not percent strings)
+      var bb=o.bbox;
+      if(!bb) return [];
+      if(Array.isArray(bb)) return [bb.slice(0,4)];
+      return Array.isArray(bb.rects) ? bb.rects.map(function(r){ return r.slice(0,4); }) : [];
+    }
+
+    // ── the hover card ──────────────────────────────────────────────────────
+    function showTip(box, o, wrap){
+      hideTip();
+      var t = tipParts(o.transcript);
+      tipEl = document.createElement('div');
+      tipEl.className = 'bx-tip';
+      tipEl.innerHTML = '<span class="k">'+esc(o.classLabel||o.class)+' · seq '+o.seq+'</span>'+
+        (t.head ? '<span class="h">'+esc(t.head)+'</span>' : '') + t.body;
+      wrap.appendChild(tipEl);
+      // place below the box, flipped above if it would fall off the bottom
+      var bw = wrap.getBoundingClientRect(), bb = box.getBoundingClientRect();
+      var left = Math.min(Math.max(0, bb.left-bw.left), Math.max(0, bw.width-300));
+      var below = bb.bottom-bw.top+8;
+      tipEl.style.left = left+'px';
+      tipEl.style.top  = (below + tipEl.offsetHeight > bw.height ? Math.max(0, bb.top-bw.top-tipEl.offsetHeight-8) : below)+'px';
+      requestAnimationFrame(function(){ if(tipEl) tipEl.classList.add('on'); });
+    }
+    function hideTip(){ if(tipEl && tipEl.parentNode) tipEl.parentNode.removeChild(tipEl); tipEl=null; }
+
+    // Move the strong glow to the selected object's primary rect, in place.
+    function paintGlow(wrap, reg){
+      var g = wrap.querySelector('.bbox-hl');
+      if(!reg){ if(g && g.parentNode) g.parentNode.removeChild(g); return; }
+      if(!g){ g=document.createElement('div'); g.className='bbox-hl'; wrap.insertBefore(g, wrap.firstChild.nextSibling); }
+      g.style.cssText='left:'+reg.primary.x+'%;top:'+reg.primary.y+'%;width:'+reg.primary.w+'%;height:'+reg.primary.h+'%';
+    }
+    // Re-flag which box is the selected one, without touching the DOM structure.
+    function paintSel(wrap, o){
+      var bs=wrap.querySelectorAll('.bx');
+      for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i].dataset.oid===o.id);
+    }
+
+    // ── draw the map ────────────────────────────────────────────────────────
+    function renderBoxLayer(wrap, sel){
+      var layer = document.createElement('div');
+      layer.className = 'bxlayer on';
+      wl.forEach(function(o){
+        if(o.page !== sel.page) return;
+        var reg = regionOf(o.bbox); if(!reg) return;
+        reg.all.forEach(function(p, ri){
+          var b = document.createElement('div');
+          b.className = 'bx' + (o.id===sel.id ? ' sel' : '') + (reg.source==='human' ? ' human' : '');
+          b.style.cssText = 'left:'+p.x+'%;top:'+p.y+'%;width:'+p.w+'%;height:'+p.h+'%';
+          b.style.setProperty('--bxc', colorVar(o.color));
+          b.dataset.oid = o.id; b.dataset.ri = ri;
+          b.title = ''; // the hover card replaces the native tooltip
+          b.addEventListener('mouseenter', function(){ if(!editing) showTip(b, o, wrap); });
+          b.addEventListener('mouseleave', hideTip);
+          // Single click selects; double click edits. Hold the select briefly so a
+          // double-click isn't preceded by a pointless re-render, and so the trailing
+          // click after a drag can never re-select out from under the edit.
+          b.addEventListener('click', function(ev){
+            ev.preventDefault(); ev.stopPropagation();
+            if(editing || drawing) return;
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(function(){ selectById(o.id); }, 230);
+          });
+          b.addEventListener('dblclick', function(ev){
+            ev.preventDefault(); ev.stopPropagation();
+            clearTimeout(clickTimer);
+            startEdit(o, ri, b, wrap);
+          });
+          layer.appendChild(b);
+        });
+      });
+      wrap.appendChild(layer);
+      return layer;
+    }
+
+    // Select an object by id through the existing worklist rows, so the row
+    // highlight and the detail panel stay in sync with the map.
+    function selectById(id){
+      var rows = document.querySelectorAll('#wl-rows .wlrow');
+      for(var i=0;i<rows.length;i++){
+        if(wl[+rows[i].dataset.i] && wl[+rows[i].dataset.i].id===id){ rows[i].click(); return; }
+      }
+      renderDetail(objById(id)); // not in the current filter — show it anyway
+    }
+
+    // Keyboard twins of the two buttons, so a curator can drag and confirm without
+    // going back to the mouse: Enter commits, Escape abandons. Bound only while a
+    // correction is in flight (editing OR armed to draw), and ignored while typing.
+    function onEditKey(ev){
+      if(!editing && !drawing) return;
+      if(ev.key !== 'Enter' && ev.key !== 'Escape') return;
+      var t = ev.target, tag = t && t.tagName;
+      if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || (t && t.isContentEditable)) return;
+      ev.preventDefault();
+      if(ev.key === 'Escape'){ cancelEdit(); return; }
+      if(!editing) return;                       // Enter means nothing while merely armed to draw
+      if(editing.dirty) commit(editing.oid, editing.rects);
+      else paintEditbar('nothing changed yet — drag the box first');
+    }
+    // Single exit point, so the key handler can never outlive the correction.
+    function endEdit(){ document.removeEventListener('keydown', onEditKey); editing = null; }
+
+    // ── correction: move / resize ───────────────────────────────────────────
+    // `seed` supplies the geometry for a freshly DRAWN rect, which has nothing
+    // stored yet; it also starts dirty so SAVE is live immediately.
+    function startEdit(o, ri, el, wrap, seed){
+      hideTip();
+      if(editing) endEdit();
+      editing = { oid:o.id, ri:ri, el:el, rects: seed || rectsOf(o), wrap:wrap, dirty: !!seed };
+      document.addEventListener('keydown', onEditKey);
+      el.classList.add('editing');
+      ['nw','ne','sw','se'].forEach(function(k){
+        var h=document.createElement('div'); h.className='bx-h '+k; h.dataset.k=k; el.appendChild(h);
+      });
+      var img = wrap.querySelector('img');
+      el.addEventListener('mousedown', onGrab);
+      function onGrab(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        clearTimeout(clickTimer); // a drag must never resolve into a selection
+        var k = ev.target && ev.target.dataset ? ev.target.dataset.k : null;
+        var start = pctAt(ev, img), r0 = editing.rects[ri].slice();
+        function move(e2){
+          var p = pctAt(e2, img), dx = p.x-start.x, dy = p.y-start.y, r = r0.slice();
+          if(!k){ r[0]=r0[0]+dx; r[1]=r0[1]+dy; }
+          else {
+            var x0=r0[0], y0=r0[1], x1=r0[0]+r0[2], y1=r0[1]+r0[3];
+            if(k==='nw'){ x0+=dx; y0+=dy; } else if(k==='ne'){ x1+=dx; y0+=dy; }
+            else if(k==='sw'){ x0+=dx; y1+=dy; } else { x1+=dx; y1+=dy; }
+            r = [Math.min(x0,x1), Math.min(y0,y1), Math.abs(x1-x0), Math.abs(y1-y0)];
+          }
+          // keep it on the page and above a usable minimum
+          r[2]=Math.max(0.004,Math.min(1,r[2])); r[3]=Math.max(0.003,Math.min(1,r[3]));
+          r[0]=Math.max(0,Math.min(1-r[2],r[0])); r[1]=Math.max(0,Math.min(1-r[3],r[1]));
+          editing.rects[ri]=r; editing.dirty=true;
+          el.style.left=(r[0]*100).toFixed(2)+'%'; el.style.top=(r[1]*100).toFixed(2)+'%';
+          el.style.width=(r[2]*100).toFixed(2)+'%'; el.style.height=(r[3]*100).toFixed(2)+'%';
+          paintEditbar();
+        }
+        function up(){ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); }
+        document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+      }
+      paintEditbar();
+    }
+
+    // Discard the in-progress drag and redraw from the STORED geometry.
+    function cancelEdit(){
+      endEdit(); drawing=null; frameDirty=true;
+      var w=document.querySelector('#rv-page .pagewrap'); if(w) w.classList.remove('drawing');
+      if(currentObj) renderDetail(currentObj);
+    }
+
+    // ── correction: draw a region from scratch (for the ones it couldn't place) ─
+    function armDraw(o, wrap){
+      hideTip();
+      drawing = { oid:o.id };
+      wrap.classList.add('drawing');
+      document.addEventListener('keydown', onEditKey); // Esc backs out of an armed draw too
+      var img = wrap.querySelector('img');
+      var ghost=null, start=null;
+      function down(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        start = pctAt(ev, img);
+        ghost = document.createElement('div'); ghost.className='bx editing';
+        ghost.style.cssText='left:'+(start.x*100)+'%;top:'+(start.y*100)+'%;width:0;height:0';
+        wrap.appendChild(ghost);
+        document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+      }
+      function move(ev){
+        var p=pctAt(ev,img);
+        var r=[Math.min(start.x,p.x),Math.min(start.y,p.y),Math.abs(p.x-start.x),Math.abs(p.y-start.y)];
+        ghost.style.left=(r[0]*100)+'%'; ghost.style.top=(r[1]*100)+'%';
+        ghost.style.width=(r[2]*100)+'%'; ghost.style.height=(r[3]*100)+'%';
+        drawing.rect=r;
+      }
+      function up(){
+        document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+        wrap.removeEventListener('mousedown',down); wrap.classList.remove('drawing');
+        var r=drawing && drawing.rect;
+        // too small to be a real region — treat it as a slip, detach the key handler
+        if(!r || r[2]<0.005 || r[3]<0.004){ endEdit(); drawing=null; frameDirty=true; renderDetail(objById(o.id)); return; }
+        // Do NOT write on mouseup. Every other correction path requires an explicit
+        // SAVE, and a stray drag that silently persists to the database is exactly
+        // the accident this guard prevents (it happened once during testing). Hand
+        // the drawn rect to the normal edit loop instead — adjust, then SAVE.
+        drawing=null;
+        ghost.dataset.oid=o.id; ghost.dataset.ri='0';
+        startEdit(o, 0, ghost, wrap, [r]);
+        paintEditbar('drawn — adjust if needed, then SAVE');
+      }
+      wrap.addEventListener('mousedown',down);
+      paintEditbar();
+    }
+
+    // ── persistence ─────────────────────────────────────────────────────────
+    function commit(oid, rects){
+      if(!REGION_API){ paintEditbar('read-only — region editing needs the live service'); return; }
+      paintEditbar('saving…');
+      fetch(REGION_API+'/api/region', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ objectId: oid, rects: rects })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        var o = objById(oid); if(o) o.bbox = j.region;   // keep the in-memory copy true
+        endEdit(); drawing=null;
+        frameDirty=true;                                  // geometry changed → redraw the map
+        renderDetail(objById(oid));
+        paintEditbar('saved · region marked human-corrected');
+      })
+      .catch(function(e){ paintEditbar('save failed — '+e.message); });
+    }
+
+    function paintEditbar(msg){
+      var bar=document.getElementById('rv-editbar'); if(!bar) return;
+      var o=currentObj; if(!o){ bar.innerHTML=''; return; }
+      var has=rectsOf(o).length>0, live=!!REGION_API;
+      var h='';
+      if(editing){
+        h = '<button class="pri" data-a="save"'+(editing.dirty?'':' disabled')+'>SAVE REGION ⏎</button>'+
+            '<button data-a="cancel">CANCEL ⎋</button>'+
+            '<span class="msg">'+esc(msg||'drag to move · drag a corner to resize · Enter to save · Esc to cancel')+'</span>';
+      } else if(drawing){
+        h = '<button data-a="cancel">CANCEL ⎋</button>'+
+            '<span class="msg">'+esc(msg||'drag a rectangle on the page image · Esc to cancel')+'</span>';
+      } else if(!has){
+        h = '<button data-a="draw"'+(live?'':' disabled')+'>DRAW REGION</button>'+
+            '<span class="msg">'+esc(msg||(live?'the machine could not place this one — draw it by hand':'read-only in demo mode'))+'</span>';
+      } else {
+        h = '<button data-a="clear"'+(live?'':' disabled')+'>CLEAR REGION</button>'+
+            '<span class="msg">'+esc(msg||'double-click a box on the page to correct it')+'</span>';
+      }
+      bar.innerHTML=h;
+      bar.querySelectorAll('button[data-a]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var a=b.dataset.a;
+          if(a==='cancel') cancelEdit();
+          else if(a==='save') commit(editing.oid, editing.rects);
+          else if(a==='clear') commit(o.id, []);
+          else if(a==='draw'){ var w=document.querySelector('#rv-page .pagewrap'); if(w) armDraw(o, w); }
+        });
+      });
+    }
+
+    var currentObj = null;
+
     function renderDetail(o){
       if(!o) return;
+      currentObj = o;
+      hideTip();
       var chip=document.getElementById('rv-chip');
       chip.textContent=o.classLabel||o.class; chip.style.background=colorVar(o.color);
       set('rv-oid', o.id);
@@ -1241,31 +1718,63 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       // The REAL page image (SLICE-06), harvested from ContentDM. Render it in the
       // source frame; fall back to the striped column-rule placeholder if absent.
       var page=document.getElementById('rv-page');
-      var pct=bboxPct(o.bbox); // SLICE-09: normalized region → % overlay (or null)
+      var reg=regionOf(o.bbox); // normalized region(s) → % overlay (or null)
       if(page){
         if(o.pageImage){
           var href=o.iiifId ? o.iiifId+'/full/full/0/default.jpg' : null;
           page.style.background='var(--sunken)';
           page.style.backgroundImage='none';
           page.style.aspectRatio='auto'; // let the image define its own height so the overlay tracks it
-          page.innerHTML='<a '+(href?'href="'+esc(href)+'" target="_blank" rel="noreferrer" title="Open full-res on ContentDM IIIF"':'')+' style="display:block">'+
-            '<div class="pagewrap">'+
-            '<img src="'+esc(o.pageImage)+'" alt="source page, as printed">'+
-            (pct? '<div class="bbox-hl" style="left:'+pct.x+'%;top:'+pct.y+'%;width:'+pct.w+'%;height:'+pct.h+'%"></div>' : '')+
-            '</div></a>';
+          // Rebuild the frame ONLY when the page image changes or a save invalidated
+          // the geometry. Rebuilding on every selection is what broke double-click
+          // and drag — it destroyed the element mid-gesture.
+          var wrap = page.querySelector('.pagewrap');
+          if(frameDirty || frameSrc !== o.pageImage || !wrap){
+            // No <a> wrapper — the page image is now an interactive surface (hover,
+            // click-to-select, double-click-to-correct), and a link around it would
+            // swallow every one of those gestures. Full-res lives on the CTA below.
+            page.innerHTML='<div class="pagewrap">'+
+              '<img src="'+esc(o.pageImage)+'" alt="source page, as printed" draggable="false">'+
+              '</div>';
+            wrap = page.querySelector('.pagewrap');
+            renderBoxLayer(wrap, o);
+            frameSrc = o.pageImage; frameDirty = false;
+          }
+          page.classList.add('zoomable');
+          applyZoom();                 // a rebuilt frame must keep the current zoom
+          paintGlow(wrap, reg);
+          paintSel(wrap, o);
+          var cta=document.getElementById('rv-iiif');
+          if(cta && href){ cta.href=href; cta.target='_blank'; cta.rel='noreferrer';
+            cta.innerHTML='Open in page reader <span class="df">full-res IIIF</span>'; }
         } else {
           page.style.backgroundImage='';
           page.style.aspectRatio='';
+          page.classList.remove('zoomable');
           page.innerHTML='<div class="col-rule" style="left:33%"></div><div class="col-rule" style="left:66%"></div>';
+          frameSrc=null;
         }
       }
       // region note — honest about approximation, and honest when there is no box
       var rn=document.getElementById('rv-region');
       if(rn){
-        if(pct){ rn.className='region-note'; rn.innerHTML='<b>◈</b> region highlighted — approximate (VLM-located)'; }
+        if(reg && reg.source==='human'){
+          rn.className='region-note';
+          rn.innerHTML='<b>✎</b> region corrected by hand'+
+            (reg.extra ? ' · '+(reg.extra+1)+' rectangles' : '')+' — this one is not the machine’s';
+        }
+        else if(reg && reg.source==='ocr-anchor'){
+          rn.className='region-note';
+          rn.innerHTML='<b>◈</b> region located by OCR word match — '+
+            Math.round((reg.coverage||0)*100)+'% of the transcript matched'+
+            (reg.extra ? ' · continues in '+reg.extra+' more column'+(reg.extra>1?'s':'')+' (not shown)' : '')+
+            (reg.ocrConf!=null ? ' · page OCR conf '+reg.ocrConf : '');
+        }
+        else if(reg){ rn.className='region-note'; rn.innerHTML='<b>◈</b> region highlighted — approximate (VLM-estimated, not OCR-anchored)'; }
         else if(o.bbox===null){ rn.className='region-note none'; rn.innerHTML='<b>—</b> no region located for this object'; }
         else { rn.className='region-note'; rn.innerHTML=''; } // undefined → not a live-ingested object
       }
+      paintEditbar(); // correction affordances follow the selection
       html('rv-credit', 'SOURCE: BROOKLYN NEWS · '+esc((d.issue&&d.issue.label)||'')+
         ' · P.'+o.page+' · SEQ '+o.seq+'<br>'+
         'transcribed by '+esc((vlm.provider||'')+'/'+engine)+
@@ -1372,10 +1881,20 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           renderDetail(wl[+row.dataset.i]);
         });
       });
-      if(firstIdx!=null){
-        var f=document.querySelector('#wl-rows .wlrow[data-i="'+firstIdx+'"]');
-        if(f) f.classList.add('sel');
-        renderDetail(wl[firstIdx]);
+      // Deep link from the patron app: ?object=co-N opens straight to that object
+      // rather than to the top of the worklist. It must survive EVERY render in the
+      // init sequence — the ?page=N handler below re-renders right after this one —
+      // so it is cleared once init settles, not on first use.
+      var wantIdx = null;
+      if(deepObject){
+        for(var wi=0; wi<wl.length; wi++) if(wl[wi].id===deepObject){ wantIdx=wi; break; }
+      }
+      var openIdx = (wantIdx!=null ? wantIdx : firstIdx);
+      if(openIdx!=null){
+        var f=document.querySelector('#wl-rows .wlrow[data-i="'+openIdx+'"]');
+        if(f){ f.classList.add('sel');
+          if(wantIdx!=null) f.scrollIntoView({block:'center'}); }
+        renderDetail(wl[openIdx]);
       }
     }
     renderWorklist();
@@ -1387,6 +1906,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var rvNav=document.querySelector('.navitem[data-view="review"]'); if(rvNav) rvNav.click();
       pageFilter=+dlPage; renderWorklist();
     }
+    // init has settled — release the deep link so the curator's own filtering
+    // isn't repeatedly yanked back to the object they arrived on.
+    deepObject = null;
 
     // ---- SHAPE REVIEW: real queue or honest empty state -------------------
     var sq=document.getElementById('shape-queue');
