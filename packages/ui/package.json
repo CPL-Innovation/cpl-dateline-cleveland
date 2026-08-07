@@ -1,0 +1,45 @@
+{
+  "name": "@cpl/ui",
+  "version": "0.1.0",
+  "description": "Cleveland Public Library shared UI components, styled only from @cpl/tokens. M3 ships one: HonestyBadge — the machine-extracted · curator-reviewable contract as a reusable atom.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "files": [
+    "dist",
+    "src",
+    "preview"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node preview/build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "npm run build && npm run typecheck",
+    "preview": "python3 -m http.server 4322 --directory .."
+  },
+  "dependencies": {
+    "@cpl/tokens": "^0.3.0"
+  },
+  "peerDependencies": {
+    "react": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "typescript": "^5.9.3",
+    "react-dom": "^18.3.1",
+    "react": "^18.3.1"
+  }
+}

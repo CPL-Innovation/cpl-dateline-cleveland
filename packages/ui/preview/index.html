@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!--
+  GENERATED FILE — do not edit. Written by preview/build.mjs, which renders the REAL
+  HonestyBadge from ../dist through react-dom/server. Regenerate:
+      npm run build --workspace @cpl/ui
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>@cpl/ui — component gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<!-- the page chrome styles itself from the real token CSS, same as tokens/preview -->
+<link rel="stylesheet" href="../../tokens/dist/tokens.css" />
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface-sunken); color: var(--text-1);
+         font-family: var(--cpl-font-sans); font-size: 15px; line-height: var(--lh-normal);
+         -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: var(--space-7) var(--space-5) var(--space-16); }
+  header.page h1 { font-family: var(--cpl-font-serif); font-weight: var(--fw-medium); font-size: var(--fs-2xl);
+                   letter-spacing: var(--ls-tight); margin: 0 0 6px; }
+  header.page p { color: var(--text-2); max-width: 68ch; margin: 0 0 6px; }
+  header.page .meta { font-family: var(--cpl-font-mono); font-size: var(--fs-xs); color: var(--text-3); }
+
+  section { background: var(--surface); border: 1px solid var(--border-hair); border-radius: var(--radius-lg);
+            padding: var(--space-5); margin: var(--space-4) 0; box-shadow: var(--shadow-1); }
+  section > h2 { font-family: var(--cpl-font-serif); font-weight: var(--fw-medium); font-size: var(--fs-lg); margin: 0 0 4px; }
+  section > .sub { color: var(--text-2); font-size: 13.5px; margin: 0 0 var(--space-4); }
+  h3.grouplabel { font-family: var(--cpl-font-mono); font-size: 11px; letter-spacing: var(--ls-wide);
+                  text-transform: uppercase; color: var(--text-3); margin: var(--space-5) 0 var(--space-2); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-3); }
+  .cell { border: 1px solid var(--border-hair); border-radius: var(--radius); overflow: hidden; }
+  .cell-label { font-family: var(--cpl-font-mono); font-size: 10.5px; letter-spacing: var(--ls-wide);
+                text-transform: uppercase; color: var(--text-3); padding: var(--space-2) var(--space-3);
+                border-bottom: 1px solid var(--border-hair); background: var(--surface-subtle); }
+  /* Scroll, never clip: an inline chip that outgrows its container is a real finding
+     (see the disclaimer-at-inline-density case) and the gallery must not hide it. */
+  .cell-stage { padding: var(--space-3); overflow-x: auto; }
+  .cell-note { padding: 0 var(--space-3) var(--space-3); font-size: 12px; color: var(--text-2); }
+  .cell-note code { font-family: var(--cpl-font-mono); font-size: 0.92em; }
+
+  .surfacerow { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3);
+                border-bottom: 1px solid var(--border-hair); }
+  .surfacerow .n { font-family: var(--cpl-font-mono); font-size: 11px; color: var(--text-2); width: 160px; flex: none; }
+
+  table.m { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.m th, table.m td { text-align: left; padding: var(--space-2) var(--space-3);
+                           border-bottom: 1px solid var(--border-hair); vertical-align: middle; }
+  table.m th { font-family: var(--cpl-font-mono); font-size: 10.5px; letter-spacing: var(--ls-wide);
+               text-transform: uppercase; color: var(--text-3); }
+  .pill { display: inline-block; font-size: 11px; font-weight: var(--fw-semibold); padding: 2px 8px;
+          border-radius: var(--cpl-radius-pill); font-family: var(--cpl-font-mono); }
+  .pass { background: var(--color-success-soft); color: var(--color-success-ink); }
+  .fail { background: var(--color-danger-soft); color: var(--color-danger); }
+
+  #qa { border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); margin: var(--space-4) 0;
+        border: 1.5px solid var(--border); background: var(--surface); }
+  #qa.ok { border-color: var(--color-success-ink); background: var(--color-success-soft); }
+  #qa.bad { border-color: var(--color-danger); background: var(--color-danger-soft); }
+  #qa h2 { margin: 0 0 4px; font-size: var(--fs-base); font-family: var(--cpl-font-sans); font-weight: var(--fw-semibold); }
+  #qa p { margin: 0; font-size: 13px; color: var(--text-2); }
+  code { font-family: var(--cpl-font-mono); font-size: 0.92em; }
+  small.note { color: var(--text-3); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>@cpl/ui — component gallery</h1>
+    <p><b>Package-fed.</b> Every badge below is the <em>real</em> <code>HonestyBadge</code>, imported from the
+       built <code>../dist</code> and rendered through <code>react-dom/server</code> — never a mock, never a
+       hand-copied swatch. If the component is wrong, this page is wrong.</p>
+    <p class="meta">@cpl/ui v0.1.0 · generated by <code>preview/build.mjs</code> ·
+       regenerate with <code>npm run build --workspace @cpl/ui</code></p>
+  </header>
+
+  <div id="qa" class="ok">
+    <h2>Component QA</h2>
+    <p>
+      <b>No hardcoded color</b> — every color the component emitted across 24 prop combinations is a value from <code>@cpl/tokens</code>.
+      <br />
+      <b>AA holds</b> — info-ink measures 5.68:1 on its own soft fill and 6.42:1 on <code>--surface</code>, and clears 4.5:1 on every surface token below.
+    </p>
+  </div>
+
+  <section>
+    <h2>The state matrix — densities × review states</h2>
+    <p class="sub">The two shells and the three claims. <code>review</code> defaults to <code>reviewable</code>:
+       the badge never says a human checked something unless told so. <code>unreviewed</code> carries a touch more
+       attention — still info, never warning, because it is an honest statement, not an error.</p>
+    
+    <h3 class="grouplabel">density: inline</h3>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">review: unreviewed</div><div class="cell-stage"><span role="note" aria-label="VLM — not yet reviewed by a curator." title="VLM — not yet reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid #2A6580;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:500;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>unreviewed</span></span></div></div>
+      <div class="cell"><div class="cell-label">review: reviewable</div><div class="cell-stage"><span role="note" aria-label="VLM — curator-reviewable." title="VLM — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">review: reviewed</div><div class="cell-stage"><span role="note" aria-label="VLM — reviewed by a curator." title="VLM — reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ reviewed</span></span></div></div>
+    </div>
+
+    <h3 class="grouplabel">density: block</h3>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">review: unreviewed</div><div class="cell-stage"><span role="note" aria-label="VLM — not yet reviewed by a curator." title="VLM — not yet reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #2A6580;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>VLM</span><span aria-hidden="true"> · </span><span>not yet reviewed</span></span></div></div>
+      <div class="cell"><div class="cell-label">review: reviewable</div><div class="cell-stage"><span role="note" aria-label="VLM — curator-reviewable." title="VLM — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>VLM</span><span aria-hidden="true"> · </span><span>curator-reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">review: reviewed</div><div class="cell-stage"><span role="note" aria-label="VLM — reviewed by a curator." title="VLM — reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ curator-reviewed</span></span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Modifiers</h2>
+    <p class="sub"><code>edited</code>, <code>original</code>, <code>disclaimer</code> — each shown at both densities,
+       because the copy register differs: <code>block</code> carries the institutional phrase in full,
+       <code>inline</code> the compact token.</p>
+    
+    <h3 class="grouplabel">edited</h3>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">inline</div><div class="cell-stage"><span role="note" aria-label="VLM — reviewed by a curator, edited by a curator." title="VLM — reviewed by a curator, edited by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ reviewed</span><span aria-hidden="true"> · </span><span>edited</span></span></div><div class="cell-note">a curator overrode the machine value</div></div>
+      <div class="cell"><div class="cell-label">block</div><div class="cell-stage"><span role="note" aria-label="VLM — reviewed by a curator, edited by a curator." title="VLM — reviewed by a curator, edited by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ curator-reviewed</span><span aria-hidden="true"> · </span><span>edited</span></span></div><div class="cell-note">a curator overrode the machine value</div></div>
+    </div>
+
+    <h3 class="grouplabel">edited + original</h3>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">inline</div><div class="cell-stage"><span role="note" aria-label="VLM — reviewed by a curator, edited by a curator." title="VLM — reviewed by a curator, edited by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ reviewed</span><span aria-hidden="true"> · </span><span title="Machine value: single family">edited</span></span></div><div class="cell-note">hover the `edited` token — the machine value is the tooltip</div></div>
+      <div class="cell"><div class="cell-label">block</div><div class="cell-stage"><span role="note" aria-label="VLM — reviewed by a curator, edited by a curator." title="VLM — reviewed by a curator, edited by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ curator-reviewed</span><span aria-hidden="true"> · </span><span title="Machine value: single family">edited</span></span></div><div class="cell-note">hover the `edited` token — the machine value is the tooltip</div></div>
+    </div>
+
+    <h3 class="grouplabel">disclaimer (default)</h3>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">inline</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted — curator-reviewable. Not editorial fact." title="Machine-extracted — curator-reviewable. Not editorial fact." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>Machine-extracted</span><span aria-hidden="true"> · </span><span>reviewable</span><span aria-hidden="true"> · </span><span>Not editorial fact</span></span></div><div class="cell-note">`disclaimer` → “Not editorial fact”</div></div>
+      <div class="cell"><div class="cell-label">block</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted — curator-reviewable. Not editorial fact." title="Machine-extracted — curator-reviewable. Not editorial fact." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>Machine-extracted</span><span aria-hidden="true"> · </span><span>curator-reviewable</span><span aria-hidden="true"> · </span><span>Not editorial fact</span></span></div><div class="cell-note">`disclaimer` → “Not editorial fact”</div></div>
+    </div>
+
+    <h3 class="grouplabel">disclaimer (custom)</h3>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">inline</div><div class="cell-stage"><span role="note" aria-label="AI-transcribed — not yet reviewed by a curator. Not editorial fact · pilot material." title="AI-transcribed — not yet reviewed by a curator. Not editorial fact · pilot material." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid #2A6580;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:500;white-space:nowrap"><span>AI-transcribed</span><span aria-hidden="true"> · </span><span>unreviewed</span><span aria-hidden="true"> · </span><span>Not editorial fact · pilot material</span></span></div><div class="cell-note">a string overrides the default copy</div></div>
+      <div class="cell"><div class="cell-label">block</div><div class="cell-stage"><span role="note" aria-label="AI-transcribed — not yet reviewed by a curator. Not editorial fact · pilot material." title="AI-transcribed — not yet reviewed by a curator. Not editorial fact · pilot material." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #2A6580;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>AI-transcribed</span><span aria-hidden="true"> · </span><span>not yet reviewed</span><span aria-hidden="true"> · </span><span>Not editorial fact · pilot material</span></span></div><div class="cell-note">a string overrides the default copy</div></div>
+    </div>
+
+    <h3 class="grouplabel">everything at once</h3>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">inline</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted from articles — reviewed by a curator, edited by a curator. Not editorial fact." title="Machine-extracted from articles — reviewed by a curator, edited by a curator. Not editorial fact." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>Machine-extracted</span><span aria-hidden="true"> · </span><span>✓ reviewed</span><span aria-hidden="true"> · </span><span title="Machine value: 1924-02-01">edited</span><span aria-hidden="true"> · </span><span>Not editorial fact</span></span></div><div class="cell-note">the full contract in one badge</div></div>
+      <div class="cell"><div class="cell-label">block</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted from articles — reviewed by a curator, edited by a curator. Not editorial fact." title="Machine-extracted from articles — reviewed by a curator, edited by a curator. Not editorial fact." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>Machine-extracted from articles</span><span aria-hidden="true"> · </span><span>✓ curator-reviewed</span><span aria-hidden="true"> · </span><span title="Machine value: 1924-02-01">edited</span><span aria-hidden="true"> · </span><span>Not editorial fact</span></span></div><div class="cell-note">the full contract in one badge</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><code>provenance.method</code> — the vocabulary</h2>
+    <p class="sub">What produced the value. Four methods today; the prop also accepts a bare label.</p>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">ai</div><div class="cell-stage"><span role="note" aria-label="AI — curator-reviewable." title="AI — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>AI</span><span aria-hidden="true"> · </span><span>reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">vlm</div><div class="cell-stage"><span role="note" aria-label="VLM — curator-reviewable." title="VLM — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">machine-extracted</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted — curator-reviewable." title="Machine-extracted — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>Machine-extracted</span><span aria-hidden="true"> · </span><span>reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">ai-transcribed</div><div class="cell-stage"><span role="note" aria-label="AI-transcribed — curator-reviewable." title="AI-transcribed — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>AI-transcribed</span><span aria-hidden="true"> · </span><span>reviewable</span></span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><code>provenance.from</code> — source-aware honesty</h2>
+    <p class="sub">Don't claim “period advertising” for an article-sourced fact. Rendered at
+       <code>block</code> density, where the row has the width for it — an <code>inline</code> chip drops it
+       (shown last for comparison).</p>
+    <div class="grid">
+      <div class="cell"><div class="cell-label">from: articles</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted from articles — curator-reviewable." title="Machine-extracted from articles — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>Machine-extracted from articles</span><span aria-hidden="true"> · </span><span>curator-reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">from: period advertising</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted from period advertising — curator-reviewable." title="Machine-extracted from period advertising — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>Machine-extracted from period advertising</span><span aria-hidden="true"> · </span><span>curator-reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">from: listings</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted from listings — curator-reviewable." title="Machine-extracted from listings — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>Machine-extracted from listings</span><span aria-hidden="true"> · </span><span>curator-reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">from: articles &amp; advertising</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted from articles &amp; advertising — curator-reviewable." title="Machine-extracted from articles &amp; advertising — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:block;background:#E8F3F6;border:1px solid #C9CFD8;border-radius:4px;padding:12px 12px;margin-top:24px;font-size:0.75rem;line-height:1.7"><span>Machine-extracted from articles &amp; advertising</span><span aria-hidden="true"> · </span><span>curator-reviewable</span></span></div></div>
+      <div class="cell"><div class="cell-label">inline · from is dropped</div><div class="cell-stage"><span role="note" aria-label="Machine-extracted from articles — curator-reviewable." title="Machine-extracted from articles — curator-reviewable." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>Machine-extracted</span><span aria-hidden="true"> · </span><span>reviewable</span></span></div><div class="cell-note">the claim survives; only the source detail is held back for the row budget</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>On every surface</h2>
+    <p class="sub">The soft fill has to stay legible wherever a staff app puts the badge. Ratios are measured, not asserted.</p>
+    
+    <div class="surfacerow" style="background:#FFFFFF">
+      <span class="n">--surface<br>#FFFFFF</span>
+      <span role="note" aria-label="VLM — reviewed by a curator." title="VLM — reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ reviewed</span></span>
+      <span class="pill pass">ink vs surface 6.42:1</span>
+    </div>
+
+    <div class="surfacerow" style="background:#F7F8FA">
+      <span class="n">--surface-subtle<br>#F7F8FA</span>
+      <span role="note" aria-label="VLM — reviewed by a curator." title="VLM — reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ reviewed</span></span>
+      <span class="pill pass">ink vs surface 6.04:1</span>
+    </div>
+
+    <div class="surfacerow" style="background:#F2F4F7">
+      <span class="n">--surface-sunken<br>#F2F4F7</span>
+      <span role="note" aria-label="VLM — reviewed by a curator." title="VLM — reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ reviewed</span></span>
+      <span class="pill pass">ink vs surface 5.83:1</span>
+    </div>
+
+    <div class="surfacerow" style="background:#FFFFFF">
+      <span class="n">--surface-raised<br>#FFFFFF</span>
+      <span role="note" aria-label="VLM — reviewed by a curator." title="VLM — reviewed by a curator." style="font-family:&#x27;JetBrains Mono&#x27;, &#x27;SF Mono&#x27;, Consolas, ui-monospace, monospace;text-transform:uppercase;letter-spacing:0.04em;color:#2A6580;display:inline-flex;align-items:center;gap:4px;background:#E8F3F6;border:1px solid transparent;border-radius:4px;padding:1px 4px;font-size:9px;line-height:1.25;font-weight:400;white-space:nowrap"><span>VLM</span><span aria-hidden="true"> · </span><span>✓ reviewed</span></span>
+      <span class="pill pass">ink vs surface 6.42:1</span>
+    </div>
+    <p style="margin-top:var(--space-3)"><small class="note">The badge carries its own fill, so the surface behind it
+       only matters for the ring of contrast around the chip — but a badge that disappears into its background is a
+       badge nobody reads.</small></p>
+  </section>
+
+  <section>
+    <h2>Token binding</h2>
+    <p class="sub">Read from <code>@cpl/tokens</code> at generate time — not transcribed.</p>
+    <table class="m">
+      <thead><tr><th>Slot</th><th>Value</th><th>Role in the badge</th></tr></thead>
+      <tbody>
+        <tr><td><code>--color-info-soft</code></td><td><code>#E8F3F6</code></td><td>fill, both densities</td></tr>
+        <tr><td><code>--color-info-ink</code></td><td><code>#2A6580</code></td><td>text — the <code>-ink</code>, never the base</td></tr>
+        <tr><td><code>--border</code></td><td><code>#C9CFD8</code></td><td>block border (unreviewed swaps to the ink)</td></tr>
+        <tr><td><code>--radius</code></td><td><code>4px</code></td><td>corner, both densities</td></tr>
+        <tr><td><code>--cpl-font-mono</code></td><td><code>'JetBrains Mono'</code></td><td>type</td></tr>
+        <tr><td><code>--ls-wide</code></td><td><code>0.04em</code></td><td>tracking</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+</body>
+</html>

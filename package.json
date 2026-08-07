@@ -12,6 +12,8 @@
     "node": ">=22.5.0"
   },
   "scripts": {
+    "tokens": "npm run build --workspace @cpl/tokens",
+    "tokens:check": "npm test --workspace @cpl/tokens",
     "ingest": "npm run ingest --workspace @dateline/pipeline",
     "view": "npm run view --workspace @dateline/pipeline",
     "probe": "npm run probe --workspace @dateline/pipeline",
@@ -23,6 +25,8 @@
     "export-all": "npm run export-all --workspace @dateline/discovery",
     "dev": "npm run dev --workspace @dateline/discovery",
     "build": "npm run build --workspace @dateline/discovery",
-    "preview": "npm run preview --workspace @dateline/discovery"
+    "preview": "npm run preview --workspace @dateline/discovery",
+    "ui": "npm run build --workspace @cpl/ui",
+    "ui:check": "npm test --workspace @cpl/ui"
   }
 }

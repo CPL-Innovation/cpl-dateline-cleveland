@@ -1,0 +1,11 @@
+{
+  "//": "Type-checking. The build config below emits; this one only checks.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "types": [],
+    "noEmit": true
+  },
+  "include": ["src"]
+}

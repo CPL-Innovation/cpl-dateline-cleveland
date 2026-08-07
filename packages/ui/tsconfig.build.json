@@ -1,0 +1,13 @@
+{
+  "//": "The one package in the monorepo with a real tsc emit — JSX has to be compiled, and the consumers are apps, not Node scripts. Single-file src/ means the emitted JS has no relative imports, so no .js-extension rewriting is needed.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

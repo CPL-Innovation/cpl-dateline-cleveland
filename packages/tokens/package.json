@@ -1,0 +1,41 @@
+{
+  "name": "@cpl/tokens",
+  "version": "0.3.0",
+  "description": "Cleveland Public Library shared design tokens — the CPL brand primitives, semantic intent slots, and the navy-cool staff skin, delivered as both a CSS custom-property file and a typed JS mirror from one source.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "files": [
+    "dist",
+    "src",
+    "preview"
+  ],
+  "main": "./dist/tokens.js",
+  "types": "./dist/tokens.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/tokens.d.ts",
+      "import": "./dist/tokens.js",
+      "default": "./dist/tokens.js"
+    },
+    "./css": "./dist/tokens.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "build": "node --experimental-strip-types src/build.ts",
+    "check": "node --experimental-strip-types scripts/check.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "npm run build && npm run typecheck && npm run check",
+    "preview": "python3 -m http.server 4321 --directory ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1"
+  }
+}

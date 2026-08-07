@@ -1,0 +1,12 @@
+{
+  "//": "Type-checking only. Like apps/pipeline, this package runs via Node type-stripping and has no tsc build step — dist/ is written by src/build.ts, not by the compiler. `allowImportingTsExtensions` is required because type-stripping resolves the real `./foo.ts` specifiers at runtime.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "noEmit": true
+  },
+  "include": ["src", "scripts"]
+}

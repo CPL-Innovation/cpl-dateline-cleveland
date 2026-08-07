@@ -1,0 +1,222 @@
+/**
+ * @cpl/tokens v0.3.0 — GENERATED FILE. DO NOT EDIT.
+ * Source of truth: packages/tokens/src/ · regenerate with `npm run build --workspace @cpl/tokens`.
+ * Design intent: CPL Design System vault → build/tokens/tokens-spec.md.
+ */
+
+/* ═══ PRIMITIVES — the --cpl-* base. Lifted verbatim; author nothing here. ═══ */
+:root {
+  /* ── Brand ───────────────────────────────────────────────────── */
+  --cpl-navy: #0057B7; /* Primary brand blue (PMS 2935, logo) */
+  --cpl-navy-deep: #004591; /* Hover / pressed navy */
+  --cpl-navy-ink: #002A5C; /* Headline ink on light */
+  --cpl-butter: #E9E186; /* Primary pale yellow (PMS 608) */
+  --cpl-butter-deep: #C9C25F; /* Hover / pressed butter */
+  --cpl-warm-gray: #CBC4BC; /* Neutral (PMS Warm Gray 2) */
+  --cpl-black: #000000; /* Neutral */
+  --cpl-white: #FFFFFF; /* Neutral */
+
+  /* ── Accents ─────────────────────────────────────────────────── */
+  --cpl-coral: #FF8D7E; /* Secondary accent (PMS 170) */
+  --cpl-marigold: #F1C400; /* Secondary accent (PMS 7406) */
+  --cpl-sky: #94B7BB; /* Secondary accent (PMS 5503) */
+  --cpl-denim: #4298B5; /* Secondary accent (PMS 7459) */
+  --cpl-ivy: #56944F; /* Secondary accent / green (PMS 762) */
+
+  /* ── Cool neutral ramp — the shared slate ────────────────────── */
+  /* Dateline ≡ SGT, identical hex. The ramp the whole staff skin rests on. */
+  --cpl-slate-800: #2B3340; /* Body ink (strong) */
+  --cpl-slate-600: #505A69; /* Secondary text */
+  --cpl-slate-400: #8A94A3; /* Tertiary / meta text */
+  --cpl-slate-200: #C9CFD8; /* Border */
+  --cpl-slate-100: #E6E9EE; /* Hairline / light border */
+  --cpl-fog: #F2F4F7; /* Sunken / cool neutral surface */
+  --cpl-slate-050: #F7F8FA; /* ⊕ (M2) lightest cool surface tint — the middle step between white and fog */
+  --cpl-paper: #FBFAF6; /* Page background (⚠ warm cast — not for cool surfaces) */
+  --cpl-parchment: #F7F4ED; /* Warm paper (derived) */
+
+  /* ── Status ──────────────────────────────────────────────────── */
+  /* Semantic aliases at primitive level, lifted. Intent slots live in the semantic tier. */
+  --cpl-success: var(--cpl-ivy); /* success */
+  --cpl-warning: var(--cpl-marigold); /* warning */
+  --cpl-danger: var(--cpl-coral); /* danger (soft) — coral, not the validation red */
+  --cpl-info: var(--cpl-denim); /* info */
+  --cpl-error: #9B3030; /* ⊕ NEW — shared deep-red for text-on-light error/validation states */
+  --cpl-warning-ink: #7A5C00; /* ⊕ NEW (M2) — deepened amber for warning text-on-light; marigold is a FILL (~1.65:1 as ink) */
+  --cpl-success-ink: #3F6E39; /* ⊕ NEW (v0.3) — deepened ivy for success text-on-light (ivy is a FILL, 3.66:1 as ink) */
+  --cpl-info-ink: #2A6580; /* ⊕ NEW (v0.3) — deepened denim for info text-on-light (denim is a FILL, 3.29:1 as ink) */
+
+  /* ── Type families ───────────────────────────────────────────── */
+  /* The one universal primitive — 3/3 repos, values identical. Loaded via Google Fonts */
+  /* <link>. */
+  --cpl-font-serif: 'Spectral', 'Source Serif Pro', Georgia, serif; /* Serif — editorial + studio display */
+  --cpl-font-sans: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* Sans — workhorse UI + body */
+  --cpl-font-mono: 'JetBrains Mono', 'SF Mono', Consolas, ui-monospace, monospace; /* Mono — provenance + meta */
+
+  /* ── Type scale ──────────────────────────────────────────────── */
+  /* The prototype's intent. Migration wires live headings to this scale — don't invent new */
+  /* numbers. */
+  --fs-xs: 0.75rem; /* 12px — captions, fine print */
+  --fs-sm: 0.875rem; /* 14px — meta, labels */
+  --fs-base: 1rem; /* 16px — body */
+  --fs-md: 1.125rem; /* 18px — lead paragraphs */
+  --fs-lg: 1.375rem; /* 22px — subheads */
+  --fs-xl: 1.75rem; /* 28px — h3 */
+  --fs-2xl: 2.25rem; /* 36px — h2 */
+  --fs-3xl: 3rem; /* 48px — h1 */
+  --fs-4xl: 4rem; /* 64px — display */
+  --fs-5xl: 5.5rem; /* 88px — hero (patron; staff rarely needs it) */
+
+  /* ── Weights · line-heights · letter-spacing ─────────────────── */
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --lh-tight: 1.1;
+  --lh-snug: 1.25;
+  --lh-normal: 1.5;
+  --lh-loose: 1.7;
+  --ls-tight: -0.01em;
+  --ls-normal: 0;
+  --ls-wide: 0.04em;
+  --ls-caps: 0.12em; /* the uppercase-label tracking every CPL staff surface uses */
+
+  /* ── Spacing ─────────────────────────────────────────────────── */
+  /* 4px grid, lifted from SGT. */
+  --space-1: 4px; /* 0.25rem */
+  --space-2: 8px; /* 0.5rem */
+  --space-3: 12px; /* 0.75rem */
+  --space-4: 16px; /* 1rem */
+  --space-5: 24px; /* 1.5rem */
+  --space-6: 32px; /* 2rem */
+  --space-7: 40px; /* 2.5rem */
+  --space-8: 48px; /* 3rem */
+  --space-10: 64px; /* 4rem */
+  --space-12: 96px; /* 6rem */
+  --space-16: 128px; /* 8rem */
+
+  /* ── Radius scale ────────────────────────────────────────────── */
+  /* Namespaced `--cpl-radius-*` (spec §3 writes it bare). Bare `--radius-lg` would collide */
+  /* with the semantic slot of the same name (10px scale step vs 8px staff card radius) and */
+  /* the later declaration would silently win. Radius is a themeable dial: primitives define */
+  /* the SCALE, the theme picks the values. */
+  --cpl-radius-none: 0; /* Dateline's flat-civic doctrine runs this everywhere */
+  --cpl-radius-xs: 2px;
+  --cpl-radius-sm: 4px;
+  --cpl-radius-md: 6px;
+  --cpl-radius-lg: 10px;
+  --cpl-radius-pill: 999px;
+
+  /* ── Elevation ───────────────────────────────────────────────── */
+  /* Navy-tinted, lifted from SGT base. Three elevation systems existed across the repos; the */
+  /* shared package ships ONE. Skins wanting another tint override the slot, not the scale. */
+  --shadow-0: none;
+  --shadow-1: 0 1px 2px rgba(5,31,63,0.06), 0 1px 1px rgba(5,31,63,0.04);
+  --shadow-2: 0 2px 6px rgba(5,31,63,0.08), 0 1px 2px rgba(5,31,63,0.04);
+  --shadow-3: 0 6px 18px rgba(5,31,63,0.10), 0 2px 4px rgba(5,31,63,0.06);
+
+  /* ── Motion ──────────────────────────────────────────────────── */
+  --ease-standard: cubic-bezier(0.2,0,0.2,1);
+  --ease-emph: cubic-bezier(0.2,0,0,1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+
+  /* ── Layout ──────────────────────────────────────────────────── */
+  --container-sm: 640px;
+  --container-md: 960px;
+  --container-lg: 1200px;
+  --container-xl: 1440px;
+}
+
+/* ═══ SEMANTIC TIER — intent slots. Consume THESE, not the primitives. ═══ */
+:root {
+  /* ── Brand / action ──────────────────────────────────────────── */
+  --color-primary: var(--cpl-navy); /* primary action / brand */
+  --color-primary-hover: var(--cpl-navy-deep); /* hover / pressed */
+  --color-primary-ink: var(--cpl-navy-ink); /* deep navy text */
+
+  /* ── Surfaces ────────────────────────────────────────────────── */
+  --surface: var(--cpl-white); /* default surface */
+  --surface-subtle: var(--cpl-slate-050); /* ⊕ M2 — inset / secondary surface between canvas and panel (Dateline leaves this unmapped) */
+  --surface-sunken: var(--cpl-fog); /* sunken / secondary surface */
+  --surface-raised: var(--cpl-white); /* raised (cards) */
+
+  /* ── Text ────────────────────────────────────────────────────── */
+  --text-1: var(--cpl-slate-800); /* body ink */
+  --text-2: var(--cpl-slate-600); /* secondary text */
+  --text-3: var(--cpl-slate-400); /* tertiary / meta */
+  --text-on-fill: var(--cpl-white); /* ⊕ M2 — foreground on any FILLED control; NOT --surface (a surface used as a foreground breaks under a dark theme) */
+
+  /* ── Borders ─────────────────────────────────────────────────── */
+  --border: var(--cpl-slate-200); /* default border */
+  --border-strong: var(--cpl-slate-400); /* strong border */
+  --border-hair: var(--cpl-slate-100); /* hairline */
+
+  /* ── Status ──────────────────────────────────────────────────── */
+  --color-success: var(--cpl-success); /* success */
+  --color-warning: var(--cpl-warning); /* warning */
+  --color-danger: var(--cpl-error); /* destructive / validation — binds the ⊕ NEW deep red, not soft coral */
+  --color-info: var(--cpl-info); /* info */
+  --color-warning-ink: var(--cpl-warning-ink); /* ⊕ M2 — warning TEXT-on-light (marigold fails AA as ink) */
+  --color-success-ink: var(--cpl-success-ink); /* ⊕ v0.3 — success TEXT-on-light (ivy fails AA as ink) */
+  --color-info-ink: var(--cpl-info-ink); /* ⊕ v0.3 — info TEXT-on-light (denim fails AA as ink); the Honesty-badge text slot */
+
+  /* ── Status — soft fills ─────────────────────────────────────── */
+  /* ⊕ M2. Every status color shipped ink-only; a chip needs a FILL to sit the ink on. */
+  /* GENERATED, never hand-typed: `tint(base, 0.12)` is the base composited at 12% opacity */
+  /* over white — a pale wash, not a 12%-toward-white nudge (which barely shifts a saturated */
+  /* hue). The codegen evaluates tint() so the CSS ships a concrete hex; change a base and */
+  /* its wash follows on the next build. */
+  --color-primary-soft: #E0EBF6; /* primary chip / badge fill */
+  --color-success-soft: #EBF2EA; /* success chip fill */
+  --color-warning-soft: #FDF8E0; /* warning chip fill */
+  --color-danger-soft: #F3E6E6; /* danger chip fill */
+  --color-info-soft: #E8F3F6; /* info chip fill */
+
+  /* ── Shape · elevation · focus ───────────────────────────────── */
+  /* The themeable dials. A skin that wants flat-civic sets --radius: 0 here and nothing else */
+  /* moves. */
+  --radius: 4px; /* default control radius (staff) */
+  --radius-lg: 8px; /* card radius (staff) */
+  --elevation: var(--shadow-1); /* default resting elevation */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--color-primary); /* focus (lifted from SGT --st-focus-ring) */
+}
+
+/* ═══ THEME: staff — opt in with <html data-theme="staff">. ═══ */
+[data-theme="staff"] {
+  /* ── Staff skin — navy-cool ──────────────────────────────────── */
+  /* Primary: navy family · neutrals: cool slate ramp · surfaces: white / fog · status: ivy / */
+  /* marigold / deep-error-red / denim. */
+  --color-primary: var(--cpl-navy); /* primary action / brand */
+  --color-primary-hover: var(--cpl-navy-deep); /* hover / pressed */
+  --color-primary-ink: var(--cpl-navy-ink); /* deep navy text */
+  --surface: var(--cpl-white); /* default surface */
+  --surface-subtle: var(--cpl-slate-050); /* ⊕ M2 — inset / secondary surface between canvas and panel (Dateline leaves this unmapped) */
+  --surface-sunken: var(--cpl-fog); /* sunken / secondary surface */
+  --surface-raised: var(--cpl-white); /* raised (cards) */
+  --text-1: var(--cpl-slate-800); /* body ink */
+  --text-2: var(--cpl-slate-600); /* secondary text */
+  --text-3: var(--cpl-slate-400); /* tertiary / meta */
+  --text-on-fill: var(--cpl-white); /* ⊕ M2 — foreground on any FILLED control; NOT --surface (a surface used as a foreground breaks under a dark theme) */
+  --border: var(--cpl-slate-200); /* default border */
+  --border-strong: var(--cpl-slate-400); /* strong border */
+  --border-hair: var(--cpl-slate-100); /* hairline */
+  --color-success: var(--cpl-success); /* success */
+  --color-warning: var(--cpl-warning); /* warning */
+  --color-danger: var(--cpl-error); /* destructive / validation — binds the ⊕ NEW deep red, not soft coral */
+  --color-info: var(--cpl-info); /* info */
+  --color-warning-ink: var(--cpl-warning-ink); /* ⊕ M2 — warning TEXT-on-light (marigold fails AA as ink) */
+  --color-success-ink: var(--cpl-success-ink); /* ⊕ v0.3 — success TEXT-on-light (ivy fails AA as ink) */
+  --color-info-ink: var(--cpl-info-ink); /* ⊕ v0.3 — info TEXT-on-light (denim fails AA as ink); the Honesty-badge text slot */
+  --color-primary-soft: #E0EBF6; /* primary chip / badge fill */
+  --color-success-soft: #EBF2EA; /* success chip fill */
+  --color-warning-soft: #FDF8E0; /* warning chip fill */
+  --color-danger-soft: #F3E6E6; /* danger chip fill */
+  --color-info-soft: #E8F3F6; /* info chip fill */
+  --radius: 4px; /* default control radius (staff) */
+  --radius-lg: 8px; /* card radius (staff) */
+  --elevation: var(--shadow-1); /* default resting elevation */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--color-primary); /* focus (lifted from SGT --st-focus-ring) */
+}

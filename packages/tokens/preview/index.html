@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<!--
+  @cpl/tokens — token preview (PACKAGE-FED).
+
+  The vault's build/token-preview/kitchen-sink.html was spec-transcribed: its values
+  were hand-copied from the spec, so it could silently disagree with what the package
+  actually emitted. This one cannot. Every value on this page comes from one of:
+
+    · dist/tokens.css  — loaded as a real <link>; the CSS custom properties are read
+                         back off :root with getComputedStyle
+    · dist/tokens.js   — the JS mirror, imported as a module
+
+  Nothing is hand-typed. If the package is wrong, this page renders it wrong — which
+  is the point. The layout and the prose are authored; the colors, sizes and ratios
+  are not. Contrast numbers are computed live (WCAG 2.1).
+
+  Serve it (module imports need http://):  python3 -m http.server 4321 --directory ..
+  then open http://localhost:4321/preview/
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>@cpl/tokens — preview (package-fed)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<!-- ⬇ THE WHOLE POINT: the real generated artifact, not a transcription. -->
+<link rel="stylesheet" href="../dist/tokens.css" />
+
+<style>
+  /* This page styles itself from the semantic tier — it eats its own dog food.
+     If a slot is broken, the preview looks broken. */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--surface-sunken); color: var(--text-1);
+    font-family: var(--cpl-font-sans); font-size: 15px; line-height: var(--lh-normal);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: var(--space-7) var(--space-5) var(--space-16); }
+  header.page h1 { font-family: var(--cpl-font-serif); font-weight: var(--fw-medium); font-size: var(--fs-2xl); letter-spacing: var(--ls-tight); margin: 0 0 6px; }
+  header.page p { color: var(--text-2); max-width: 68ch; margin: 0 0 6px; }
+  header.page .meta { font-family: var(--cpl-font-mono); font-size: var(--fs-xs); color: var(--text-3); }
+
+  section { background: var(--surface); border: 1px solid var(--border-hair); border-radius: var(--radius-lg);
+            padding: var(--space-5); margin: var(--space-4) 0; box-shadow: var(--shadow-1); }
+  section > h2 { font-family: var(--cpl-font-serif); font-weight: var(--fw-medium); font-size: var(--fs-lg); margin: 0 0 4px; }
+  section > .sub { color: var(--text-2); font-size: 13.5px; margin: 0 0 var(--space-4); }
+  h3.grouplabel { font-family: var(--cpl-font-mono); font-size: 11px; letter-spacing: var(--ls-wide); text-transform: uppercase;
+                  color: var(--text-3); margin: var(--space-5) 0 var(--space-2); }
+
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-3); }
+  .swatch { border: 1px solid var(--border-hair); border-radius: var(--radius); overflow: hidden; }
+  .swatch .chip { height: 62px; }
+  .swatch .lab { padding: var(--space-2) var(--space-3); }
+  .swatch .lab .name { font-family: var(--cpl-font-mono); font-size: 11.5px; color: var(--text-1); word-break: break-all; }
+  .swatch .lab .hex { font-family: var(--cpl-font-mono); font-size: 11px; color: var(--text-3); text-transform: uppercase; }
+  .swatch .lab .role { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+
+  .ramp { display: flex; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-hair); flex-wrap: wrap; }
+  .ramp > div { flex: 1 0 96px; height: 76px; display: flex; align-items: flex-end; padding: 6px; font-family: var(--cpl-font-mono); font-size: 10px; }
+
+  table.cand { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.cand th, table.cand td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border-hair); vertical-align: middle; }
+  table.cand th { font-family: var(--cpl-font-mono); font-size: 10.5px; letter-spacing: var(--ls-wide); text-transform: uppercase; color: var(--text-3); }
+  .scroller { overflow-x: auto; }
+  .dot { width: 22px; height: 22px; border-radius: var(--cpl-radius-pill); display: inline-block; vertical-align: middle; border: 1px solid var(--border); }
+  .sample-text { font-weight: var(--fw-medium); padding: 3px 8px; border-radius: var(--radius); }
+  .pill { display: inline-block; font-size: 11px; font-weight: var(--fw-semibold); padding: 2px 8px; border-radius: var(--cpl-radius-pill); font-family: var(--cpl-font-mono); }
+  .pass { background: var(--color-success-soft); color: var(--color-success-ink); }
+  .fail { background: var(--color-danger-soft); color: var(--color-danger); }
+  .warn { background: var(--color-warning-soft); color: var(--color-warning-ink); }
+  .surfstack { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
+  .surfstack > div { padding: var(--space-3) var(--space-4); font-family: var(--cpl-font-mono); font-size: 11.5px; }
+
+  .btnrow { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; margin: 6px 0 2px; }
+  .btn { font-family: var(--cpl-font-sans); font-size: 13px; font-weight: var(--fw-medium); padding: var(--space-2) var(--space-4); border-radius: var(--radius); border: 1px solid transparent; cursor: pointer; }
+  .btn-primary { background: var(--color-primary); color: var(--text-on-fill); }
+  .btn-primary:hover { background: var(--color-primary-hover); }
+  .btn-ghost { background: transparent; color: var(--color-primary); border-color: var(--border); }
+  .btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .chiprow { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .statuschip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: var(--fw-semibold); padding: 3px 10px; border-radius: var(--cpl-radius-pill); }
+  .statuschip .d { width: 7px; height: 7px; border-radius: var(--cpl-radius-pill); }
+  .honesty { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: var(--fw-semibold); font-family: var(--cpl-font-mono);
+             padding: 4px 10px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--color-info-soft); color: var(--color-info-ink); }
+  .honesty .mark { width: 8px; height: 8px; border-radius: 2px; background: var(--color-info); }
+
+  .typerow { border-bottom: 1px solid var(--border-hair); padding: var(--space-2) 0; display: flex; align-items: baseline; gap: var(--space-4); }
+  .typerow .tk { font-family: var(--cpl-font-mono); font-size: 11px; color: var(--text-3); width: 150px; flex: none; }
+  .spacebar { background: var(--color-primary); height: 14px; border-radius: 2px; }
+  .radbox { width: 72px; height: 72px; background: var(--surface-sunken); border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; font-family: var(--cpl-font-mono); font-size: 11px; color: var(--text-2); }
+  .elevbox { width: 120px; height: 72px; background: var(--surface); border-radius: var(--radius); display: inline-flex; align-items: center; justify-content: center; font-family: var(--cpl-font-mono); font-size: 11px; color: var(--text-2); }
+  .grid-inline { display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center; }
+  .fontspec { font-size: var(--fs-lg); margin: 2px 0; }
+  small.note { color: var(--text-3); font-size: 12px; }
+  code { font-family: var(--cpl-font-mono); font-size: 0.92em; }
+
+  /* the drift banner — the one thing that must be loud */
+  #parity { border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); margin: var(--space-4) 0;
+            border: 1.5px solid var(--border); background: var(--surface); }
+  #parity.ok { border-color: var(--color-success-ink); background: var(--color-success-soft); }
+  #parity.bad { border-color: var(--color-danger); background: var(--color-danger-soft); }
+  #parity h2 { margin: 0 0 4px; font-size: var(--fs-base); font-family: var(--cpl-font-sans); font-weight: var(--fw-semibold); }
+  #parity p { margin: 0; font-size: 13px; color: var(--text-2); }
+  #parity ul { margin: var(--space-2) 0 0; font-family: var(--cpl-font-mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <h1>@cpl/tokens — preview</h1>
+    <p><b>Package-fed.</b> This page loads <code>../dist/tokens.css</code> as a real stylesheet and imports
+       <code>../dist/tokens.js</code> as a module. Every swatch, size and ratio below is read back out of those
+       two artifacts — none of it is transcribed. If the package is wrong, this page shows it wrong.</p>
+    <p class="meta" id="stamp">reading dist/…</p>
+  </header>
+
+  <!-- ══ THE ANTI-DRIFT CHECK ══ -->
+  <div id="parity">
+    <h2>CSS ↔ JS parity</h2>
+    <p id="parityText">checking…</p>
+    <ul id="parityList"></ul>
+  </div>
+
+  <!-- ══ BRAND + ACCENTS ══ -->
+  <section>
+    <h2>Brand &amp; accents</h2>
+    <p class="sub">The lifted <code>--cpl-*</code> primitives. Brand navy is the spine; accents are fills and dots, not inks.</p>
+    <h3 class="grouplabel">Brand</h3>
+    <div class="swatches" id="brandSwatches"></div>
+    <h3 class="grouplabel">Accents</h3>
+    <div class="swatches" id="accentSwatches"></div>
+  </section>
+
+  <!-- ══ SLATE RAMP ══ -->
+  <section>
+    <h2>Cool neutral ramp</h2>
+    <p class="sub">The shared slate (Dateline ≡ SGT). Inks at the dark end, surfaces at the light.
+       <code>--cpl-paper</code> / <code>--cpl-parchment</code> are the warm outliers — note how they break the cool run.</p>
+    <div class="ramp" id="slateRamp"></div>
+  </section>
+
+  <!-- ══ STATUS ══ -->
+  <section>
+    <h2>Status — base · soft · ink</h2>
+    <p class="sub">Every status color needs three forms: the <b>base</b> (dot/fill), the <b>soft</b> (chip background,
+       the base at 12% over white), and an <b>ink</b> for text, because a fill color is rarely dark enough to read.
+       The ⚠/✓ verdicts below are measured, not asserted.</p>
+    <div class="swatches" id="statusSwatches"></div>
+    <h3 class="grouplabel">The base → ink rescue, measured</h3>
+    <div class="scroller">
+      <table class="cand"><thead><tr>
+        <th>Status</th><th>Base (fill)</th><th>vs white</th><th>Ink</th><th>vs white</th><th>Ink on its chip</th><th>AA</th>
+      </tr></thead><tbody id="inkRescue"></tbody></table>
+    </div>
+  </section>
+
+  <!-- ══ INK CANDIDATES (the decision surface, kept for future picks) ══ -->
+  <section>
+    <h2>Ink candidate tables — where ink picks get made</h2>
+    <p class="sub">Kept from the vault snapshot so future ink decisions happen <em>here</em>, against the real package.
+       A candidate must clear 4.5:1 on white <em>and</em> on its own soft chip (the harder case). The row marked
+       <span class="pill pass">✓ IN PACKAGE</span> is whatever the package currently ships — read from
+       <code>dist/</code>, so it can't go stale if the value changes.</p>
+    <div id="inkTables"></div>
+  </section>
+
+  <!-- ══ LIVE COMPONENTS ══ -->
+  <section>
+    <h2>Live components (from semantic slots)</h2>
+    <p class="sub">Nothing here is hardcoded — every color is a <code>--color-*</code> / <code>--surface-*</code> /
+       <code>--text-*</code> slot, resolved by the browser from the linked stylesheet. This is what the Honesty
+       badge (M3) gets built against.</p>
+
+    <h3 class="grouplabel">Buttons — fill + on-fill foreground</h3>
+    <div class="btnrow">
+      <button class="btn btn-primary">Approve</button>
+      <button class="btn btn-ghost">Cancel</button>
+      <button class="btn btn-primary" style="background:var(--color-danger)">Reject</button>
+      <span><small class="note">on-fill text = <code>--text-on-fill</code>, never <code>--surface</code></small></span>
+    </div>
+
+    <h3 class="grouplabel">Status chips — soft fill + matching ink</h3>
+    <div class="chiprow" id="statusChips"></div>
+
+    <h3 class="grouplabel">Honesty badge — the M3 flagship (mock)</h3>
+    <div class="grid-inline" style="margin-top:8px">
+      <span class="honesty"><span class="mark"></span> machine-extracted · curator-reviewable</span>
+      <small class="note">mock only — the real component lands at M3, styled from <code>--color-info-soft</code> / <code>--color-info-ink</code></small>
+    </div>
+
+    <h3 class="grouplabel">Surface steps — surface → subtle → sunken → raised</h3>
+    <div class="surfstack" style="margin-top:8px">
+      <div style="background:var(--surface)">--surface (lightest)
+        <div class="surfstack" style="margin-top:10px">
+          <div style="background:var(--surface-subtle)">--surface-subtle (inset)
+            <div class="surfstack" style="margin-top:10px">
+              <div style="background:var(--surface-sunken)">--surface-sunken (recessed)
+                <div style="background:var(--surface-raised); box-shadow:var(--shadow-2); border-radius:var(--radius); margin-top:10px; border:1px solid var(--border-hair)">--surface-raised (card, elevated)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TYPOGRAPHY ══ -->
+  <section>
+    <h2>Typography</h2>
+    <p class="sub">Three families, one intent each. Spectral = editorial/headings · Work Sans = workhorse UI · JetBrains Mono = meta/provenance.</p>
+    <div class="fontspec" style="font-family:var(--cpl-font-serif)">Spectral — Cleveland’s neighborhoods, remembered.</div>
+    <div class="fontspec" style="font-family:var(--cpl-font-sans)">Work Sans — the workhorse of every button and label.</div>
+    <div class="fontspec" style="font-family:var(--cpl-font-mono)">JetBrains Mono — machine-extracted · provenance</div>
+    <h3 class="grouplabel">Type scale (--fs-*)</h3>
+    <div id="typeScale"></div>
+  </section>
+
+  <!-- ══ SPACING ══ -->
+  <section>
+    <h2>Spacing — 4px grid</h2>
+    <p class="sub"><code>--space-*</code>. The rhythm everything snaps to.</p>
+    <div id="spacingScale"></div>
+  </section>
+
+  <!-- ══ RADIUS + ELEVATION ══ -->
+  <section>
+    <h2>Radius &amp; elevation</h2>
+    <p class="sub">Both are themeable slots. The staff skin picks <code>--radius</code> / <code>--radius-lg</code> off the
+       <code>--cpl-radius-*</code> scale, with navy-tinted shadows.</p>
+    <h3 class="grouplabel">Radius scale</h3>
+    <div class="grid-inline" id="radiusSamples"></div>
+    <h3 class="grouplabel">Elevation</h3>
+    <div class="grid-inline" id="elevSamples"></div>
+  </section>
+
+  <!-- ══ EVERY TOKEN ══ -->
+  <section>
+    <h2>Every token in the package</h2>
+    <p class="sub">The full manifest, generated from the JS mirror with each value re-read from the CSS. Nothing curated —
+       if a token exists, it is on this list.</p>
+    <div class="scroller">
+      <table class="cand"><thead><tr><th>CSS name</th><th>JS key</th><th>Value (from CSS)</th><th>Mirror</th></tr></thead>
+      <tbody id="manifest"></tbody></table>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+  /* ═══ Everything below READS the package. Nothing declares a token value. ═══ */
+
+  const $ = (id) => document.getElementById(id);
+  const root = document.documentElement;
+  const computed = getComputedStyle(root);
+
+  /** Read a custom property off :root, resolving any var() chain the browser left in. */
+  function cssValue(name, depth = 0) {
+    const raw = computed.getPropertyValue(name).trim();
+    if (depth > 20) return raw;
+    const m = /^var\(\s*(--[\w-]+)\s*\)$/.exec(raw);
+    return m ? cssValue(m[1], depth + 1) : raw;
+  }
+
+  /* ── the JS mirror ── */
+  let mirror = null, mirrorError = null;
+  try {
+    mirror = await import("../dist/tokens.js");
+  } catch (err) {
+    mirrorError = err;
+  }
+
+  const cssLoaded = cssValue("--cpl-navy") !== "";
+  if (!cssLoaded) {
+    document.body.insertAdjacentHTML("afterbegin",
+      `<div style="background:#9B3030;color:#fff;padding:14px 20px;font-family:monospace">
+         dist/tokens.css did not load — run <b>npm run build</b> in packages/tokens first.
+       </div>`);
+  }
+
+  /* ── WCAG 2.1, computed live ── */
+  const hexToRgb = (h) => {
+    h = h.replace("#", "");
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+  };
+  const lum = (hex) => {
+    const c = hexToRgb(hex).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); const hi = Math.max(x, y), lo = Math.min(x, y); return (hi + 0.05) / (lo + 0.05); };
+  const r2 = (n) => n.toFixed(2) + ":1";
+  const isHex = (v) => /^#[0-9a-f]{3,8}$/i.test(v);
+  const AA = 4.5;
+  const WHITE = () => cssValue("--cpl-white") || "#FFFFFF";
+
+  /* ── 1. PARITY: does the CSS agree with the JS mirror, token for token? ── */
+  const names = mirror ? Object.entries(mirror.cssVarName) : [];
+  const drift = [];
+  for (const [key, cssName] of names) {
+    const fromCss = cssValue(cssName);
+    const fromJs = String(mirror.tokens[key]);
+    // Normalize: CSS may re-serialize whitespace and hex case.
+    const norm = (s) => s.replace(/\s+/g, " ").trim().toLowerCase();
+    if (fromCss && norm(fromCss) !== norm(fromJs)) drift.push({ cssName, key, fromCss, fromJs });
+  }
+
+  const box = $("parity");
+  if (mirrorError) {
+    box.className = "";
+    $("parityText").innerHTML =
+      `Could not import <code>../dist/tokens.js</code> — the CSS gallery below is still live and package-fed, ` +
+      `but the JS-mirror parity check needs an <code>http://</code> origin (ES modules are blocked on <code>file://</code>).<br>` +
+      `<code>python3 -m http.server 4321 --directory ..</code> then open <code>/preview/</code>.`;
+  } else if (drift.length === 0) {
+    box.className = "ok";
+    $("parityText").innerHTML =
+      `<b>${names.length} tokens</b> — <code>dist/tokens.css</code> and <code>dist/tokens.js</code> agree on every one. ` +
+      `This page cannot drift from the package, because it has no values of its own.`;
+  } else {
+    box.className = "bad";
+    $("parityText").innerHTML = `<b>${drift.length} of ${names.length} tokens disagree</b> between the CSS and the JS mirror:`;
+    $("parityList").innerHTML = drift
+      .map((d) => `<li>${d.cssName} — css <b>${d.fromCss}</b> · js <b>${d.fromJs}</b></li>`)
+      .join("");
+  }
+
+  $("stamp").textContent = mirror
+    ? `${names.length} tokens read from dist/ · ${Object.keys(mirror.primitives).length} primitives · ` +
+      `${Object.keys(mirror.semantic).length} semantic slots · themes: ${Object.keys(mirror.themes).join(", ")}`
+    : "dist/tokens.css loaded · dist/tokens.js not reachable (serve over http:// for the parity check)";
+
+  /* ── helpers ── */
+  const swatch = (name, hex, role) =>
+    `<div class="swatch"><div class="chip" style="background:${hex}"></div><div class="lab">` +
+    `<div class="name">${name}</div><div class="hex">${hex}</div>` +
+    `${role ? `<div class="role">${role}</div>` : ""}</div></div>`;
+
+  /** Render a group of tokens by CSS name — values always read from the package. */
+  const swatchGroup = (cssNames, role) =>
+    cssNames.map((n) => swatch(n, cssValue(n), typeof role === "function" ? role(n) : role)).join("");
+
+  /* ── 2. brand + accents ── */
+  $("brandSwatches").innerHTML = swatchGroup(
+    ["--cpl-navy", "--cpl-navy-deep", "--cpl-navy-ink", "--cpl-butter", "--cpl-butter-deep", "--cpl-warm-gray"],
+    (n) => (ratio(cssValue(n), WHITE()) >= AA ? "AA as ink on white" : "fill only"),
+  );
+  $("accentSwatches").innerHTML = swatchGroup(
+    ["--cpl-coral", "--cpl-marigold", "--cpl-sky", "--cpl-denim", "--cpl-ivy"],
+    (n) => `${r2(ratio(cssValue(n), WHITE()))} vs white`,
+  );
+
+  /* ── 3. slate ramp ── */
+  const rampNames = ["--cpl-slate-800", "--cpl-slate-600", "--cpl-slate-400", "--cpl-slate-200",
+                     "--cpl-slate-100", "--cpl-fog", "--cpl-slate-050", "--cpl-paper", "--cpl-parchment"];
+  $("slateRamp").innerHTML = rampNames.map((n) => {
+    const hex = cssValue(n);
+    const dark = lum(hex) < 0.4;
+    return `<div style="background:${hex};color:${dark ? cssValue("--cpl-white") : cssValue("--cpl-slate-800")}">` +
+           `${n.replace("--cpl-", "")}<br>${hex.toUpperCase()}</div>`;
+  }).join("");
+
+  /* ── 4. status: base · soft · ink ── */
+  const STATUS = [
+    { name: "success", base: "--color-success", soft: "--color-success-soft", ink: "--color-success-ink" },
+    { name: "warning", base: "--color-warning", soft: "--color-warning-soft", ink: "--color-warning-ink" },
+    { name: "danger",  base: "--color-danger",  soft: "--color-danger-soft",  ink: "--color-danger" },
+    { name: "info",    base: "--color-info",    soft: "--color-info-soft",    ink: "--color-info-ink" },
+    { name: "primary", base: "--color-primary", soft: "--color-primary-soft", ink: "--color-primary" },
+  ].filter((s) => cssValue(s.base));
+
+  $("statusSwatches").innerHTML = STATUS.map((s) => {
+    const base = cssValue(s.base), soft = cssValue(s.soft), ink = cssValue(s.ink);
+    const baseOk = ratio(base, WHITE()) >= AA;
+    return swatch(s.base, base, `base · ${baseOk ? "ok as ink" : "⚠ fails as ink"} (${r2(ratio(base, WHITE()))})`) +
+           (soft ? swatch(s.soft, soft, "chip fill (generated)") : "") +
+           (ink && ink !== base ? swatch(s.ink, ink, `ink · ${r2(ratio(ink, WHITE()))} on white`) : "");
+  }).join("");
+
+  $("inkRescue").innerHTML = STATUS.map((s) => {
+    const base = cssValue(s.base), soft = cssValue(s.soft), ink = cssValue(s.ink);
+    const rBase = ratio(base, WHITE()), rInk = ratio(ink, WHITE()), rChip = ratio(ink, soft);
+    const ok = rInk >= AA && rChip >= AA;
+    const same = ink === base;
+    return `<tr><td><b>${s.name}</b></td>` +
+      `<td><span class="dot" style="background:${base}"></span> <code>${base.toUpperCase()}</code></td>` +
+      `<td><span class="pill ${rBase >= AA ? "pass" : "warn"}">${r2(rBase)}</span></td>` +
+      `<td><span class="dot" style="background:${ink}"></span> <code>${ink.toUpperCase()}</code>` +
+        `${same ? ' <small class="note">(base is dark enough — no separate ink)</small>' : ""}</td>` +
+      `<td>${r2(rInk)}</td>` +
+      `<td style="background:${soft}"><span class="sample-text" style="color:${ink}">${s.name} label</span> ${r2(rChip)}</td>` +
+      `<td><span class="pill ${ok ? "pass" : "fail"}">${ok ? "AA ✓" : "FAIL"}</span></td></tr>`;
+  }).join("");
+
+  /* ── 5. status chips (soft fill + its ink) ── */
+  $("statusChips").innerHTML = STATUS.map((s) =>
+    `<span class="statuschip" style="background:${cssValue(s.soft)};color:${cssValue(s.ink)}">` +
+    `<span class="d" style="background:${cssValue(s.base)}"></span>${s.name}</span>`).join("");
+
+  /* ── 6. ink candidate tables — the decision surface ──
+     Candidates are authored (they are proposals, not package state); the WINNER is
+     read from the package, so the ✓ marker follows whatever dist/ actually ships. */
+  const INK_DECISIONS = [
+    { label: "--cpl-warning-ink", slot: "--cpl-warning-ink", base: "--cpl-warning", sample: "illegible · partial",
+      why: "Marigold is a fill, not an ink — as text on white it fails AA badly. Deepest amber that still reads amber, not brown.",
+      candidates: ["#8A6A00", "#7A5C00", "#6E5200", "#5F4700"] },
+    { label: "--cpl-success-ink", slot: "--cpl-success-ink", base: "--cpl-success", sample: "✓ correct",
+      why: "Ivy is the fill; as text it fails on white and on its own chip. Deepen toward a forest green that still reads success, not camo.",
+      candidates: ["#3F6E39", "#3A6634", "#35602F", "#2F5A2A"] },
+    { label: "--cpl-info-ink", slot: "--cpl-info-ink", base: "--cpl-info", sample: "machine-extracted",
+      why: "Denim is the fill; as text it fails on white and on its chip. Deepen toward a teal-navy that stays info, not brand navy. This is the Honesty-badge text color.",
+      candidates: ["#2F6E88", "#2A6580", "#256078", "#205770"] },
+  ].filter((d) => cssValue(d.slot));
+
+  $("inkTables").innerHTML = INK_DECISIONS.map((d) => {
+    const shipped = cssValue(d.slot).toUpperCase();
+    const soft = cssValue(d.base.replace("--cpl-", "--color-") + "-soft") || cssValue("--surface-subtle");
+    const cands = d.candidates.map((c) => c.toUpperCase());
+    if (!cands.includes(shipped)) cands.unshift(shipped); // package value always appears
+    const rows = cands.map((c) => {
+      const rw = ratio(c, WHITE()), rc = ratio(c, soft);
+      const ok = rw >= AA && rc >= AA;
+      const won = c === shipped;
+      return `<tr${won ? ` style="background:${cssValue("--color-success-soft")}"` : ""}>` +
+        `<td><code>${c}</code>${won ? ' <span class="pill pass">✓ IN PACKAGE</span>' : ""}</td>` +
+        `<td><span class="dot" style="background:${c}"></span></td>` +
+        `<td style="background:${WHITE()}"><span class="sample-text" style="color:${c}">${d.sample}</span></td>` +
+        `<td style="background:${soft}"><span class="sample-text" style="color:${c}">${d.sample}</span></td>` +
+        `<td>${r2(rw)}</td><td>${r2(rc)}</td>` +
+        `<td><span class="pill ${ok ? "pass" : "fail"}">${ok ? "AA ✓" : "FAIL"}</span></td></tr>`;
+    }).join("");
+    return `<div style="margin:0 0 var(--space-5)">` +
+      `<h3 class="grouplabel" style="margin-top:0"><code>${d.label}</code></h3>` +
+      `<p class="sub" style="margin-bottom:10px">${d.why}</p>` +
+      `<div class="scroller"><table class="cand"><thead><tr><th>Candidate</th><th>Swatch</th><th>Text on white</th>` +
+      `<th>On its soft chip</th><th>vs white</th><th>vs chip</th><th>AA</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }).join("");
+
+  /* ── 7. type scale, spacing, radius, elevation — all read from the package ── */
+  const byPrefix = (prefix) => names.filter(([, n]) => n.startsWith(prefix)).map(([, n]) => n);
+
+  $("typeScale").innerHTML = byPrefix("--fs-").map((n) =>
+    `<div class="typerow"><span class="tk">${n} · ${cssValue(n)}</span>` +
+    `<span style="font-family:var(--cpl-font-sans);font-size:${cssValue(n)}">The quick brown fox</span></div>`).join("");
+
+  $("spacingScale").innerHTML = byPrefix("--space-").map((n) =>
+    `<div class="typerow"><span class="tk">${n} · ${cssValue(n)}</span>` +
+    `<span class="spacebar" style="width:${cssValue(n)}"></span></div>`).join("");
+
+  $("radiusSamples").innerHTML = byPrefix("--cpl-radius-").map((n) =>
+    `<div class="radbox" style="border-radius:${cssValue(n)}">${n.replace("--cpl-radius-", "")}<br>${cssValue(n)}</div>`).join("");
+
+  $("elevSamples").innerHTML = byPrefix("--shadow-").map((n) =>
+    `<div class="elevbox" style="box-shadow:${cssValue(n)}">${n}</div>`).join("");
+
+  /* ── 8. the full manifest ── */
+  $("manifest").innerHTML = names.map(([key, cssName]) => {
+    const v = cssValue(cssName);
+    const dot = isHex(v) ? `<span class="dot" style="width:14px;height:14px;background:${v}"></span> ` : "";
+    const agrees = String(mirror.tokens[key]).toLowerCase().replace(/\s+/g, " ") === v.toLowerCase().replace(/\s+/g, " ");
+    return `<tr><td><code>${cssName}</code></td><td><code>${key}</code></td>` +
+      `<td>${dot}<code>${v}</code></td>` +
+      `<td><span class="pill ${agrees ? "pass" : "fail"}">${agrees ? "✓" : "drift"}</span></td></tr>`;
+  }).join("");
+</script>
+</body>
+</html>
