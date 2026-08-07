@@ -716,7 +716,13 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   </div>
   <div class="runbar">
     <div class="runsel">
-      <span class="lab">Active run</span>
+      <!-- PROVENANCE, not activity. This names the run whose output is on screen —
+           the issue and the models that produced this page's rows — and it is read
+           from stored state, so it is populated whenever a page is loaded. It used
+           to say "Active run", which read as "something is executing right now"
+           and was never true except during the seconds an ingest streams; the
+           label now flips to that state itself (see runActivity). -->
+      <span class="lab" id="h-runlab">Run in view</span>
       <span class="val" id="h-run">loading…</span>
     </div>
     <span class="overlay-badge">edits = overlay · raw immutable</span>
@@ -1413,21 +1419,31 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         '<div class="mono" style="font-size:11px;color:var(--secondary);margin-top:8px">'+esc(msg||'')+'</div>');
     }
 
+    // The one moment something IS running. The header chip is the only place a
+    // curator would look to find out, so it says so while the stream is open and
+    // goes back to naming the loaded run the moment it closes.
+    function runActivity(on){
+      var lab=document.getElementById('h-runlab'), val=document.getElementById('h-run');
+      if(lab) lab.textContent = on ? 'Ingesting now' : 'Run in view';
+      if(val) val.style.color = on ? 'var(--accent)' : '';
+    }
+
     function doIngest(){
       progressBar(2, 'Starting…');
+      runActivity(true);
       fetch(API + '/api/ingest?collection=' + encodeURIComponent(collection) + '&pointer=' + pointer +
         '&issueId=' + encodeURIComponent(issueId) + '&record=' + record + '&page=' + pageNum)
         .then(function(res){
           var reader=res.body.getReader(), dec=new TextDecoder(), buf='';
           (function pump(){ return reader.read().then(function(r){
-            if(r.done) return;
+            if(r.done){ runActivity(false); return; }
             buf += dec.decode(r.value, {stream:true});
             var parts = buf.split('\n\n'); buf = parts.pop();
             parts.forEach(handleSSE);
             return pump();
           }); })();
         })
-        .catch(function(e){ progressBar(0, 'Failed: '+e.message); });
+        .catch(function(e){ runActivity(false); progressBar(0, 'Failed: '+e.message); });
     }
 
     function handleSSE(chunk){
@@ -1496,7 +1512,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
 
     // ---- top banner + header ---------------------------------------------
     html('u-banner', 'Internal Editorial Workbench · ' +
-      (d.live ? '<b>LIVE RUN</b> · ' + esc(engine) + ' · not a replay'
+      (d.live ? '<b>LIVE DATA</b> · ' + esc(engine) + ' · not a replay'
               : '<b>Fixture run</b> · replayed transcription — not a live VLM call'));
     set('h-run', (d.issue && d.issue.id ? d.issue.id.split('_')[0] : 'run') +
       ' · ' + (vlm.provider||'?') + '/' + engine);
