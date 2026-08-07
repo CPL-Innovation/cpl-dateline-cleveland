@@ -34,6 +34,10 @@ interface RawObject {
   objectClass: string;
   role: string | null;
   text: string;
+  // live payload: title resolved server-side; null means "this object has none".
+  // Absent entirely in older committed JSON — see toTitle/snippetOf.
+  title?: string | null;
+  titleSource?: 'human' | 'machine' | null;
   bbox: number[] | null;
   isPublicationContent: boolean;
   occurrences: number;
@@ -137,14 +141,29 @@ function firstLine(text: string): string {
   for (const line of text.split('\n')) { const t = line.replace(/\[[^\]]*\]/g, '').trim(); if (t) return t; }
   return text.trim().slice(0, 80);
 }
-function toTitle(o: RawObject): string {
+// The title is RESOLVED SERVER-SIDE (pipeline lib/title.ts) and may be null — a
+// masthead, a stockholder roster or an unlabelled photo has no headline, and this
+// app must not invent one. `titleSource` says where it came from; older committed
+// payloads carry neither field, so fall back to the previous first-line behaviour
+// for them rather than blanking every card in the static demo.
+function toTitle(o: RawObject): string | null {
+  if (o.title !== undefined || o.titleSource !== undefined) {
+    const t = o.title ?? null;
+    return t && t.length > 4 && t === t.toUpperCase()
+      ? t.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+      : t;
+  }
   const head = firstLine(o.text);
   if (head.length > 4 && head === head.toUpperCase()) return head.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
   return head;
 }
+// The body under the title. Line one is dropped ONLY when it was promoted to the
+// title — otherwise it is ordinary body text and dropping it silently loses the
+// object's opening sentence, which is exactly what a titleless card needs most.
 function snippetOf(o: RawObject): string {
   const lines = o.text.split('\n').map((l) => l.trim()).filter(Boolean);
-  const rest = lines.slice(1).join(' ') || lines[0] || '';
+  const usedAsTitle = o.titleSource === undefined ? true : o.titleSource === 'machine';
+  const rest = (usedAsTitle ? lines.slice(1).join(' ') : lines.join(' ')) || lines[0] || '';
   return rest.length > 180 ? rest.slice(0, 177).trimEnd() + '…' : rest;
 }
 function sourceKindOf(sourceClass: string): CalendarEvent['sourceKind'] {

@@ -78,7 +78,9 @@ export function searchItems(dataset: Dataset, query: string): SearchHit[] {
       .join(' ');
     // weighted fields — a title match should outrank a passing mention in the body
     const fields: Array<{ name: string; text: string; weight: number }> = [
-      { name: 'title', text: item.title, weight: 10 },
+      // An untitled object simply has no title field to match — it is not searched
+      // against an invented one, and its body still carries it into results.
+      { name: 'title', text: item.title ?? '', weight: 10 },
       { name: 'summary', text: item.snippet, weight: 6 },
       { name: 'subject', text: tagText, weight: 5 },
       { name: 'type', text: item.typeLabel, weight: 2 },
@@ -115,5 +117,6 @@ export function searchItems(dataset: Dataset, query: string): SearchHit[] {
     hits.push({ item, score, fields: [...matched], excerpt });
   }
 
-  return hits.sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title));
+  // Ties break on title; untitled objects sort after titled ones rather than crash.
+  return hits.sort((a, b) => b.score - a.score || (a.item.title ?? '￿').localeCompare(b.item.title ?? '￿'));
 }

@@ -1,7 +1,7 @@
 // Postgres + pgvector data layer for the SLICE-08 live ingestion service.
 // One shared pool; thin query/tx helpers; a migrate() that applies the schema.
 import pg from "pg";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { PG_CONFIG, ROOT } from "../config.ts";
 
@@ -48,9 +48,15 @@ export async function tx<T>(fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
   }
 }
 
+// Apply every migration in migrations/pg, in filename order. Each file must be
+// idempotent (CREATE … IF NOT EXISTS / ADD COLUMN IF NOT EXISTS) — there is no
+// applied-migrations ledger, so they all re-run on every boot by design.
 export async function migrate(): Promise<void> {
-  const sql = await readFile(resolve(ROOT, "migrations", "pg", "001_schema.sql"), "utf8");
-  await getPool().query(sql);
+  const dir = resolve(ROOT, "migrations", "pg");
+  const files = (await readdir(dir)).filter((f) => f.endsWith(".sql")).sort();
+  for (const f of files) {
+    await getPool().query(await readFile(resolve(dir, f), "utf8"));
+  }
 }
 
 export async function closePool(): Promise<void> {

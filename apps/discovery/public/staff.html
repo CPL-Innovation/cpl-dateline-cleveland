@@ -233,13 +233,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* ============================================================
    REVIEW  — the heart. image-left / claims-right / verdict
    ============================================================ */
-.review{display:grid;grid-template-columns:230px 1fr;height:100%}
-/* filter/worklist rail — flex column so dropdown panels overlay without being
-   clipped (only the rows list scrolls, not the whole rail). */
-.wl{border-right:1px solid var(--hair);display:flex;flex-direction:column;min-height:0;padding:0}
-#wl-rows{flex:1 1 auto;overflow-y:auto;min-height:0;padding:4px 0 40px}
-.wl .fbox{flex:none;padding:12px 18px 14px;border-bottom:1px solid var(--hair);display:flex;flex-direction:column;gap:8px}
-.wl .fbox h4{display:none}
+.review{display:grid;grid-template-columns:1fr;height:100%}
 /* dropdown filter controls */
 .dropdown{position:relative}
 .ddbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;border:1px solid var(--hair-2);background:var(--canvas);font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.02em;color:var(--secondary);cursor:pointer}
@@ -263,24 +257,56 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .fopt .c{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--tertiary)}
 .fopt.on{color:var(--ink);font-weight:600;background:rgba(0,87,183,.06)}
 .fopt.on .c{color:var(--brand)}
-.wl .prog{flex:none;padding:10px 18px 12px;font-family:var(--mono);font-size:11px;color:var(--tertiary)}
-.wl .prog b{color:var(--brand);font-weight:500}
-.wlrow{display:flex;gap:10px;align-items:flex-start;padding:9px 18px;border-left:3px solid transparent;cursor:pointer}
-.wlrow:hover{background:var(--sunken)}
-.wlrow.sel{border-left-color:var(--accent);background:var(--sunken)}
-.wlrow .th{width:34px;height:44px;flex:none;background:var(--sunken);border:1px solid var(--hair-2);position:relative;overflow:hidden}
-.wlrow .th::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,#E6E9EE 4px,#E6E9EE 5px)}
-.wlrow .th b{position:absolute;left:0;top:0;bottom:0;width:4px;z-index:2}
-.wlrow .m{min-width:0}
-.wlrow .m .t{font-family:var(--serif);font-weight:600;font-size:13px;color:var(--ink);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
-.wlrow .m .s{font-family:var(--mono);font-size:9.5px;color:var(--tertiary);margin-top:3px}
+/* ── section list — a right rail on the page image, twin to the thumbnail rail ──
+   Photoshop's layers panel applied to a newspaper page: every object the machine
+   pulled off this page, in reading order, each with an eye that toggles its box on
+   the image. Fixed height, so the scrollbar belongs to the rail and not to the
+   review pane behind it. The class/tier subline moved to the detail panel, where
+   there is room for it — here the row is one 24px line and nothing more. */
+.seclist{flex:none;width:220px;display:flex;flex-direction:column;height:72vh;
+  background:#fff;border:1px solid var(--hair-2)}
+.seclist.hidden{display:none}
+.sl-head{flex:none;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 9px;border-bottom:1px solid var(--hair)}
+.sl-head .h{font-family:var(--sans);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tertiary)}
+.sl-head .n{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--tertiary)}
+.sl-filters{flex:none;padding:8px 9px;border-bottom:1px solid var(--hair);display:flex;flex-direction:column;gap:6px}
+.sl-prog{flex:none;padding:6px 9px;border-bottom:1px solid var(--hair);font-family:var(--mono);font-size:10px;color:var(--tertiary)}
+.sl-prog b{color:var(--brand);font-weight:500}
+.sl-rows{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:3px 0 8px}
+.sl-rows .prog{padding:12px 10px;font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--tertiary)}
+.slrow{display:flex;align-items:center;gap:7px;height:24px;padding:0 5px 0 0;
+  border-left:2px solid transparent;cursor:pointer}
+.slrow:hover{background:var(--sunken)}
+.slrow.sel{border-left-color:var(--accent);background:var(--sunken)}
+.slrow .cs{flex:none;width:3px;height:15px;margin-left:6px;border-radius:1px}
+.slrow .t{flex:1 1 auto;min-width:0;font-family:var(--serif);font-size:12.5px;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slrow.off .t{color:var(--tertiary)}
+.slrow.off .cs{opacity:.28}
+.slrow .dot-st{flex:none;margin-right:0}
+/* The eye sits dim until you hover its row — 55 eyes at full strength would
+   out-shout the titles they belong to — but a HIDDEN one stays lit, because that
+   one is state, not an affordance. */
+.sl-eye{flex:none;display:flex;align-items:center;justify-content:center;width:19px;height:19px;
+  padding:0;border:none;background:none;cursor:pointer;color:var(--tertiary);opacity:.3}
+.slrow:hover .sl-eye{opacity:.72}
+.sl-eye.off{opacity:1;color:var(--brand)}
+.sl-eye:hover{opacity:1;color:var(--brand)}
+.sl-eye[disabled]{opacity:.1;cursor:default;color:var(--tertiary)}
+.sl-head .sl-eye{width:21px;height:21px;opacity:.72}
+/* Nothing on this page has a region at all (the static issue demo) — drop the eye
+   column outright rather than show 160 dead controls. */
+.seclist.noeyes .sl-eye{display:none}
 .dot-st{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .dot-st.u{background:var(--warn)}   /* unreviewed */
 .dot-st.r{background:var(--ok)}     /* reviewed */
 .dot-st.f{background:var(--danger)} /* flagged */
 
 /* the review stage itself */
-.rstage{display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+/* The source side now carries the section list too, so it takes the larger share.
+   Without this the rail's 238px would come straight out of the page image, which
+   is the one thing on this screen that must stay legible. */
+.rstage{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);overflow:hidden}
 .source{border-right:1px solid var(--hair);padding:22px 26px;overflow-y:auto;background:#FCFCFD}
 /* ── page-image surface, Preview.app model ────────────────────────────────────
    ONE toolbar across the top holding every page-image tool (thumbnails toggle,
@@ -349,6 +375,45 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bx:hover{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 0 3px var(--bxc,var(--c-article))}
 .bx.sel{opacity:0}                    /* the selected one is drawn by .bbox-hl instead */
 .bx.human{border-style:dashed;border-width:1.5px}
+/* ── filled regions (SLICE-09k) ──────────────────────────────────────────────
+   Outlines answer "where are the edges"; a fill answers "how much of the page is
+   this", which is the question you are actually asking when checking whether a
+   box covers its whole story. The fill takes each box's own CLASS colour rather
+   than the selection's amber: filling 48 boxes in one colour would read as a
+   single wash and throw away the colour coding the map exists for. The selected
+   object keeps its amber .bbox-hl on top, so it still stands out from the rest.
+   A pseudo-element carries the tint so the box's own opacity rules still apply. */
+.pagewrap.fill .bx{opacity:.9}
+.pagewrap.fill .bx::before{content:"";position:absolute;inset:0;
+  background:var(--bxc,var(--c-article));opacity:.18;pointer-events:none;border-radius:1px}
+.pagewrap.fill .bx:hover::before{opacity:.3}
+.pagewrap.fill .bx.sel::before{display:none}   /* the glow already fills that one */
+/* ── find-in-page (SLICE-09l) ────────────────────────────────────────────────
+   A match reads exactly like a selected region — the same amber fill and glow —
+   because "show me where this word is on the page" is the same question the
+   selection answers, asked of several objects at once. Everything that did NOT
+   match drops back hard, so the matches are the only thing the eye lands on. */
+.pagewrap.finding .bx{opacity:.12}
+.pagewrap.finding .bx::before{display:none}
+.pagewrap.finding .bx.match{opacity:1;
+  background:rgba(241,196,0,.15);border:1.5px solid rgba(241,196,0,.9);
+  box-shadow:0 0 0 1px rgba(15,18,21,.12),0 0 12px rgba(241,196,0,.45)}
+.pagewrap.finding .bx.match::before{display:none}
+.pfind{display:flex;align-items:center;gap:7px;flex:none}
+.pfind input{width:150px;font-family:var(--mono);font-size:11px;color:var(--ink);background:#fff;
+  border:1px solid var(--hair-2);border-radius:2px;padding:5px 8px;outline:none}
+.pfind input::placeholder{color:var(--tertiary)}
+.pfind input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,87,183,.10)}
+.pfind .n{font-family:var(--mono);font-size:10px;color:var(--tertiary);min-width:56px}
+.pfind .n.none{color:var(--warn)}
+/* the same match, marked in the section list so you can click straight through */
+.slrow.match{background:rgba(241,196,0,.14)}
+.slrow.match .t{font-weight:600}
+/* per-object visibility, from the section list's eyes. A second, independent
+   layer over the toggle above: a box draws only if BOTH let it through. Same
+   exemption — the box under active correction is never hidden out from under you. */
+.bx.off:not(.editing){display:none}
+.bbox-hl.off{display:none}
 .bx.editing{opacity:1;border:1.5px solid var(--warn);background:rgba(241,196,0,.12);
   box-shadow:0 0 0 1px rgba(15,18,21,.25);cursor:move;z-index:6}
 .bx-h{position:absolute;width:11px;height:11px;background:#fff;border:1.5px solid var(--warn);
@@ -398,6 +463,48 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .blk:first-of-type{border-top:none}
 .blk .lab{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary);margin-bottom:9px;display:flex;align-items:center;gap:10px}
 .ai-badge{font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--warn);border:1px solid var(--warn);padding:2px 6px;text-transform:none}
+/* the same badge, once a curator has taken responsibility for the text */
+.hu-badge{font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--brand);border:1px solid var(--brand);padding:2px 6px;text-transform:none}
+/* ── transcription editing (SLICE-09c) ────────────────────────────────────────
+   The curator corrects what the VLM misread. The textarea deliberately inherits
+   the transcript's serif face and measure, so what you type sits exactly where
+   the read sat — you are editing the thing itself, not filling in a form. */
+/* a regenerated summary, offered against the one it would replace */
+.sumprop{margin-top:14px;border-left:2px solid var(--brand);background:rgba(0,87,183,.04);padding:11px 14px}
+.sumprop .sl{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--brand)}
+.sumprop .sl.bad{color:var(--warn)}
+.sumprop .st{font-family:var(--serif);font-style:italic;font-size:14.5px;line-height:1.55;color:var(--ink);margin-top:7px}
+.sumprop .srow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:11px}
+.sumprop button{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;
+  padding:6px 12px;border:1px solid var(--hair-2);background:#fff;cursor:pointer;border-radius:2px}
+.sumprop button.pri{background:var(--navy,#12305c);color:#fff;border-color:var(--navy,#12305c)}
+.sumprop .msg{font-family:var(--mono);font-size:10px;color:var(--tertiary)}
+.lab .tedit{margin-left:auto;text-transform:none;letter-spacing:.02em;font-family:var(--sans);
+  font-weight:700;font-size:10px;color:var(--brand);border:1px solid var(--hair-2);
+  background:#fff;padding:3px 9px;cursor:pointer;border-radius:2px}
+.lab .tedit:hover{border-color:var(--brand)}
+.lab .tedit:disabled{opacity:.4;cursor:default;border-color:var(--hair-2);color:var(--tertiary)}
+.tarea{width:100%;box-sizing:border-box;font-family:var(--serif);font-size:15.5px;line-height:1.62;
+  color:var(--body);background:#fff;border:1px solid var(--brand);border-radius:2px;padding:11px 13px;
+  resize:vertical;min-height:160px;max-height:46vh;overflow-y:auto;outline:none;
+  box-shadow:0 0 0 3px rgba(0,87,183,.10)}
+.tbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tbar button{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;
+  padding:6px 12px;border:1px solid var(--hair-2);background:#fff;cursor:pointer;border-radius:2px}
+.tbar button.pri{background:var(--navy,#12305c);color:#fff;border-color:var(--navy,#12305c)}
+.tbar button.rev{border-color:var(--warn);color:var(--warn)}
+.tbar button.rev:hover{background:var(--warn);color:#fff}
+.tbar button:disabled{opacity:.45;cursor:default}
+.tbar .msg{font-family:var(--mono);font-size:10px;color:var(--tertiary);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* the machine's original, shown under a corrected read */
+.rawblk{margin-top:12px;border-left:2px solid var(--hair-2);padding:2px 0 2px 12px}
+.rawblk.bare{border-left:none;padding-left:0;margin-top:6px}
+.rawblk .rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tertiary);margin-bottom:5px}
+.rawblk .rt{font-family:var(--serif);font-size:13.5px;line-height:1.55;color:var(--tertiary);white-space:pre-wrap}
+.rawtog{font-family:var(--mono);font-size:10px;color:var(--brand);border:none;background:none;
+  cursor:pointer;padding:0;margin-top:9px;text-decoration:underline}
 .transcript{font-family:var(--serif);font-size:15.5px;line-height:1.62;color:var(--body)}
 .transcript .hl{font-family:var(--serif);font-weight:700;font-size:18px;color:var(--ink);display:block;margin-bottom:6px}
 .loss{font-family:var(--mono);font-size:12px;color:var(--danger);background:rgba(196,70,47,.08);padding:0 4px}
@@ -438,8 +545,112 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .vbtn.warn{border-color:var(--warn);color:var(--warn)}
 .vbtn.warn:hover{background:var(--warn);color:#fff}
 .vbtn.ghost:hover{border-color:var(--ink);color:var(--ink)}
-.verdict .kb{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--tertiary)}
+/* The hint is the first thing that should give way when the column narrows —
+   everything left of it is a control. */
+.verdict .kb{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--tertiary);
+  flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .verdict .kb kbd{background:var(--sunken);border:1px solid var(--hair-2);padding:1px 5px;font-size:10px}
+/* ── verdict as ONE status, not three buttons (SLICE-09d) ─────────────────────
+   Confirm and Flag were never independent actions — they are two values of the
+   same field, and a pair of buttons could not show which one was currently true.
+   The select can, and it carries its state in its own colour. */
+.vlab{font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--tertiary)}
+.vsel{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.04em;
+  padding:10px 30px 10px 12px;border:1px solid var(--hair-2);background:#fff;color:var(--secondary);
+  border-radius:2px;cursor:pointer;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23687183' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center;background-size:10px 6px}
+.vsel:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,87,183,.12)}
+.vsel:disabled{opacity:.5;cursor:default}
+.vsel.st-r{border-color:var(--ok);color:var(--ok)}
+.vsel.st-f{border-color:var(--danger);color:var(--danger)}
+.vsel.st-u{border-color:var(--warn);color:var(--warn)}
+.vmsg{font-family:var(--mono);font-size:10px;color:var(--tertiary)}
+/* ── publication gate (SLICE-09f) ────────────────────────────────────────────
+   A switch, not a status value: it says whether patrons can see this object at
+   all, and it reads as off/on at a glance because "is this live?" is the one
+   question you should never have to squint at. */
+.pubtog{display:inline-flex;align-items:center;gap:9px;padding:7px 13px 7px 9px;cursor:pointer;
+  border:1px solid var(--hair-2);background:#fff;border-radius:2px;
+  font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tertiary)}
+.pubtog .knob{position:relative;flex:none;width:28px;height:15px;border-radius:8px;
+  background:var(--hair-2);transition:background .13s ease}
+.pubtog .knob::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 2px rgba(15,18,21,.35);transition:transform .13s ease}
+.pubtog[aria-pressed="true"]{border-color:var(--ok);color:var(--ok)}
+.pubtog[aria-pressed="true"] .knob{background:var(--ok)}
+.pubtog[aria-pressed="true"] .knob::after{transform:translateX(13px)}
+.pubtog:disabled{opacity:.5;cursor:default}
+/* ── delete (SLICE-09g) ──────────────────────────────────────────────────────
+   The only irreversible control in the workbench. It is quiet until asked for,
+   then it is loud: the confirmation names every row that will go and says the one
+   thing the curator cannot know on their own — that re-ingesting the page brings
+   the object back. */
+.dangerzone .delbtn{font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--danger);border:1px solid var(--hair-2);background:#fff;
+  padding:7px 13px;cursor:pointer;border-radius:2px}
+.dangerzone .delbtn:hover{border-color:var(--danger);background:rgba(196,70,47,.06)}
+.dangerzone .delbtn:disabled{opacity:.4;cursor:default;color:var(--tertiary)}
+.dangerzone .hint{font-family:var(--mono);font-size:10px;color:var(--tertiary);margin-left:10px}
+.delconfirm{border:1px solid var(--danger);background:rgba(196,70,47,.045);padding:14px 16px;border-radius:2px}
+.delconfirm .h{font-family:var(--sans);font-weight:700;font-size:11.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--danger)}
+.delconfirm .b{font-family:var(--sans);font-size:12.5px;line-height:1.6;color:var(--body);margin-top:8px}
+.delconfirm ul{margin:9px 0 0;padding-left:18px;font-family:var(--mono);font-size:11px;
+  color:var(--secondary);line-height:1.75}
+.delconfirm .warn-note{font-family:var(--sans);font-size:12px;line-height:1.55;color:var(--body);
+  margin-top:11px;padding-top:10px;border-top:1px solid rgba(196,70,47,.28)}
+.delconfirm .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.delconfirm button{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;
+  padding:8px 14px;border:1px solid var(--hair-2);background:#fff;cursor:pointer;border-radius:2px}
+.delconfirm button.go{background:var(--danger);border-color:var(--danger);color:#fff}
+.delconfirm button:disabled{opacity:.5;cursor:default}
+.delconfirm .msg{font-family:var(--mono);font-size:10px;color:var(--danger)}
+/* the section list marks what is live, because "what have I actually published?"
+   is a question you ask of the whole page, not one object at a time */
+.slrow .pubdot{flex:none;width:5px;height:5px;border-radius:50%;background:var(--ok)}
+/* ── review note ─────────────────────────────────────────────────────────────
+   A note to the next human, not a transcription and not an enrichment field, so
+   it takes the sans face the rest of the workbench chrome uses rather than the
+   serif reserved for the newspaper's own words. Saves on blur. */
+.narea{width:100%;box-sizing:border-box;font-family:var(--sans);font-size:13px;line-height:1.55;
+  color:var(--body);background:var(--sunken);border:1px solid var(--hair-2);border-radius:2px;
+  padding:9px 11px;resize:vertical;min-height:52px;outline:none}
+.narea::placeholder{color:var(--tertiary)}
+.narea:focus{background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,87,183,.10)}
+.narea:disabled{opacity:.6;cursor:default}
+#rv-nlab .nsaved{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:none;
+  color:var(--tertiary);font-weight:400}
+/* ── display title (SLICE-09e) ───────────────────────────────────────────────
+   What a patron sees as this object's headline. Empty means the automatic rule
+   decides — including deciding there is none, which for a masthead or a roster is
+   the right answer. The placeholder always states what will happen if left empty. */
+.tinput{width:100%;box-sizing:border-box;font-family:var(--serif);font-weight:700;font-size:15px;
+  color:var(--ink);background:var(--sunken);border:1px solid var(--hair-2);border-radius:2px;
+  padding:8px 11px;outline:none}
+.tinput::placeholder{font-weight:400;font-style:italic;color:var(--tertiary)}
+.tinput:focus{background:#fff;border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,87,183,.10)}
+.tinput:disabled{opacity:.6;cursor:default}
+.titrow{display:flex;gap:8px;align-items:stretch}
+.titrow .tinput{flex:1 1 auto;min-width:0}
+/* SUGGEST drafts a title from the transcription. It fills the field and stops —
+   the curator still has to save it, same as anything else they type there. */
+.sugbtn{flex:none;font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.06em;
+  color:var(--brand);border:1px solid var(--hair-2);background:#fff;padding:0 12px;cursor:pointer;
+  border-radius:2px;white-space:nowrap}
+.sugbtn:hover{border-color:var(--brand);background:rgba(0,87,183,.05)}
+.sugbtn:disabled{opacity:.45;cursor:default;color:var(--tertiary)}
+#rv-titlab .tsrc{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:none;font-weight:400}
+#rv-titlab .tsrc.ai{color:var(--warn)}
+#rv-titlab .tsrc.auto{color:var(--tertiary)}
+#rv-titlab .tsrc.none{color:var(--warn)}
+#rv-titlab .tsrc.human{color:var(--brand)}
+/* the section list's stand-in for a row whose object has no title */
+.slrow .t.untitled{font-style:italic;color:var(--tertiary);font-family:var(--mono);font-size:10.5px}
+/* section-list marker: this object carries a curator note */
+.slrow .notedot{flex:none;font-family:var(--mono);font-size:9.5px;line-height:1;color:var(--brand)}
 
 /* ============================================================
    SHAPE REVIEW  — the distinctive Dateline surface
@@ -606,28 +817,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     <section class="view" id="review">
       <div class="review">
 
-        <!-- worklist + filters -->
-        <aside class="wl">
-          <div class="prog" id="wl-prog">loading run…</div>
-          <div class="fbox" id="wl-fbox">
-            <div class="dropdown" id="dd-class">
-              <button class="ddbtn" data-dd="dd-class"><span>Object class</span><span class="rt"><span class="badge zero" id="badge-class">All</span><span class="car">▾</span></span></button>
-              <div class="ddpanel">
-                <div class="ddhead"><span>Object class</span><button class="ddclear hidden" data-clear="class">Clear</button></div>
-                <div id="wl-classes"></div>
-              </div>
-            </div>
-            <div class="dropdown" id="dd-flags">
-              <button class="ddbtn" data-dd="dd-flags"><span>Flags</span><span class="rt"><span class="badge zero" id="badge-flags">All</span><span class="car">▾</span></span></button>
-              <div class="ddpanel">
-                <div class="ddhead"><span>Flags</span><button class="ddclear hidden" data-clear="flags">Clear</button></div>
-                <div id="wl-flags"></div>
-              </div>
-            </div>
-          </div>
-          <div id="wl-rows"></div>
-        </aside>
-
         <!-- image | claims -->
         <div class="rstage">
           <!-- SOURCE -->
@@ -635,23 +824,57 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
             <!-- ONE toolbar: every page-image tool lives here (Preview.app model) -->
             <div class="ptoolbar">
               <button class="tbtn on" id="pm-toggle" title="Hide page thumbnails">◧</button>
+              <button class="tbtn on" id="sl-toggle" title="Hide the section list">◨</button>
+              <button class="tbtn" id="bx-fill" title="Fill every visible region (F)">▣</button>
               <span class="tsep"></span>
               <div class="zoomctl">
                 <button id="zm-out" title="Zoom out (⌘ + scroll down)">−</button>
                 <button id="zm-fit" title="Fit to width">⌂</button>
-                <button id="zm-in"  title="Zoom in (⌘ + scroll up) · ⌘ + middle-drag to pan">+</button>
+                <button id="zm-in"  title="Zoom in (⌘ + scroll up) · pan by middle-drag, or ⌘ + drag">+</button>
                 <span class="lvl" id="zm-lvl">100%</span>
+              </div>
+              <span class="tsep"></span>
+              <!-- find text in this page's transcriptions; matches light up on the image -->
+              <div class="pfind">
+                <input id="bx-find" type="search" placeholder="find in this page…" spellcheck="false" autocomplete="off">
+                <span class="n" id="bx-find-n"></span>
               </div>
               <span class="tsep"></span>
               <div class="bx-editbar" id="rv-editbar"></div>
             </div>
-            <!-- thumbnail rail | page viewport -->
+            <!-- thumbnail rail | page viewport | section list -->
             <div class="pstage">
               <div class="pagemap" id="rv-pagemap"></div>
               <div class="page" id="rv-page">
                 <div class="col-rule" style="left:33%"></div>
                 <div class="col-rule" style="left:66%"></div>
               </div>
+              <!-- the extracted sections, as layers over the page image -->
+              <aside class="seclist" id="rv-seclist">
+                <div class="sl-head">
+                  <button class="sl-eye" id="sl-all" title="Hide every region"></button>
+                  <span class="h">Sections</span>
+                  <span class="n" id="sl-count">—</span>
+                </div>
+                <div class="sl-filters">
+                  <div class="dropdown" id="dd-class">
+                    <button class="ddbtn" data-dd="dd-class"><span>Object class</span><span class="rt"><span class="badge zero" id="badge-class">All</span><span class="car">▾</span></span></button>
+                    <div class="ddpanel">
+                      <div class="ddhead"><span>Object class</span><button class="ddclear hidden" data-clear="class">Clear</button></div>
+                      <div id="wl-classes"></div>
+                    </div>
+                  </div>
+                  <div class="dropdown" id="dd-flags">
+                    <button class="ddbtn" data-dd="dd-flags"><span>Flags</span><span class="rt"><span class="badge zero" id="badge-flags">All</span><span class="car">▾</span></span></button>
+                    <div class="ddpanel">
+                      <div class="ddhead"><span>Flags</span><button class="ddclear hidden" data-clear="flags">Clear</button></div>
+                      <div id="wl-flags"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="sl-prog" id="wl-prog">loading run…</div>
+                <div class="sl-rows" id="wl-rows"></div>
+              </aside>
             </div>
             <div class="region-note" id="rv-region"></div>
             <div class="credit" id="rv-credit">—</div>
@@ -667,22 +890,57 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
             </div>
 
             <div class="blk">
-              <div class="lab">Transcription <span class="ai-badge">Transcribed by AI — may contain errors</span></div>
+              <div class="lab" id="rv-titlab">Display title</div>
+              <div class="titrow">
+                <input class="tinput" id="rv-title" type="text" spellcheck="true">
+                <button class="sugbtn" id="rv-title-ai" title="Draft a title from the transcription (Claude Haiku)">SUGGEST</button>
+              </div>
+            </div>
+
+            <div class="blk">
+              <div class="lab" id="rv-tlab">Transcription <span class="ai-badge">Transcribed by AI — may contain errors</span></div>
               <div class="transcript" id="rv-transcript">—</div>
+              <!-- the machine's read, revealed under a corrected transcription -->
+              <div class="rawblk" id="rv-raw" hidden></div>
               <div class="confline" id="rv-confline"></div>
             </div>
 
             <div class="blk" id="rv-enrich-blk">
               <div class="lab" id="rv-enrich-lab">Enrichment</div>
               <div class="facts" id="rv-facts"></div>
+              <!-- a regenerated summary, shown against the one it would replace -->
+              <div class="sumprop" id="rv-sumprop" hidden></div>
               <div id="rv-flag"></div>
             </div>
 
+            <div class="blk">
+              <div class="lab" id="rv-nlab">Review note</div>
+              <textarea class="narea" id="rv-note" rows="2" spellcheck="true"
+                placeholder="A note to the next human — what you checked, what you couldn’t settle, what to do next."></textarea>
+            </div>
+
+            <!-- The one irreversible control on this screen. Kept away from the
+                 verdict bar so a mis-click can't reach it. -->
+            <div class="blk dangerzone" id="rv-danger"></div>
+
             <div class="verdict">
-              <button class="vbtn primary">✓ Confirm &amp; next</button>
-              <button class="vbtn warn">Edit overlay</button>
-              <button class="vbtn ghost">Flag → queue</button>
-              <span class="kb"><kbd>↵</kbd> confirm · <kbd>e</kbd> edit · <kbd>x</kbd> flag</span>
+              <span class="vlab">Status</span>
+              <!-- Short labels because the closed select shows them inline and a
+                   long one wraps the whole bar; the full sense is in each option's
+                   title, and in the status the section list reports on hover. -->
+              <select class="vsel" id="rv-status">
+                <option value="unreviewed" title="Not yet looked at">Unreviewed</option>
+                <option value="flagged" title="Being reviewed — needs to be worked on further">Flag — needs more work</option>
+                <option value="reviewed" title="Checked and confirmed">Confirm</option>
+              </select>
+              <span class="tsep" style="height:26px"></span>
+              <!-- The publication gate. Orthogonal to status: nothing reaches a
+                   patron until this is on, whatever the verdict says. -->
+              <button class="pubtog" id="rv-publish" aria-pressed="false">
+                <span class="knob"></span><span class="pl">Not published</span>
+              </button>
+              <span class="vmsg" id="rv-vmsg"></span>
+              <span class="kb"><kbd>c</kbd> confirm · <kbd>x</kbd> flag · <kbd>u</kbd> unreviewed · <kbd>p</kbd> publish · <kbd>e</kbd> edit · <kbd>h</kbd> hide region</span>
             </div>
           </div>
         </div>
@@ -878,13 +1136,8 @@ document.querySelectorAll('.navitem').forEach(function(btn){
   var h = (location.hash || '').replace('#','');
   if(h){ var btn = document.querySelector('.navitem[data-view="'+h+'"]'); if(btn) btn.click(); }
 })();
-/* worklist selection */
-document.querySelectorAll('.wlrow').forEach(function(row){
-  row.addEventListener('click', function(){
-    document.querySelectorAll('.wlrow').forEach(r=>r.classList.remove('sel'));
-    row.classList.add('sel');
-  });
-});
+/* Section-list rows are built per run by renderWorklist(), which binds their own
+   selection — there is no static markup left here to wire. */
 /* Review facet filtering (object class + flags) is wired in the run-binding
    script below, per-facet, so it composes with the page scope. The dropdown
    open/close is bound here (buttons + panels are static; options fill per run). */
@@ -965,16 +1218,34 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     if(!Array.isArray(bb.rects)) return null;
     var rects=bb.rects.map(bboxPct).filter(Boolean);
     if(!rects.length) return null;
-    // `primary` drives the single strong glow for the SELECTED object; `all` drives
-    // the region map, where every rect is drawn as a thin keyline. Both are true —
-    // they answer different questions ("where do I look?" vs "what did it find?").
-    return { primary:rects[0], all:rects, extra:rects.length-1, source:bb.source||'ocr-anchor',
-             coverage:bb.coverage, ocrConf:bb.ocrConf };
+    // ONE box per object now. `all` is kept as a one-element array so the region
+    // map keeps its shape, and rows stored before the single-box rule are still
+    // read correctly — they just show their primary rect.
+    // `continuedIn` is a COUNT, not geometry: column runs the anchor found and
+    // deliberately did not store. It is what stops a partial box reading as whole.
+    return { primary:rects[0], all:[rects[0]],
+             continuedIn:(bb.continuedIn!=null ? bb.continuedIn : rects.length-1),
+             source:bb.source||'ocr-anchor', coverage:bb.coverage, ocrConf:bb.ocrConf };
   }
 
   // Hover-card body. Jungu's spec: the headline, then the FIRST ~100 characters and
   // the LAST 50 — you need both ends to judge whether a box covers the whole story
   // or stops short of it.
+  // The object's headline: its first non-empty line, minus any [loss] markers.
+  // Top-level because both the page-mode loader and the transcription editor need
+  // it — a saved correction re-derives the section-list title from the new text.
+  function firstLine(t){ var L=(t||'').split('\n'); for(var i=0;i<L.length;i++){ var s=L[i].replace(/\[[^\]]*\]/g,'').trim(); if(s) return s; } return (t||'').slice(0,80); }
+
+  // The page's item page in ContentDM — the catalogued record, with its metadata,
+  // rights statement and the collection's own viewer. The bare IIIF URL this used
+  // to open is a JPEG with no provenance around it; a curator following the link
+  // wants the source of record, not the pixels.
+  //   .../digital/iiif/<collection>/<record>  →  .../digital/collection/<collection>/id/<record>
+  function cdmItemUrl(iiifId){
+    var m = /^(https?:\/\/[^/]+)\/digital\/iiif\/([^/]+)\/(\d+)/.exec(iiifId || '');
+    return m ? m[1]+'/digital/collection/'+m[2]+'/id/'+m[3] : null;
+  }
+
   function tipParts(text){
     var lines=String(text||'').split('\n');
     var head=(lines.shift()||'').trim();
@@ -1034,8 +1305,6 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       caption:'Caption', unknown:'Unknown' };
     var CLASS_COLOR = { article:'article', advertisement:'ad', illustration:'photo', legal_notice:'listing',
       classified_section:'listing', coupon:'ad', masthead:'listing', unknown:'unknown' };
-    function firstLine(t){ var L=(t||'').split('\n'); for(var i=0;i<L.length;i++){ var s=L[i].replace(/\[[^\]]*\]/g,'').trim(); if(s) return s; } return (t||'').slice(0,80); }
-
     html('u-banner', 'Internal Editorial Workbench · <b>Live per-page ingestion</b> · ' + esc(issueId) + ' · P.' + pageNum);
     var rv = document.querySelector('.navitem[data-view="review"]'); if (rv) rv.click();
     // Load the issue's full page list first (so the filmstrip shows every page),
@@ -1180,9 +1449,20 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var pub = objs.filter(function(o){ return o.isPublication; });
       var wl = pub.map(function(o){ return {
         id:o.id, class:o.class, classLabel:CLASS_LABEL[o.class]||o.class, color:CLASS_COLOR[o.class]||'article',
-        title:firstLine(o.text), page:pageNum, seq:o.seq, role:o.role, tier:o.tier, status:o.status||'unreviewed',
+        // title resolved server-side and NULLABLE — this object may genuinely have
+        // no headline. The list falls back to a class/role label so the row is
+        // still findable; the patron app shows nothing at all.
+        title:(o.title!==undefined ? o.title : firstLine(o.text)), titleSource:o.titleSource||null,
+        displayTitle:o.displayTitle||'', displayTitleAt:o.displayTitleAt||null,
+        page:pageNum, seq:o.seq, role:o.role, tier:o.tier, status:o.status||'unreviewed',
         isAdvertorial:o.isAdvertorial, articleType:o.articleType, summary:o.summary, contextHint:null, eventType:o.eventType,
-        transcript:o.text, topics:(o.topics||[]).map(function(t){ return {name:t.name,confidence:t.confidence,proposed:false}; }),
+        // transcript = what to show (the human overlay when there is one);
+        // transcriptRaw = the machine's read, kept for "show original" / revert.
+        transcript:o.text, transcriptRaw:(o.textRaw!=null?o.textRaw:o.text),
+        textEdited:!!o.textEdited, textEditedAt:o.textEditedAt||null,
+        reviewNote:o.reviewNote||'', reviewNoteAt:o.reviewNoteAt||null,
+        published:!!o.published, publishedAt:o.publishedAt||null,
+        topics:(o.topics||[]).map(function(t){ return {name:t.name,confidence:t.confidence,proposed:false}; }),
         entities:o.entities||[], pageImage:pg.imageUrl, iiifId:pg.iiifId, bbox:(o.bbox===undefined?null:o.bbox) };
       });
       var classCounts={}; objs.forEach(function(o){ classCounts[o.class]=(classCounts[o.class]||0)+1; });
@@ -1350,7 +1630,8 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     bindFacet('#wl-flags .fopt', flagFilter);
     updateBadges();
 
-    var STDOT = { unreviewed:'u', reviewed:'r', flagged:'f' };
+    var STDOT   = { unreviewed:'u', reviewed:'r', flagged:'f' };
+    var STLABEL = { u:'unreviewed', r:'confirmed', f:'flagged — needs more work' };
 
     // ══ REGION MAP + INLINE CORRECTION ═══════════════════════════════════════
     // Every located object on the page is drawn at once as a thin class-coloured
@@ -1379,6 +1660,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // whole overlay scales for free — no transform math, and pctAt() keeps working
     // because getBoundingClientRect() already reports the scaled, scrolled geometry.
     var zoom = 1, ZMIN = 1, ZMAX = 6, ZSTEP = 1.25;
+    // Set by a pan that actually travelled. A ⌘-drag that starts on a box would
+    // otherwise end as a click on it and select whatever the curator scrolled past.
+    var panned = false;
 
     function pageEl(){ return document.getElementById('rv-page'); }
     function wrapEl(){ var p=pageEl(); return p && p.querySelector('.pagewrap'); }
@@ -1421,6 +1705,60 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         tg.title = hide ? 'Show page thumbnails' : 'Hide page thumbnails';
       };
 
+      // ◨ — the section list, collapsed the same way the thumbnail rail is.
+      var st=document.getElementById('sl-toggle'), sl=document.getElementById('rv-seclist');
+      if(st && sl) st.onclick = function(){
+        var hide = !sl.classList.contains('hidden');
+        sl.classList.toggle('hidden', hide);
+        st.classList.toggle('on', !hide);
+        st.title = hide ? 'Show the section list' : 'Hide the section list';
+      };
+      // the master eye in the list header
+      var ae=document.getElementById('sl-all');
+      if(ae) ae.onclick = toggleAllBoxes;
+
+      // ▣ — fill every visible region instead of outlining it
+      var fb=document.getElementById('bx-fill');
+      if(fb) fb.onclick = toggleFill;
+      paintFill();
+
+      // find-in-page. Property assignment for the same idempotency reason as the
+      // rest of this block; `search` fires on the native clear (×) too.
+      var fi=document.getElementById('bx-find');
+      if(fi){
+        fi.oninput = fi.onsearch = function(){ findQuery = fi.value; paintFind(); };
+        fi.onkeydown = function(ev){
+          if(ev.key==='Escape'){ ev.preventDefault(); fi.value=''; findQuery=''; paintFind(); fi.blur(); }
+        };
+      }
+
+      // Property assignment, not addEventListener: render() may run twice and an
+      // addEventListener pair could not be un-bound (the closure is new each time).
+      // Bare letters only — ⌘H is "hide application" and stays the OS's.
+      document.onkeydown = function(ev){
+        if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
+        var k=ev.key;
+        if('hHeEcCxXuUpPfF'.indexOf(k) < 0 || k.length !== 1) return;
+        var t=ev.target, tag=t && t.tagName;
+        if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || (t && t.isContentEditable)) return;
+        ev.preventDefault();
+        // H is the keyboard twin of the selected row's eye — hide/show THIS object's
+        // box. Dead when the object has no box to toggle, same as the eye itself.
+        if(k==='h' || k==='H'){
+          if(currentObj && onPageIds().indexOf(currentObj.id) >= 0) toggleBox(currentObj.id);
+        }
+        else if(k==='f' || k==='F') toggleFill();
+        else if(k==='e' || k==='E'){ if(currentObj) startTextEdit(currentObj); }
+        else if(k==='p' || k==='P'){ if(currentObj && REGION_API) postReview(currentObj, { published: !currentObj.published }, 'publish'); }
+        // the verdict, from the keyboard. `↵` used to mean confirm; with a note
+        // field on the same panel, a bare Enter setting a verdict is a trap, so
+        // the three states get three letters and the bar says so.
+        else if(currentObj) saveStatus(currentObj, k==='c'||k==='C' ? 'reviewed' : k==='x'||k==='X' ? 'flagged' : 'unreviewed');
+      };
+      // The verdict bar's "Edit overlay" button is gone — the Transcription block
+      // carries its own EDIT, next to the text it edits, and `e` still works from
+      // anywhere. Two doors to one editor was one too many.
+
       var oi=document.getElementById('zm-in'), oo=document.getElementById('zm-out'), fit=document.getElementById('zm-fit');
       if(oi)  oi.onclick  = function(){ setZoom(zoom*ZSTEP); };
       if(oo)  oo.onclick  = function(){ setZoom(zoom/ZSTEP); };
@@ -1439,13 +1777,25 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         var f = Math.min(1.5, Math.max(1/1.5, Math.exp(-ev.deltaY * 0.001)));
         setZoom(zoom*f, ev.clientX, ev.clientY);
       };
-      // ⌘ + middle mouse button held: drag to pan.
+      // Two ways to pan, each sufficient on its own:
+      //   • hold the middle mouse button and drag — no modifier at all
+      //   • hold ⌘ and drag with the left button   — for trackpads and mice with
+      //     no middle button
+      // ⌘ is required for the LEFT-button version and cannot be dropped: a bare
+      // left-drag on a box is how a region correction is made, and panning must
+      // never be able to become that gesture by accident.
       page.onmousedown = function(ev){
-        if(ev.button !== 1 || !ev.metaKey) return;
+        if(!(ev.button === 1 || (ev.button === 0 && ev.metaKey))) return;
         ev.preventDefault();
+        panned = false;
         var sx=ev.clientX, sy=ev.clientY, l=page.scrollLeft, t=page.scrollTop;
         page.classList.add('panning');
-        function mv(e2){ page.scrollLeft = l-(e2.clientX-sx); page.scrollTop = t-(e2.clientY-sy); }
+        function mv(e2){
+          // A few pixels of travel is a shaky click, not a pan — only past that do
+          // we swallow the trailing click (see renderBoxLayer).
+          if(Math.abs(e2.clientX-sx) > 3 || Math.abs(e2.clientY-sy) > 3) panned = true;
+          page.scrollLeft = l-(e2.clientX-sx); page.scrollTop = t-(e2.clientY-sy);
+        }
         function up(){ page.classList.remove('panning');
           document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); }
         document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
@@ -1499,6 +1849,165 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i].dataset.oid===o.id);
     }
 
+    // ══ PER-OBJECT VISIBILITY (the section list's eyes) ══════════════════════
+    // Photoshop's layer eyes, over a newspaper page. The eye on a row, ⌥-click to
+    // solo, the master eye in the list header, and H for the selected row's own
+    // eye are all the same switch. State is a map of hidden ids, persisted per
+    // page in localStorage (see below).
+    var EYE_ON  = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" '+
+      'stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+      '<path d="M1.4 8S3.9 3.7 8 3.7 14.6 8 14.6 8 12.1 12.3 8 12.3 1.4 8 1.4 8Z"/>'+
+      '<circle cx="8" cy="8" r="1.85"/></svg>';
+    // Same eye, struck through — at 13px a "closed" eye is just a squiggle, but a
+    // slash reads as "off" instantly. The pupil is dropped so the slash stays clean.
+    var EYE_OFF = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" '+
+      'stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+      '<path d="M1.4 8S3.9 3.7 8 3.7 14.6 8 14.6 8 12.1 12.3 8 12.3 1.4 8 1.4 8Z"/>'+
+      '<path d="M2.9 13.1 13.1 2.9"/></svg>';
+    var boxHidden = Object.create(null);   // objectId → true when its box is hidden
+
+    // ── fill toggle ─────────────────────────────────────────────────────────
+    // A view preference like the eyes, but it is about the whole map rather than
+    // any one page, so it is stored once and applies everywhere.
+    var fillBoxes = false;
+    try { fillBoxes = localStorage.getItem('dl:fillboxes') === '1'; } catch(e){}
+
+    function paintFill(){
+      var wrap = wrapEl();
+      if(wrap) wrap.classList.toggle('fill', fillBoxes);
+      var b = document.getElementById('bx-fill');
+      if(b){
+        b.classList.toggle('on', fillBoxes);
+        b.title = (fillBoxes ? 'Show regions as outlines only' : 'Fill every visible region')+' (F)';
+      }
+    }
+    // ── find in this page's transcriptions ──────────────────────────────────
+    // Searches what is DISPLAYED for each object (a curator's correction where
+    // there is one), because that is the text they are reading. Scoped to the page
+    // in the frame — this answers "where on this page", not "where in the corpus",
+    // which is the patron app's job.
+    var findQuery = '';
+
+    function paintFind(){
+      var wrap = wrapEl(), q = findQuery.trim().toLowerCase();
+      var n = document.getElementById('bx-find-n');
+      if(wrap) wrap.classList.toggle('finding', !!q);
+      var hits = 0, scanned = 0;
+      if(currentObj){
+        var onPage = {};
+        wl.forEach(function(x){
+          if(x.page !== currentObj.page) return;
+          scanned++;
+          onPage[x.id] = !!q && String(x.transcript||'').toLowerCase().indexOf(q) >= 0;
+          if(onPage[x.id]) hits++;
+        });
+        if(wrap) wrap.querySelectorAll('.bx').forEach(function(b){
+          b.classList.toggle('match', !!onPage[b.dataset.oid]);
+        });
+        document.querySelectorAll('#wl-rows .slrow').forEach(function(r){
+          r.classList.toggle('match', !!q && !!onPage[r.dataset.oid]);
+        });
+      }
+      if(n){
+        n.textContent = q ? (hits ? hits+' of '+scanned : 'no match') : '';
+        n.classList.toggle('none', !!q && !hits);
+      }
+    }
+
+    function toggleFill(){
+      fillBoxes = !fillBoxes;
+      try { localStorage.setItem('dl:fillboxes', fillBoxes ? '1' : '0'); } catch(e){}
+      paintFill();
+    }
+
+    // Which layers you have hidden is a view preference, not editorial state — it
+    // is yours, not the collection's — so it lives in localStorage rather than the
+    // database, keyed per page. It survives a refresh; it does not follow you to
+    // another machine, and it never lands on anything a patron can see.
+    // Keyed on the IIIF id, not the printed page number: "page 1" is page 1 of every
+    // issue in the collection, and keying on it would leak one issue's hidden layers
+    // onto another's.
+    function hiddenKey(o){
+      var k = o && (o.iiifId || o.pageImage);
+      return k ? 'dl:hidden:'+k : null;
+    }
+    function loadHidden(o){
+      var m = Object.create(null), k = hiddenKey(o);
+      try {
+        var raw = k && localStorage.getItem(k);
+        if(raw) JSON.parse(raw).forEach(function(id){ m[id]=true; });
+      } catch(e){ /* private mode, quota, or corrupt entry — start clean, don't crash */ }
+      return m;
+    }
+    function saveHidden(){
+      var k = hiddenKey(currentObj); if(!k) return;
+      try {
+        var ids = Object.keys(boxHidden);
+        if(ids.length) localStorage.setItem(k, JSON.stringify(ids));
+        else localStorage.removeItem(k);      // nothing hidden = no entry to carry
+      } catch(e){ /* a preference that cannot be stored is not worth an error */ }
+    }
+
+    // Objects with a box on the page currently in the frame — the scope every
+    // "all"/"solo" gesture operates on. A row for some OTHER page has no box to
+    // toggle, so its eye is dead rather than quietly lying about what it does.
+    function onPageIds(){
+      var ids=[], o=currentObj; if(!o) return ids;
+      wl.forEach(function(x){ if(x.page===o.page && regionOf(x.bbox)) ids.push(x.id); });
+      return ids;
+    }
+
+    function paintBoxVis(){
+      var wrap = wrapEl();
+      if(wrap){
+        wrap.querySelectorAll('.bx').forEach(function(b){ b.classList.toggle('off', !!boxHidden[b.dataset.oid]); });
+        var g = wrap.querySelector('.bbox-hl');
+        if(g) g.classList.toggle('off', !!(currentObj && boxHidden[currentObj.id]));
+      }
+      var ids = onPageIds(), live = new Set(ids);
+      document.querySelectorAll('#wl-rows .slrow').forEach(function(r){
+        var hid = !!boxHidden[r.dataset.oid], e = r.querySelector('.sl-eye');
+        r.classList.toggle('off', hid);
+        if(!e) return;
+        e.disabled = !live.has(r.dataset.oid);   // no box on the page in the frame → dead eye
+        e.innerHTML = hid ? EYE_OFF : EYE_ON;
+        e.classList.toggle('off', hid);
+        e.title = e.disabled ? 'no region on the page shown'
+          : (hid ? 'Show this region' : 'Hide this region') + ' (H) · ⌥-click to show only this one';
+      });
+      // master eye: lit whenever something is hidden, so the header reports state
+      var nHid = ids.filter(function(id){ return boxHidden[id]; }).length;
+      var all = document.getElementById('sl-all');
+      if(all){
+        var allHidden = ids.length>0 && nHid===ids.length;
+        all.innerHTML = allHidden ? EYE_OFF : EYE_ON;
+        all.classList.toggle('off', nHid>0);
+        all.title = allHidden ? 'Show every region on this page' : 'Hide every region on this page';
+      }
+      var rail = document.getElementById('rv-seclist');
+      if(rail) rail.classList.toggle('noeyes', ids.length===0);
+      var cnt = document.getElementById('sl-count');
+      if(cnt) cnt.textContent = nHid ? (ids.length-nHid)+'/'+ids.length+' shown'
+                                     : String(document.querySelectorAll('#wl-rows .slrow').length);
+    }
+
+    function toggleBox(id){ if(boxHidden[id]) delete boxHidden[id]; else boxHidden[id]=true; saveHidden(); paintBoxVis(); }
+    // ⌥-click: show only this one. Clicking the eye of an already-soloed object
+    // restores everything — otherwise solo would be a one-way door.
+    function soloBox(id){
+      var ids = onPageIds();
+      var soloed = !boxHidden[id] && ids.every(function(x){ return x===id || boxHidden[x]; });
+      boxHidden = Object.create(null);
+      if(!soloed) ids.forEach(function(x){ if(x!==id) boxHidden[x]=true; });
+      saveHidden(); paintBoxVis();
+    }
+    function toggleAllBoxes(){
+      var ids = onPageIds(), anyVisible = ids.some(function(id){ return !boxHidden[id]; });
+      boxHidden = Object.create(null);
+      if(anyVisible) ids.forEach(function(id){ boxHidden[id]=true; });
+      saveHidden(); paintBoxVis();
+    }
+
     // ── draw the map ────────────────────────────────────────────────────────
     function renderBoxLayer(wrap, sel){
       var layer = document.createElement('div');
@@ -1521,6 +2030,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           b.addEventListener('click', function(ev){
             ev.preventDefault(); ev.stopPropagation();
             if(editing || drawing) return;
+            // The click that ends a ⌘-drag lands on whatever box the cursor stopped
+            // over. Panning is navigation, not selection.
+            if(panned){ panned = false; return; }
             clearTimeout(clickTimer);
             clickTimer = setTimeout(function(){ selectById(o.id); }, 230);
           });
@@ -1539,7 +2051,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // Select an object by id through the existing worklist rows, so the row
     // highlight and the detail panel stay in sync with the map.
     function selectById(id){
-      var rows = document.querySelectorAll('#wl-rows .wlrow');
+      var rows = document.querySelectorAll('#wl-rows .slrow');
       for(var i=0;i<rows.length;i++){
         if(wl[+rows[i].dataset.i] && wl[+rows[i].dataset.i].id===id){ rows[i].click(); return; }
       }
@@ -1706,8 +2218,630 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
 
     var currentObj = null;
 
+    // ══ TRANSCRIPTION EDITING (SLICE-09c) ════════════════════════════════════
+    // The curator corrects what the VLM misread. The write is an OVERLAY — the
+    // service keeps content_objects.text exactly as the machine produced it and
+    // stores the correction beside it, which is what makes "show the machine's
+    // original" and "revert" possible at all. Nothing here marks the object
+    // reviewed: fixing a typo is not the same as vouching for the enrichment.
+    var tedit = null;                  // { oid, draft, msg } — an edit in flight
+    var showRaw = false;               // is the machine's read revealed?
+    var drafts = Object.create(null);  // oid → unsaved draft, so switching objects loses nothing
+
+    function shortDate(iso){
+      var d = new Date(iso); if(isNaN(d)) return '';
+      return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+    }
+    // Grow to fit, but never past the CSS cap — a column-long article would
+    // otherwise push SAVE below the fold, which is where the one control the
+    // curator needs must never be. Past the cap the textarea scrolls itself.
+    function autosize(ta){
+      ta.style.height='auto';
+      var cap = Math.round(window.innerHeight*0.46);
+      ta.style.height = Math.min(cap, Math.max(160, ta.scrollHeight+2))+'px';
+    }
+
+    function paintTranscript(o){
+      var lab=document.getElementById('rv-tlab'), box=document.getElementById('rv-transcript'),
+          raw=document.getElementById('rv-raw');
+      if(!lab || !box || !raw) return;
+      var live = !!REGION_API, on = !!(tedit && tedit.oid===o.id);
+      var reg = regionOf(o.bbox);   // no region → nothing to crop → no re-extract
+
+      // The AI badge is a warning about who wrote this text. Once a human has
+      // taken responsibility for it, that warning is simply no longer true.
+      lab.innerHTML = 'Transcription '+
+        (o.textEdited
+          ? '<span class="hu-badge">✎ Corrected by hand'+(o.textEditedAt?' · '+esc(shortDate(o.textEditedAt)):'')+'</span>'
+          : '<span class="ai-badge">Transcribed by AI — may contain errors</span>')+
+        ((rexNote && rexNote.oid===o.id) ? '<span class="ai-badge">'+rexNote.html+'</span>' : '')+
+        '<button class="tedit" id="rv-trex"'+(live && !on && reg && !rexBusy ? '' : ' disabled')+
+        ' title="'+(!reg ? 'no region to crop — draw one first'
+          : live ? 'Read this object again from its crop of the source scan (Claude Sonnet)'
+                 : 'read-only in demo mode — needs the live service')+'">'+
+        (rexBusy ? 'READING…' : (rexArmed===o.id ? 'RE-EXTRACT ANYWAY' : 'RE-EXTRACT'))+'</button>'+
+        '<button class="tedit" id="rv-tedit"'+(live && !on ? '' : ' disabled')+
+        ' title="'+(live?'Correct this transcription (e)':'read-only in demo mode — needs the live service')+'">'+
+        (on ? 'EDITING' : 'EDIT')+'</button>';
+      var eb=document.getElementById('rv-tedit');
+      if(eb) eb.onclick = function(){ startTextEdit(o); };
+      var rx=document.getElementById('rv-trex');
+      if(rx) rx.onclick = function(){ reextract(o); };
+
+      if(on){
+        box.innerHTML =
+          '<textarea class="tarea" id="rv-ta" spellcheck="true"></textarea>'+
+          '<div class="tbar">'+
+            '<button class="pri" id="rv-tsave" disabled>'+
+              (tedit.reread ? 'REPLACE MACHINE TEXT ⌘⏎' : 'SAVE ⌘⏎')+'</button>'+
+            '<button id="rv-tcancel">CANCEL ⎋</button>'+
+            (o.textEdited ? '<button class="rev" id="rv-trevert">REVERT TO MACHINE TEXT</button>' : '')+
+            '<span class="msg" id="rv-tmsg">'+esc(tedit.msg||'line 1 is the headline · ⌘⏎ saves · Esc cancels')+'</span>'+
+          '</div>';
+        var ta=document.getElementById('rv-ta'), save=document.getElementById('rv-tsave');
+        ta.value = tedit.draft;
+        autosize(ta);
+        function dirty(){ return ta.value !== (o.transcript||''); }
+        function sync(){ tedit.draft = ta.value; save.disabled = !dirty(); autosize(ta); }
+        ta.addEventListener('input', sync);
+        // Bound on the textarea, not the document: the region editor already owns
+        // document-level Enter/Escape and explicitly ignores events from a field.
+        ta.addEventListener('keydown', function(ev){
+          if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); cancelTextEdit(o); }
+          else if(ev.key==='Enter' && (ev.metaKey||ev.ctrlKey)){
+            ev.preventDefault();
+            if(dirty()) commitText(o, ta.value); else setTmsg('nothing changed yet');
+          }
+        });
+        save.onclick = function(){ commitText(o, ta.value); };
+        document.getElementById('rv-tcancel').onclick = function(){ cancelTextEdit(o); };
+        var rev=document.getElementById('rv-trevert');
+        if(rev) rev.onclick = function(){ commitText(o, null); };
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+        sync();
+      } else {
+        // Line one is set as a headline only when it IS the title. When the object
+        // has none — or carries a hand-set one that isn't in the text — the whole
+        // transcription is body, which is what the page actually shows.
+        var lines=(o.transcript||'').split('\n');
+        if(o.titleSource==='machine'){
+          var head=lines.shift()||'';
+          box.innerHTML = '<span class="hl">'+markLoss(head)+'</span>'+markLoss(lines.join('\n').trim());
+        } else {
+          box.innerHTML = markLoss(lines.join('\n').trim());
+        }
+      }
+
+      // The machine's read stays available under any correction — that is the
+      // whole point of writing the edit as an overlay rather than over the top.
+      if(o.textEdited && !on){
+        raw.hidden=false;
+        raw.className = 'rawblk' + (showRaw ? '' : ' bare');
+        raw.innerHTML = (showRaw
+            ? '<div class="rl">Machine read · immutable</div><div class="rt">'+esc(o.transcriptRaw||'')+'</div>'
+            : '')+
+          '<button class="rawtog" id="rv-rawtog">'+(showRaw?'hide the machine’s original':'show the machine’s original')+'</button>';
+        document.getElementById('rv-rawtog').onclick = function(){ showRaw=!showRaw; paintTranscript(o); };
+      } else { raw.hidden=true; raw.innerHTML=''; }
+    }
+
+    function setTmsg(m){ var el=document.getElementById('rv-tmsg'); if(el) el.textContent=m; }
+
+    // ── regenerate the summary from the CURRENT transcription ───────────────
+    // Enrichment wrote the summary from the text as it stood at ingestion; once
+    // that text is corrected or re-extracted, the summary describes a read nobody
+    // uses. This re-derives it. Suggests first — the proposal is shown against the
+    // existing summary and written only when the curator keeps it.
+    var sumBusy = false, sumProposed = null;   // { oid, summary, model, previous }
+
+    function paintEnrichLab(o){
+      var lab=document.getElementById('rv-enrich-lab'); if(!lab) return;
+      var live=!!REGION_API;
+      lab.innerHTML = 'Enrichment'+(o.tier ? ' · '+esc(o.tier)+' tier' : '')+
+        '<button class="tedit" id="rv-sum"'+(live && !sumBusy ? '' : ' disabled')+
+        ' title="'+(live?'Rewrite the summary from the transcription as it stands now (Claude Sonnet)'
+                        :'read-only in demo mode — needs the live service')+'">'+
+        (sumBusy ? 'WRITING…' : 'REGENERATE SUMMARY')+'</button>';
+      var b=document.getElementById('rv-sum');
+      if(b) b.onclick = function(){ regenSummary(o); };
+    }
+
+    function regenSummary(o){
+      if(!REGION_API || sumBusy) return;
+      sumBusy = true; sumProposed = null;
+      paintEnrichLab(o); paintSummaryProposal(o);
+      fetch(REGION_API+'/api/object-summary/suggest', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ objectId:o.id })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        sumBusy = false;
+        sumProposed = { oid:o.id, summary:j.summary, model:j.model, previous:j.previous, err:null };
+        paintEnrichLab(o); paintSummaryProposal(o);
+      })
+      .catch(function(e){
+        sumBusy = false;
+        sumProposed = { oid:o.id, err:e.message };
+        paintEnrichLab(o); paintSummaryProposal(o);
+      });
+    }
+
+    // The proposal sits BELOW the facts table, next to the summary it would
+    // replace, so the two can be read against each other before anything changes.
+    function paintSummaryProposal(o){
+      var box=document.getElementById('rv-sumprop'); if(!box) return;
+      if(sumBusy){ box.hidden=false; box.className='sumprop';
+        box.innerHTML='<div class="sl">rewriting the summary from the current transcription…</div>'; return; }
+      if(!sumProposed || sumProposed.oid!==o.id){ box.hidden=true; box.innerHTML=''; return; }
+      box.hidden=false; box.className='sumprop';
+      if(sumProposed.err){
+        box.innerHTML='<div class="sl bad">could not regenerate — '+esc(sumProposed.err)+'</div>';
+        return;
+      }
+      if(!sumProposed.summary){
+        box.innerHTML='<div class="sl bad">'+esc(sumProposed.model)+
+          ' judged the transcription too fragmentary to summarize — nothing changed</div>';
+        return;
+      }
+      box.innerHTML=
+        '<div class="sl">proposed by '+esc(sumProposed.model)+' · replaces the summary above</div>'+
+        '<div class="st">'+esc(sumProposed.summary)+'</div>'+
+        '<div class="srow"><button class="pri" id="rv-sum-keep">KEEP IT</button>'+
+        '<button id="rv-sum-drop">DISCARD</button>'+
+        '<span class="msg" id="rv-sum-msg"></span></div>';
+      document.getElementById('rv-sum-drop').onclick = function(){ sumProposed=null; paintSummaryProposal(o); };
+      document.getElementById('rv-sum-keep').onclick = function(){
+        var m=document.getElementById('rv-sum-msg'); if(m) m.textContent='saving…';
+        fetch(REGION_API+'/api/object-summary', {
+          method:'POST', headers:{'content-type':'application/json'},
+          body: JSON.stringify({ objectId:o.id, summary:sumProposed.summary })
+        })
+        .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+        .then(function(j){
+          o.summary=j.summary; sumProposed=null;
+          renderDetail(o);
+          var v=document.getElementById('rv-vmsg'); if(v) v.textContent='summary regenerated';
+        })
+        .catch(function(e){ if(m) m.textContent='save failed — '+e.message; });
+      };
+    }
+
+    // ── re-extract: read this object again from its own crop ────────────────
+    // The service crops the object's box out of the archival scan and hands it to
+    // Sonnet. The result opens in the transcription editor UNSAVED — the curator
+    // reads it against the page image and saves it, or backs out. Nothing is
+    // written until they do.
+    //
+    // One box per object now, so an object whose story jumps columns will be
+    // re-read from the first column only. Where the anchor recorded that, this
+    // says so and makes the curator ask for it twice — a truncated re-read that
+    // silently replaces a fuller transcription is the failure worth guarding.
+    // The warning and any error live in STATE, not written straight into the label
+    // — the label is the buttons' own container, so rewriting it destroys the very
+    // control the curator has to click next. paintTranscript() owns the markup.
+    var rexArmed = null;   // object id whose continuation warning is showing
+    var rexNote  = null;   // { oid, html } — badge to render beside the label
+    var rexBusy  = false;
+
+    function reextract(o){
+      if(!REGION_API || rexBusy) return;
+      var reg = regionOf(o.bbox);
+      if(reg && reg.continuedIn && rexArmed !== o.id){
+        rexArmed = o.id;
+        rexNote = { oid:o.id, html:'⚠ this box is only the first of '+(reg.continuedIn+1)+
+          ' columns — a re-read covers just this part. Click again to go ahead' };
+        paintTranscript(o);
+        return;
+      }
+      rexArmed = null; rexNote = null; rexBusy = true;
+      paintTranscript(o);
+      fetch(REGION_API+'/api/object-text/reextract', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ objectId:o.id })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        // Straight into the editor, dirty, so SAVE is live and CANCEL discards it.
+        rexBusy = false;
+        // `reread` marks this draft as a MACHINE read, so committing it replaces
+        // the machine's text rather than landing in the human overlay.
+        tedit = { oid:o.id, draft:j.text, reread:j.model,
+                  msg:'re-read by '+j.model+' from a '+j.cropPixels+' crop'+
+                      (j.continuedIn ? ' (first of '+(j.continuedIn+1)+' columns)' : '')+
+                      (o.textEdited ? ' — NOTE: your hand-corrected version stays on top of it' : '')+
+                      ' — compare against the page, then REPLACE' };
+        showRaw = false;
+        paintTranscript(o);
+      })
+      .catch(function(e){
+        rexBusy = false;
+        rexNote = { oid:o.id, html:'re-extract failed — '+esc(e.message) };
+        paintTranscript(o);
+      });
+    }
+
+    // ── display title ───────────────────────────────────────────────────────
+    // The row label the section list falls back to when an object has no title.
+    // The patron app shows nothing there; a list still needs something clickable.
+    function rowLabel(o){ return o.title || ((o.role||o.class||'object').replace(/_/g,' ')); }
+
+    function paintTitle(o){
+      var lab=document.getElementById('rv-titlab'), inp=document.getElementById('rv-title');
+      if(!lab || !inp) return;
+      var live=!!REGION_API;
+      var src = o.titleSource==='human' ? ['human','set by hand']
+              : o.titleSource==='machine' ? ['auto','from the first line']
+              : ['none','no title — patrons see body text only'];
+      lab.innerHTML = 'Display title <span class="tsrc '+src[0]+'">· '+esc(src[1])+'</span>';
+      if(document.activeElement !== inp) inp.value = o.displayTitle || '';
+      inp.disabled = !live;
+      inp.placeholder = o.titleSource==='machine' ? o.title
+        : (live ? 'untitled — type a title to give this one a headline' : 'read-only in demo mode');
+      inp.onblur = function(){ saveTitle(o, inp.value); };
+      inp.onkeydown = function(ev){
+        if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); }
+        else if(ev.key==='Escape'){ ev.preventDefault(); inp.value=o.displayTitle||''; inp.blur(); }
+      };
+
+      // SUGGEST — draft a title from the transcription. It fills the field and
+      // stops there; the suggestion is unsaved until the curator commits it, so
+      // nothing machine-written reaches a patron without a human putting it there.
+      var ai=document.getElementById('rv-title-ai');
+      if(ai){
+        ai.disabled = !live;
+        ai.onclick = function(){
+          ai.disabled = true; ai.textContent = 'DRAFTING…';
+          fetch(REGION_API+'/api/object-title/suggest', {
+            method:'POST', headers:{'content-type':'application/json'},
+            body: JSON.stringify({ objectId:o.id })
+          })
+          .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+          .then(function(j){
+            if(!j.title){
+              lab.innerHTML = 'Display title <span class="tsrc ai">· '+esc(j.model)+' found nothing to title here</span>';
+              return;
+            }
+            // Into the field UNSAVED, selected, so editing or discarding is one action.
+            inp.value = j.title;
+            inp.focus(); inp.select();
+            lab.innerHTML = 'Display title <span class="tsrc ai">· drafted by '+esc(j.model)+
+              ' — edit, then press Enter to keep it</span>';
+          })
+          .catch(function(e){
+            lab.innerHTML = 'Display title <span class="tsrc none">· suggestion failed — '+esc(e.message)+'</span>';
+          })
+          .then(function(){ ai.disabled = !live; ai.textContent = 'SUGGEST'; });
+        };
+      }
+    }
+    var titleSaving=false;
+    function saveTitle(o, text){
+      if(!REGION_API || titleSaving) return;
+      if((text||'').trim() === (o.displayTitle||'')) return;
+      titleSaving=true;
+      fetch(REGION_API+'/api/object-title', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ objectId:o.id, title:text })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        o.title=j.title; o.titleSource=j.titleSource;
+        o.displayTitle=j.displayTitle||''; o.displayTitleAt=j.displayTitleAt;
+        paintTitle(o); repaintRow(o);
+      })
+      .catch(function(e){ setTmsg('title save failed — '+e.message); })
+      .then(function(){ titleSaving=false; });
+    }
+    function flushTitle(o){
+      var inp=document.getElementById('rv-title');
+      if(inp && !inp.disabled) saveTitle(o, inp.value);
+    }
+
+    function startTextEdit(o){
+      if(!REGION_API) return;
+      // A draft abandoned by switching objects comes back with you.
+      tedit = { oid:o.id, draft: (drafts[o.id]!=null ? drafts[o.id] : (o.transcript||'')) };
+      if(drafts[o.id]!=null) tedit.msg = 'unsaved draft restored';
+      showRaw = false;
+      paintTranscript(o);
+    }
+    function cancelTextEdit(o){ tedit=null; replaceArmed=false; delete drafts[o.id]; paintTranscript(o); }
+
+    // text === null reverts to the machine's read (clears the overlay server-side).
+    //
+    // A draft that came from RE-EXTRACT is a MACHINE read, so it commits to a
+    // different place: it replaces content_objects.text outright. That is not
+    // reversible — the superseded transcription is not kept — so it asks twice,
+    // unlike an ordinary edit, which only ever adds an overlay on top.
+    var replaceArmed = false;
+
+    function commitText(o, text){
+      var reread = tedit && tedit.reread;
+      if(reread && text!==null && !replaceArmed){
+        replaceArmed = true;
+        setTmsg('this REPLACES the machine’s transcription and the old one is not kept — click again to confirm');
+        var b=document.getElementById('rv-tsave');   // the transcription editor's own
+        if(b) b.textContent='REPLACE — NO UNDO ⌘⏎';
+        return;
+      }
+      replaceArmed = false;
+      if(reread && text!==null){
+        setTmsg('replacing the machine’s read…');
+        return fetch(REGION_API+'/api/object-raw-text', {
+          method:'POST', headers:{'content-type':'application/json'},
+          body: JSON.stringify({ objectId:o.id, text:text, model:reread })
+        })
+        .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+        .then(function(j){
+          o.transcript=j.text; o.transcriptRaw=j.textRaw;
+          o.textEdited=j.textEdited; o.rereadModel=j.rereadModel; o.rereadAt=j.rereadAt;
+          o.title=j.title; o.titleSource=j.titleSource;
+          tedit=null; delete drafts[o.id];
+          paintTitle(o); paintTranscript(o); repaintRow(o);
+          var m=document.getElementById('rv-vmsg');
+          if(m) m.textContent = 'machine transcription replaced by '+j.rereadModel+
+            (j.maskedByOverlay ? ' — your hand-corrected version still sits on top of it' : '');
+        })
+        .catch(function(e){ setTmsg('replace failed — '+e.message); });
+      }
+      setTmsg(text===null ? 'reverting…' : 'saving…');
+      fetch(REGION_API+'/api/object-text', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ objectId:o.id, text:text })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        o.transcript=j.text; o.transcriptRaw=j.textRaw;
+        o.textEdited=j.textEdited; o.textEditedAt=j.textEditedAt;
+        // A correction can change what the title resolves to, so take the server's
+        // answer rather than re-deriving the rule here.
+        o.title=j.title; o.titleSource=j.titleSource;
+        tedit=null; delete drafts[o.id];
+        paintTitle(o);
+        paintTranscript(o);
+        repaintRow(o);
+        setTmsg('');
+      })
+      .catch(function(e){ setTmsg('save failed — '+e.message); });
+    }
+
+    // Rewrite just this object's row in place. A full renderWorklist() would rebuild
+    // every row and throw away the selection and the eye states with them.
+    function repaintRow(o){
+      var row=document.querySelector('#wl-rows .slrow[data-oid="'+o.id+'"]'); if(!row) return;
+      var t=row.querySelector('.t');
+      if(t){ t.textContent=rowLabel(o); t.classList.toggle('untitled', !o.title); }
+      var dot=row.querySelector('.dot-st');
+      if(dot){ var k=STDOT[o.status]||'u'; dot.className='dot-st '+k; dot.title=STLABEL[k]; }
+      var nd=row.querySelector('.notedot');
+      if(nd){ nd.hidden = !o.reviewNote; nd.title = o.reviewNote ? 'note: '+o.reviewNote : ''; }
+      var pd=row.querySelector('.pubdot');
+      if(pd) pd.hidden = !o.published;
+      row.title = rowTip(o);
+    }
+    function rowTip(o){
+      return (o.title || 'untitled — '+rowLabel(o))+' — p'+o.page+' · '+o.class.replace(/_/g,' ')+(o.tier?' · '+o.tier:'')+
+        ' · '+(STLABEL[STDOT[o.status]||'u'])+(o.reviewNote?'\nnote: '+o.reviewNote:'');
+    }
+
+    // ══ REVIEW VERDICT + NOTE (SLICE-09d) ════════════════════════════════════
+    // Confirm and Flag were never independent actions — they are two values of one
+    // field, so they are one dropdown. Nothing here auto-advances: a verdict and
+    // "where do I look next" are the curator's two separate decisions.
+    var noteSaving = false;
+
+    function paintReview(o){
+      var sel=document.getElementById('rv-status'), note=document.getElementById('rv-note'),
+          lab=document.getElementById('rv-nlab'), msg=document.getElementById('rv-vmsg');
+      if(!sel || !note) return;
+      var live=!!REGION_API, k=STDOT[o.status]||'u';
+
+      sel.value = o.status || 'unreviewed';
+      sel.className = 'vsel st-'+k;
+      sel.disabled = !live;
+      sel.title = live ? 'Review status for this object' : 'read-only in demo mode — needs the live service';
+      sel.onchange = function(){ saveStatus(o, sel.value); };
+      if(msg) msg.textContent = live ? '' : 'read-only in demo mode';
+
+      var pub=document.getElementById('rv-publish');
+      if(pub){
+        pub.setAttribute('aria-pressed', o.published ? 'true' : 'false');
+        pub.querySelector('.pl').textContent = o.published ? 'Published' : 'Not published';
+        pub.disabled = !live;
+        pub.title = o.published
+          ? 'Live — patrons can see this object'+(o.publishedAt?' since '+shortDate(o.publishedAt):'')+'. Click to withdraw it. (p)'
+          : 'Not published — patrons cannot see this object at all. Click to publish it. (p)';
+        pub.onclick = function(){ postReview(o, { published: !o.published }, 'publish'); };
+      }
+
+      // Only touch the field's value when it isn't the one being typed into —
+      // a re-render mid-note (a region save, a status change) must not yank the
+      // caret back or overwrite unsaved keystrokes.
+      if(document.activeElement !== note) note.value = o.reviewNote || '';
+      note.disabled = !live;
+      if(lab) lab.innerHTML = 'Review note' +
+        (o.reviewNoteAt ? ' <span class="nsaved">saved '+esc(shortDate(o.reviewNoteAt))+'</span>' : '');
+      note.onblur   = function(){ saveNote(o, note.value); };
+      note.onkeydown = function(ev){
+        if(ev.key==='Enter' && (ev.metaKey||ev.ctrlKey)){ ev.preventDefault(); note.blur(); }
+        else if(ev.key==='Escape'){ ev.preventDefault(); note.value=o.reviewNote||''; note.blur(); }
+      };
+    }
+
+    // ── delete an object outright ───────────────────────────────────────────
+    // Two steps, always: the button only opens the confirmation, and the
+    // confirmation is where the destroying happens. It lists what goes so the
+    // decision is made against the actual cost, not against the word "delete".
+    var confirmingDelete = null;   // object id whose confirmation is open
+
+    function paintDanger(o){
+      var box=document.getElementById('rv-danger'); if(!box) return;
+      var live=!!REGION_API;
+      if(confirmingDelete !== o.id){
+        box.innerHTML = '<button class="delbtn" id="rv-del"'+(live?'':' disabled')+'>Delete this object…</button>'+
+          '<span class="hint">'+(live?'removes it from the database entirely':'read-only in demo mode')+'</span>';
+        var b=document.getElementById('rv-del');
+        if(b) b.onclick = function(){ confirmingDelete=o.id; paintDanger(o); };
+        return;
+      }
+      var loses=[];
+      loses.push('the transcription'+(o.textEdited?' and your hand-corrected version of it':''));
+      if(o.topics && o.topics.length)     loses.push(o.topics.length+' topic link'+(o.topics.length>1?'s':''));
+      if(o.entities && o.entities.length) loses.push(o.entities.length+' entity link'+(o.entities.length>1?'s':''));
+      if(regionOf(o.bbox))                loses.push('the region on the page image');
+      if(o.reviewNote)                    loses.push('your review note');
+      if(o.displayTitle)                  loses.push('the display title you set');
+      loses.push('any extracted events and provenance rows');
+
+      box.innerHTML =
+        '<div class="delconfirm">'+
+          '<div class="h">Delete '+esc(o.id)+' permanently?</div>'+
+          '<div class="b">This removes the object from the database. It cannot be undone, and there is no trash.'+
+            (o.published ? ' <b>It is currently published</b> — patrons can see it right now.' : '')+'</div>'+
+          '<ul><li>'+loses.map(esc).join('</li><li>')+'</li></ul>'+
+          '<div class="warn-note"><b>It can come back.</b> Deleting does not stop the pipeline from '+
+            're-extracting it: re-ingesting page '+esc(o.page)+' will re-create this object with a new id. '+
+            'Deletion is permanent against the database, not against the source image.</div>'+
+          '<div class="row">'+
+            '<button class="go" id="rv-del-go">DELETE PERMANENTLY</button>'+
+            '<button id="rv-del-no">CANCEL</button>'+
+            '<span class="msg" id="rv-del-msg"></span>'+
+          '</div>'+
+        '</div>';
+      document.getElementById('rv-del-no').onclick = function(){ confirmingDelete=null; paintDanger(o); };
+      document.getElementById('rv-del-go').onclick = function(){ doDelete(o); };
+    }
+
+    function doDelete(o){
+      var go=document.getElementById('rv-del-go'), msg=document.getElementById('rv-del-msg');
+      if(go) go.disabled = true;
+      if(msg) msg.textContent = 'deleting…';
+      fetch(REGION_API+'/api/object?objectId='+encodeURIComponent(o.id), { method:'DELETE' })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        var i = wl.indexOf(o);
+        // Pick where to land BEFORE the array shifts under us — the next object
+        // down, or the previous one if this was the last.
+        var nextId = (wl[i+1] || wl[i-1] || {}).id || null;
+        if(i >= 0) wl.splice(i, 1);
+        delete boxHidden[o.id]; saveHidden();
+        confirmingDelete = null;
+        currentObj = null;                 // it no longer exists; don't paint it
+        frameDirty = true;                 // its box has to leave the page image
+        renderWorklist();                  // data-i indices all shifted — rebuild
+        recountReview();
+        if(nextId) selectById(nextId);
+        else {
+          // that was the last object on the page — renderWorklist has nothing to
+          // open, so the detail panel would otherwise keep showing what we deleted
+          set('rv-oid','—'); html('rv-transcript','<div class="prog">No objects left on this page.</div>');
+          html('rv-facts',''); html('rv-confline',''); html('rv-flag',''); html('rv-danger','');
+        }
+        var c=j.cascaded, extra=[];
+        if(c.topics) extra.push(c.topics+' topics');
+        if(c.entities) extra.push(c.entities+' entities');
+        if(c.events) extra.push(c.events+' events');
+        if(c.provenance) extra.push(c.provenance+' provenance rows');
+        var m=document.getElementById('rv-vmsg');
+        if(m) m.textContent = 'deleted '+j.objectId+(extra.length? ' · also removed '+extra.join(', ') : '');
+      })
+      .catch(function(e){
+        if(go) go.disabled = false;
+        if(msg) msg.textContent = 'delete failed — '+e.message;
+      });
+    }
+
+    function saveStatus(o, status){
+      if(!REGION_API) return;
+      postReview(o, { status: status }, 'status');
+    }
+    function saveNote(o, text){
+      if(!REGION_API || noteSaving) return;
+      if((text||'').trim() === (o.reviewNote||'')) return;   // nothing changed — don't write
+      noteSaving = true;
+      postReview(o, { note: text }, 'note').then(function(){ noteSaving=false; }, function(){ noteSaving=false; });
+    }
+    // Write out whatever is sitting in the note field for `o`, if it differs from
+    // what's stored. Called on the way out of an object, and on unload.
+    function flushNote(o){
+      var note=document.getElementById('rv-note');
+      if(!note || note.disabled) return;
+      saveNote(o, note.value);
+    }
+    // A refresh or a closed tab must not eat a note either. sendBeacon is the only
+    // thing that reliably survives unload; fetch() is cancelled mid-flight.
+    window.addEventListener('pagehide', function(){
+      var note=document.getElementById('rv-note');
+      if(!REGION_API || !currentObj || !note || note.disabled) return;
+      if((note.value||'').trim() === (currentObj.reviewNote||'')) return;
+      try {
+        navigator.sendBeacon(REGION_API+'/api/object-review',
+          new Blob([JSON.stringify({ objectId: currentObj.id, note: note.value })], { type:'application/json' }));
+      } catch(e){ /* best effort — the on-blur and on-switch saves are the primary paths */ }
+    });
+
+    function postReview(o, patch, what){
+      var msg=document.getElementById('rv-vmsg');
+      if(msg) msg.textContent = 'saving…';
+      var body = { objectId: o.id };
+      if(patch.status    !== undefined) body.status    = patch.status;
+      if(patch.note      !== undefined) body.note      = patch.note;
+      if(patch.published !== undefined) body.published = patch.published;
+      return fetch(REGION_API+'/api/object-review', {
+        method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        o.status=j.status; o.reviewNote=j.note||''; o.reviewNoteAt=j.noteAt; o.reviewedAt=j.reviewedAt;
+        o.published=j.published; o.publishedAt=j.publishedAt;
+        paintReview(o);
+        repaintRow(o);
+        recountReview();
+        if(msg) msg.textContent = what==='note' ? 'note saved'
+          : what==='publish' ? (j.published ? 'published — patrons can see this now' : 'withdrawn — no longer public')
+          : 'status saved';
+      })
+      .catch(function(e){ if(msg) msg.textContent = 'save failed — '+e.message; });
+    }
+
+    // Every reviewed/flagged/left counter in the app derives from the worklist, so
+    // recount from it rather than trusting the payload's snapshot — which, in page
+    // mode, was hard-coded to zero and had been lying since the day it was written.
+    function recountReview(){
+      var r={ total:wl.length, reviewed:0, flagged:0, unreviewed:0 };
+      wl.forEach(function(o){
+        if(o.status==='reviewed') r.reviewed++;
+        else if(o.status==='flagged') r.flagged++;
+        else r.unreviewed++;
+      });
+      d.review = r;
+      set('h-reviewed', r.reviewed);
+      set('nav-review', r.unreviewed+' left');
+      set('st-review', r.reviewed+' / '+r.total);
+      var bar=document.querySelector('#bar-review > span');
+      if(bar && r.total) bar.style.width = Math.round(100*r.reviewed/r.total)+'%';
+      // wl-prog doubles as the filter-scope line; only rewrite it when no scope is on
+      if(!(pageFilter!=null || classFilter.size || flagFilter.size)){
+        set('wl-prog', 'reviewed '+r.reviewed+' / '+r.total+' · '+r.unreviewed+' left');
+      }
+    }
+
     function renderDetail(o){
       if(!o) return;
+      // Leaving an object flushes any unsaved note. Blur normally does this when
+      // focus moves to the row you clicked, but "normally" is not a guarantee —
+      // and losing a curator's note to a timing detail is not acceptable.
+      if(currentObj && currentObj !== o){ flushNote(currentObj); flushTitle(currentObj); }
+      // Switching objects mid-edit keeps the draft rather than dropping it on the
+      // floor; startTextEdit() hands it back when the curator returns.
+      if(tedit && tedit.oid !== o.id){
+        var prev = objById(tedit.oid);
+        if(prev && tedit.draft !== (prev.transcript||'')) drafts[tedit.oid] = tedit.draft;
+        tedit = null;
+      }
+      if(currentObj !== o){ showRaw = false; confirmingDelete = null; rexArmed = null; rexNote = null; sumProposed = null; }
       currentObj = o;
       hideTip();
       var chip=document.getElementById('rv-chip');
@@ -1721,7 +2855,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var reg=regionOf(o.bbox); // normalized region(s) → % overlay (or null)
       if(page){
         if(o.pageImage){
-          var href=o.iiifId ? o.iiifId+'/full/full/0/default.jpg' : null;
+          var href=cdmItemUrl(o.iiifId);
           page.style.background='var(--sunken)';
           page.style.backgroundImage='none';
           page.style.aspectRatio='auto'; // let the image define its own height so the overlay tracks it
@@ -1729,6 +2863,11 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           // the geometry. Rebuilding on every selection is what broke double-click
           // and drag — it destroyed the element mid-gesture.
           var wrap = page.querySelector('.pagewrap');
+          // A different page image means a different set of boxes, so the eyes are
+          // re-read from that page's stored preference. A frameDirty rebuild (a save
+          // on the SAME page) must not touch them — the curator's hiding survives
+          // their own correction.
+          if(frameSrc !== o.pageImage) boxHidden = loadHidden(o);
           if(frameDirty || frameSrc !== o.pageImage || !wrap){
             // No <a> wrapper — the page image is now an interactive surface (hover,
             // click-to-select, double-click-to-correct), and a link around it would
@@ -1744,9 +2883,12 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           applyZoom();                 // a rebuilt frame must keep the current zoom
           paintGlow(wrap, reg);
           paintSel(wrap, o);
+          paintBoxVis();               // a rebuilt frame loses the eye state — re-apply it
+          paintFill();                 // …and the fill class, for the same reason
+          paintFind();                 // …and any active find highlight
           var cta=document.getElementById('rv-iiif');
           if(cta && href){ cta.href=href; cta.target='_blank'; cta.rel='noreferrer';
-            cta.innerHTML='Open in page reader <span class="df">full-res IIIF</span>'; }
+            cta.innerHTML='Open in ContentDM <span class="df">catalogued item page</span>'; }
         } else {
           page.style.backgroundImage='';
           page.style.aspectRatio='';
@@ -1761,13 +2903,14 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         if(reg && reg.source==='human'){
           rn.className='region-note';
           rn.innerHTML='<b>✎</b> region corrected by hand'+
-            (reg.extra ? ' · '+(reg.extra+1)+' rectangles' : '')+' — this one is not the machine’s';
+            ' — this one is not the machine’s';
         }
         else if(reg && reg.source==='ocr-anchor'){
           rn.className='region-note';
           rn.innerHTML='<b>◈</b> region located by OCR word match — '+
             Math.round((reg.coverage||0)*100)+'% of the transcript matched'+
-            (reg.extra ? ' · continues in '+reg.extra+' more column'+(reg.extra>1?'s':'')+' (not shown)' : '')+
+            (reg.continuedIn ? ' · <b>continues in '+reg.continuedIn+' more column'+(reg.continuedIn>1?'s':'')+
+              '</b> — this box is only the first' : '')+
             (reg.ocrConf!=null ? ' · page OCR conf '+reg.ocrConf : '');
         }
         else if(reg){ rn.className='region-note'; rn.innerHTML='<b>◈</b> region highlighted — approximate (VLM-estimated, not OCR-anchored)'; }
@@ -1779,16 +2922,18 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         ' · P.'+o.page+' · SEQ '+o.seq+'<br>'+
         'transcribed by '+esc((vlm.provider||'')+'/'+engine)+
         (o.iiifId ? '<br>IIIF: '+esc(o.iiifId) : ' · region_bbox: null'));
-      // transcription: first line as headline, remainder as body
-      var lines=(o.transcript||'').split('\n'); var head=lines.shift()||'';
-      var bodyTxt=lines.join('\n').trim();
-      html('rv-transcript', '<span class="hl">'+markLoss(head)+'</span>'+markLoss(bodyTxt));
+      // transcription — headline + body, the edit affordance, and (under a
+      // correction) the machine's immutable original
+      paintTitle(o);    // what a patron will see as this object's headline
+      paintTranscript(o);
+      paintReview(o);   // status dropdown + the curator's note
+      paintDanger(o);   // the delete affordance, collapsed
       html('rv-confline',
         '<span class="conf"><b>'+esc(o.class)+'</b> · '+(o.role?esc(o.role):'—')+'</span>'+
         '<span class="conf">tier <b>'+esc(o.tier||'—')+'</b></span>'+
         '<span class="conf">per-field confidence <b>not emitted this run</b></span>');
       // enrichment facts
-      set('rv-enrich-lab', 'Enrichment' + (o.tier ? ' · '+o.tier+' tier' : ''));
+      paintEnrichLab(o);
       var facts='';
       var typeStr = 'article_type = '+(o.articleType||'—');
       facts += '<span class="fl">object_class</span><span class="fv">'+esc(o.class)+
@@ -1807,6 +2952,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(o.summary) facts += '<span class="fl">summary</span><span class="fv" style="font-style:italic">'+esc(o.summary)+'</span>';
       if(!o.tier || o.tier==='capture_only') facts += '<span class="fl">note</span><span class="fv">captured, no enrichment spent (Principle 16 routing).</span>';
       html('rv-facts', facts);
+      paintSummaryProposal(o);
       // flags: physical loss faithfulness note + advertorial
       var flag='';
       if(/\[(loss|illegible)\]/i.test(o.transcript||'')){
@@ -1840,11 +2986,21 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         if(flagFilter.size && !matchesFlag(o)) return;
         if(firstIdx==null) firstIdx=i; shown++;
         var dot = STDOT[o.status] || 'u';
-        var meta = 'p'+o.page+' · '+esc(o.class.replace(/_/g,' '))+(o.tier?' · '+esc(o.tier):'');
-        rowsHtml += '<div class="wlrow" data-i="'+i+'">'+
-          '<div class="th"><b style="background:'+colorVar(o.color)+'"></b></div>'+
-          '<div class="m"><div class="t">'+esc(o.title)+'</div>'+
-          '<div class="s"><span class="dot-st '+dot+'"></span>'+meta+'</div></div></div>';
+        // The class/tier line the old row carried now rides on the row's TITLE
+        // attribute — one line of chrome instead of two, and the detail panel
+        // states all of it in full the moment the row is selected. The curator's
+        // note rides there too, so a page can be scanned for "what did I write?".
+        // The eye's enabled/hidden state is settled by paintBoxVis below — it can
+        // depend on which page is in the frame, and on the very first render that
+        // is not decided until renderDetail() runs at the end of this function.
+        rowsHtml += '<div class="slrow" data-i="'+i+'" data-oid="'+esc(o.id)+'" title="'+esc(rowTip(o))+'">'+
+          '<span class="cs" style="background:'+colorVar(o.color)+'"></span>'+
+          '<span class="t'+(o.title?'':' untitled')+'">'+esc(rowLabel(o))+'</span>'+
+          '<span class="notedot"'+(o.reviewNote?'':' hidden')+
+            (o.reviewNote?' title="'+esc('note: '+o.reviewNote)+'"':'')+'>✎</span>'+
+          '<span class="pubdot"'+(o.published?'':' hidden')+' title="published — visible to patrons"></span>'+
+          '<span class="dot-st '+dot+'" title="'+esc(STLABEL[dot])+'"></span>'+
+          '<button class="sl-eye">'+EYE_ON+'</button></div>';
       });
 
       // scope description from every active constraint (page + class + flags)
@@ -1874,13 +3030,24 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           ' · '+(d.review?d.review.unreviewed:wl.length)+' left');
       }
 
-      document.querySelectorAll('#wl-rows .wlrow').forEach(function(row){
+      document.querySelectorAll('#wl-rows .slrow').forEach(function(row){
         row.addEventListener('click', function(){
-          document.querySelectorAll('#wl-rows .wlrow').forEach(function(r){ r.classList.remove('sel'); });
+          document.querySelectorAll('#wl-rows .slrow').forEach(function(r){ r.classList.remove('sel'); });
           row.classList.add('sel');
           renderDetail(wl[+row.dataset.i]);
         });
+        // The eye is a control INSIDE a clickable row, so it has to stop the click
+        // from also selecting — toggling a layer's visibility and jumping to it are
+        // two different intentions.
+        var eye = row.querySelector('.sl-eye');
+        if(eye) eye.addEventListener('click', function(ev){
+          ev.preventDefault(); ev.stopPropagation();
+          if(eye.disabled) return;
+          if(ev.altKey) soloBox(row.dataset.oid); else toggleBox(row.dataset.oid);
+        });
       });
+      paintBoxVis();   // freshly built rows carry a default-open eye — correct them
+      paintFind();     // …and no match marks
       // Deep link from the patron app: ?object=co-N opens straight to that object
       // rather than to the top of the worklist. It must survive EVERY render in the
       // init sequence — the ?page=N handler below re-renders right after this one —
@@ -1891,20 +3058,29 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       }
       var openIdx = (wantIdx!=null ? wantIdx : firstIdx);
       if(openIdx!=null){
-        var f=document.querySelector('#wl-rows .wlrow[data-i="'+openIdx+'"]');
+        var f=document.querySelector('#wl-rows .slrow[data-i="'+openIdx+'"]');
         if(f){ f.classList.add('sel');
           if(wantIdx!=null) f.scrollIntoView({block:'center'}); }
         renderDetail(wl[openIdx]);
       }
     }
     renderWorklist();
+    // Live payloads carry each object's real curation_status, so derive the review
+    // counters from the worklist rather than trusting buildD's snapshot — which was
+    // hard-coded to zero. The static issue demo keeps its exported numbers.
+    if(d.live) recountReview();
 
     // deep-link from the collection dashboard: staff.html?page=N opens Review
     // already scoped to page N (dashboard: issue → page → review, no detour).
     var dlPage = new URLSearchParams(location.search).get('page');
     if(dlPage){
       var rvNav=document.querySelector('.navitem[data-view="review"]'); if(rvNav) rvNav.click();
-      pageFilter=+dlPage; renderWorklist();
+      // Only scope when there is something to scope AWAY. Page mode loads a single
+      // page and every object in it carries that page number, so the filter matched
+      // everything and all it produced was a "page N · clear" label that did nothing.
+      // Testing the worklist rather than the mode keeps this true either way.
+      var spansPages = wl.some(function(o){ return o.page !== wl[0].page; });
+      if(spansPages){ pageFilter=+dlPage; renderWorklist(); }
     }
     // init has settled — release the deep link so the curator's own filtering
     // isn't repeatedly yanked back to the object they arrived on.

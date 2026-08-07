@@ -11,11 +11,14 @@
 // Rights gate + idempotency live in ingestPage(); this file is transport + seeding.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
-import { INGEST_PORT, CATALOG_JSON, CDM_QUERY_BASE } from "./config.ts";
+import { INGEST_PORT, CATALOG_JSON, CDM_QUERY_BASE, iiifId } from "./config.ts";
+import { reextractObject } from "./lib/reextract.ts";
+import { resummarize, setObjectSummary } from "./lib/resummarize.ts";
 import { fetchRetry } from "./lib/http.ts";
 import { migrate, query, closePool, getPool } from "./lib/pg.ts";
-import { ingestPage, importPage, getPageObjects, setObjectRegion, RightsBlocked } from "./lib/ingestPage.ts";
+import { ingestPage, importPage, getPageObjects, setObjectRegion, setObjectText, setObjectReview, setObjectTitle, replaceObjectRawText, deleteObject, RightsBlocked } from "./lib/ingestPage.ts";
 import { getDiscovery } from "./lib/discovery.ts";
+import { suggestTitle } from "./lib/suggestTitle.ts";
 
 // Resolve an issue's page structure (page number → ContentDM record) so ANY page
 // becomes addressable/ingestable, not just ones we already have records for.
@@ -40,7 +43,11 @@ const ORIGIN = process.env.CORS_ORIGIN ?? "*";
 function cors(res: ServerResponse) {
   res.setHeader("Access-Control-Allow-Origin", ORIGIN);
   res.setHeader("Access-Control-Allow-Headers", "content-type");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  // DELETE belongs here too — /api/object uses it. A method missing from this
+  // list fails the browser's preflight and surfaces as a bare "Failed to fetch"
+  // in the client, with no request ever reaching a route (curl never sees this,
+  // because curl sends no preflight).
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
 }
 function json(res: ServerResponse, status: number, body: unknown) {
   cors(res);
@@ -164,6 +171,136 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
       const region = await setObjectRegion(id, body.rects ?? []);
       return json(res, 200, { ok: true, objectId: id, region });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // The curator's corrected transcription. Body: { objectId, text } — a null or
+  // empty text clears the overlay and hands the object back to the machine's read.
+  // Never touches content_objects.text; see setObjectText.
+  if (url.pathname === "/api/object-text" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      const out = await setObjectText(id, body.text ?? null);
+      return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // The curator's verdict and their note. Body: { objectId, status?, note? } —
+  // each field is applied only when present, so the note auto-saving on blur can
+  // never reset a status set a moment earlier (and vice versa).
+  if (url.pathname === "/api/object-review" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      const patch: { status?: unknown; note?: unknown; published?: unknown } = {};
+      if ("status" in body) patch.status = body.status;
+      if ("note" in body) patch.note = body.note;
+      if ("published" in body) patch.published = body.published;
+      const out = await setObjectReview(id, patch);
+      return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // The curator's display title. Body: { objectId, title } — null/empty clears the
+  // override and hands the object back to the automatic rule in lib/title.ts.
+  if (url.pathname === "/api/object-title" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      const out = await setObjectTitle(id, body.title ?? null);
+      return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // Destroy an object and everything hanging off it. A DELETE verb, deliberately:
+  // this is the one route here that cannot be undone, and it should not be
+  // reachable by the same POST shape as every reversible edit.
+  if (url.pathname === "/api/object" && req.method === "DELETE") {
+    try {
+      const id = Number(String(q.get("objectId") ?? "").replace(/^co-/, ""));
+      const out = await deleteObject(id);
+      return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // Ask Haiku for a display title. SUGGESTS ONLY — it writes nothing; the
+  // workbench drops the suggestion into the field and the curator saves it.
+  if (url.pathname === "/api/object-title/suggest" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      if (!Number.isFinite(id)) throw new Error("objectId must be a number");
+      const r = await query<{ text: string; object_class: string; role: string | null }>(
+        `SELECT COALESCE(text_human, text) AS text, object_class, role
+           FROM content_objects WHERE id = $1`, [id]);
+      if (!r.rowCount) throw new Error(`no content object with id ${id}`);
+      const row = r.rows[0];
+      const out = await suggestTitle(row.text, row.object_class, row.role);
+      return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // Re-transcribe one object from its own crop. SUGGESTS ONLY — the re-read goes
+  // back to the workbench and the curator saves it, or doesn't.
+  if (url.pathname === "/api/object-text/reextract" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      if (!Number.isFinite(id)) throw new Error("objectId must be a number");
+      const r = await query<any>(
+        `SELECT page_record, object_class, role, region_bbox FROM content_objects WHERE id = $1`, [id]);
+      if (!r.rowCount) throw new Error(`no content object with id ${id}`);
+      const row = r.rows[0];
+      const bb = row.region_bbox;
+      const rect = Array.isArray(bb) ? bb : (Array.isArray(bb?.rects) ? bb.rects[0] : null);
+      if (!rect) throw new Error("this object has no region to crop — draw one first");
+      const out = await reextractObject({
+        iiifId: iiifId(row.page_record),
+        rect,
+        objectClass: row.object_class,
+        role: row.role,
+        continuedIn: Number(bb?.continuedIn ?? 0),
+      });
+      return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // Commit a re-extraction OVER the machine's read. Body: { objectId, text, model }.
+  // Writes content_objects.text, preserving the first-ever read in text_original.
+  if (url.pathname === "/api/object-raw-text" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      const model = typeof body.model === "string" && body.model ? body.model : "unknown";
+      const out = await replaceObjectRawText(id, body.text, model);
+      return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // Regenerate the summary from the object's CURRENT transcription. Suggests only.
+  if (url.pathname === "/api/object-summary/suggest" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      if (!Number.isFinite(id)) throw new Error("objectId must be a number");
+      const r = await query<any>(
+        `SELECT COALESCE(text_human, text) AS text, object_class, role, summary
+           FROM content_objects WHERE id = $1`, [id]);
+      if (!r.rowCount) throw new Error(`no content object with id ${id}`);
+      const out = await resummarize(r.rows[0].text, r.rows[0].object_class, r.rows[0].role);
+      return json(res, 200, { ok: true, objectId: id, previous: r.rows[0].summary, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // Commit a summary. Enrichment has always been an overlay over immutable raw
+  // text, so this writes in place — it is not touching a transcription.
+  if (url.pathname === "/api/object-summary" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
+      const out = await setObjectSummary(id, body.summary ?? null);
+      return json(res, 200, { ok: true, objectId: id, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
 

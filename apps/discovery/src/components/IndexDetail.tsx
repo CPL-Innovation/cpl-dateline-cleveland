@@ -58,10 +58,14 @@ export function IndexDetail({
               {item.typeLabel} · MACHINE-EXTRACTED
             </div>
           </div>
-          <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 38, lineHeight: 1.1, marginTop: 8, color: C.ink }}>
-            {item.title}
-          </div>
-          <div style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: C.secondary, marginTop: 12, lineHeight: 1.5 }}>
+          {/* An object with no headline gets none here either — the kicker above
+              already names what it is, and the summary carries the rest. */}
+          {item.title ? (
+            <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 38, lineHeight: 1.1, marginTop: 8, color: C.ink }}>
+              {item.title}
+            </div>
+          ) : null}
+          <div style={{ fontFamily: SERIF, fontStyle: item.title ? 'italic' : 'normal', fontSize: item.title ? 17 : 21, color: item.title ? C.secondary : C.ink, marginTop: 12, lineHeight: 1.5 }}>
             {item.snippet}
           </div>
 

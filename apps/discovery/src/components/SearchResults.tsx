@@ -88,9 +88,12 @@ export function SearchResults({
                   <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.04em', color: C.tertiary }}>{item.stamp}</span>
                 </div>
 
-                <div className="dc-title-link" style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 21, lineHeight: 1.2, marginTop: 10, color: C.ink }}>
-                  {item.title}
-                </div>
+                {/* Titleless objects show no headline; the excerpt below carries them. */}
+                {item.title ? (
+                  <div className="dc-title-link" style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 21, lineHeight: 1.2, marginTop: 10, color: C.ink }}>
+                    {item.title}
+                  </div>
+                ) : null}
 
                 {excerpt ? (
                   <div style={{ fontFamily: SERIF, fontSize: 14.5, lineHeight: 1.6, color: C.secondary, marginTop: 8 }}>

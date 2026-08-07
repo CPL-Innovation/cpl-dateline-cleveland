@@ -55,7 +55,8 @@ export function IndexBrowse({ dataset, selected, onToggle, onClearAll, onOpen }:
           </div>
 
           {results.length === 0 ? (
-            <NoResults onClearAll={onClearAll} real={dataset.mode === 'real'} />
+            <NoResults onClearAll={onClearAll} real={dataset.mode === 'real'}
+              filtered={labels.length > 0 || dataset.indexItems.length > 0} />
           ) : visualMode ? (
             <VisualWall results={results} onOpen={onOpen} />
           ) : (
@@ -143,6 +144,20 @@ function FacetGroupBlock({ grp, selected, onToggle }: { grp: FacetGroup; selecte
 }
 
 function MixedGrid({ results, onOpen }: { results: IndexItem[]; onOpen: (id: string) => void }) {
+  // Nothing to show is a state worth explaining. With the publication gate on, an
+  // ingested-but-unpublished corpus renders zero rows, and a silently blank grid
+  // reads as a broken site rather than as "no curator has published this yet".
+  if (!results.length) {
+    return (
+      <div style={{ gridColumn: '1 / -1', padding: '48px 0 60px', maxWidth: 520 }}>
+        <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.16em', color: C.tertiary }}>NOTHING PUBLISHED HERE YET</div>
+        <div style={{ fontFamily: SERIF, fontSize: 17, lineHeight: 1.55, color: C.secondary, marginTop: 10 }}>
+          Pages have been read by the pipeline, but nothing has been released to the public index yet —
+          every object waits for a curator to review and publish it. Nothing reaches this page unreviewed.
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', marginTop: 4 }}>
       {results.map((r) => {
@@ -176,10 +191,13 @@ function MixedGrid({ results, onOpen }: { results: IndexItem[]; onOpen: (id: str
                 <span style={{ fontFamily: MONO, fontSize: 10, color: C.tertiary, textAlign: 'center' }}>[ {r.cropNote} ]</span>
               </div>
             )}
-            <div className="dc-title-link" style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 19, lineHeight: 1.2, marginTop: 10, color: C.ink }}>
-              {r.title}
-            </div>
-            <div style={{ fontFamily: SERIF, fontSize: 13.5, lineHeight: 1.5, color: C.secondary, marginTop: 6 }}>{r.snippet}</div>
+            {/* No title line at all when the object has none — the body carries it. */}
+            {r.title ? (
+              <div className="dc-title-link" style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 19, lineHeight: 1.2, marginTop: 10, color: C.ink }}>
+                {r.title}
+              </div>
+            ) : null}
+            <div style={{ fontFamily: SERIF, fontSize: r.title ? 13.5 : 15, lineHeight: 1.5, color: r.title ? C.secondary : C.ink, marginTop: r.title ? 6 : 10 }}>{r.snippet}</div>
           </button>
         );
       })}
@@ -226,7 +244,22 @@ function VisualWall({ results, onOpen }: { results: IndexItem[]; onOpen: (id: st
   );
 }
 
-function NoResults({ onClearAll, real }: { onClearAll: () => void; real: boolean }) {
+function NoResults({ onClearAll, real, filtered }: { onClearAll: () => void; real: boolean; filtered: boolean }) {
+  // Two different nothings. `filtered` false means the index itself is empty —
+  // with the publication gate on, that is the normal state of a freshly ingested
+  // corpus, and telling the reader to clear filters they never set is nonsense.
+  if (!filtered) {
+    return (
+      <div style={{ marginTop: 48, border: `1px solid ${C.hairMed}`, padding: 44, textAlign: 'center' }}>
+        <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, color: C.ink }}>Nothing published here yet.</div>
+        <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: C.tertiary, marginTop: 12, lineHeight: 1.8 }}>
+          PAGES HAVE BEEN READ BY THE PIPELINE, BUT NOTHING HAS BEEN RELEASED TO THE PUBLIC INDEX.
+          <br />
+          EVERY OBJECT WAITS FOR A CURATOR TO REVIEW AND PUBLISH IT.
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ marginTop: 48, border: `1px solid ${C.hairMed}`, padding: 44, textAlign: 'center' }}>
       <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 26, color: C.ink }}>Nothing filed under that combination — yet.</div>

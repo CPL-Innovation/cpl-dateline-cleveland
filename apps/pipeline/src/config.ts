@@ -150,3 +150,23 @@ export const ENRICH_MODEL =
   process.env.ENRICH_MODEL ?? DEFAULT_ENRICH_MODEL[ENRICH_PROVIDER];
 
 export const ENRICH_PROMPT_VERSION = "slice02-v1";
+
+// ── display-title suggestion (SLICE-09h) ─────────────────────────────────────
+// Haiku, deliberately: writing a headline for a paragraph already in front of you
+// is a small, well-bounded job, and this runs one object at a time at a curator's
+// click. Overridable if a page turns out to need more.
+export const TITLE_MODEL = process.env.TITLE_MODEL ?? "claude-haiku-4-5";
+
+// ── single-object re-extraction (SLICE-09i) ──────────────────────────────────
+// Sonnet, matching the page-ingestion tier: this is the same transcription job the
+// pipeline does, just scoped to one crop, so it should be read by a model of the
+// same capability rather than a cheaper one.
+export const REEXTRACT_MODEL = process.env.REEXTRACT_MODEL ?? "claude-sonnet-5";
+// Long edge requested from IIIF. Claude caps images at 2576px on the long edge and
+// downsamples anything larger, so asking for more would ship bytes the model
+// discards; IIIF never upscales, so a small crop still arrives at native scale.
+export const REEXTRACT_MAX_EDGE = Number(process.env.REEXTRACT_MAX_EDGE ?? 2500);
+
+// ── summary regeneration (SLICE-09j) ─────────────────────────────────────────
+// Sonnet, matching the enrichment tier that wrote the summaries in the first place.
+export const RESUMMARIZE_MODEL = process.env.RESUMMARIZE_MODEL ?? "claude-sonnet-5";

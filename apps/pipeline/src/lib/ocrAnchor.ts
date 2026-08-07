@@ -27,13 +27,17 @@ import {
 
 const OCR_DIR = resolve(ROOT, "scratch", "ocr");
 
-// A located region. `rects` are normalized [x,y,w,h] 0-1, one per column run.
-// `coverage` is matched transcript tokens ÷ total — the honest confidence axis.
+// A located region. ONE rect per object (Jungu's call) — `rects` stays an array
+// for schema compatibility with everything already stored, but never holds more
+// than one entry. `coverage` is matched transcript tokens ÷ total — the honest
+// confidence axis. `continuedIn` counts the column runs this object was ALSO
+// found in and which are deliberately not stored; see the tail of locate().
 export interface Region {
-  rects: Array<[number, number, number, number]>;
+  rects: [[number, number, number, number]];
   coverage: number;
   source: "ocr-anchor";
   ocrConf: number; // mean OCR word confidence for the page (0-100)
+  continuedIn: number; // column runs found but not stored (0 = the box is the whole story)
 }
 
 interface Word {
@@ -315,7 +319,18 @@ export function anchorRegion(ocr: PageOcr, transcript: string): Region | null {
   const primary = out[0][2] * out[0][3];
   out = out.filter((r) => r[2] * r[3] >= primary * OCR_MIN_RECT_SHARE);
 
-  return { rects: out, coverage: round(coverage), source: "ocr-anchor", ocrConf: round(ocr.meanConf, 1) };
+  // ONE box per object. The surviving secondary rects are genuine column jumps —
+  // the rest of a story that continues elsewhere on the page — but they are no
+  // longer stored. Their COUNT is, because "this box is not the whole story" is
+  // true and a curator judging the box needs to know it; dropping the geometry
+  // silently would make a partial region look complete.
+  return {
+    rects: [out[0]],
+    continuedIn: out.length - 1,
+    coverage: round(coverage),
+    source: "ocr-anchor",
+    ocrConf: round(ocr.meanConf, 1),
+  };
 }
 
 function yOverlap(a: { y0: number; y1: number }, b: { y0: number; y1: number }): number {

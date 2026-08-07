@@ -49,7 +49,10 @@ export interface IndexItem {
   isVisual: boolean;
   wallHeight?: string; // visual-wall tile height
   stamp: string; // mono dateline
-  title: string;
+  // null when the object genuinely has no headline — a masthead, a roster, an
+  // unlabelled photo. The card renders no title line at all rather than promoting
+  // the first sentence of the body into one. Resolved server-side (lib/title.ts).
+  title: string | null;
   snippet: string;
   topics: string[]; // facet ids
   names: string[]; // facet ids
