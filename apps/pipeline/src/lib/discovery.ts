@@ -53,7 +53,7 @@ export async function getDiscovery() {
     // Patrons read the corrected text where a curator has supplied one — the raw
     // machine read stays in co.text, it just isn't what the public surface shows.
     `SELECT co.id, co.issue_id, co.page_record, co.seq, co.object_class, co.role,
-            COALESCE(co.text_human, co.text) AS text, co.display_title, co.region_bbox,
+            COALESCE(co.text_human, co.text) AS text, co.display_title, co.display_title_model, co.region_bbox,
             co.is_publication_content, co.occurrences, co.transcription_confidence, co.run_id, co.model,
             co.enrichment_tier, co.article_type, co.is_advertorial, co.summary, co.context_hint, co.event_type, co.tags,
             pi.page_number, i.serial, i.sort_date
@@ -84,7 +84,7 @@ export async function getDiscovery() {
     region: regionOf(r.region_bbox),
     // Resolved once, here — the patron app renders what it is given and never
     // promotes a body line to a headline on its own. null = this one has no title.
-    ...resolveTitle(r.text, r.display_title),
+    ...resolveTitle(r.text, r.display_title, r.display_title_model),
     isPublicationContent: r.is_publication_content, occurrences: r.occurrences, confidence: r.transcription_confidence,
     runId: r.run_id, model: r.model, enrichmentTier: r.enrichment_tier, articleType: r.article_type,
     isAdvertorial: r.is_advertorial, summary: r.summary, contextHint: r.context_hint, eventType: r.event_type,

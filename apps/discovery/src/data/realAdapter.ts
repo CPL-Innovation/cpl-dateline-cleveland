@@ -159,13 +159,21 @@ function toTitle(o: RawObject): string | null {
   if (head.length > 4 && head === head.toUpperCase()) return head.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
   return head;
 }
-// The body under the title. Line one is dropped ONLY when it was promoted to the
-// title — otherwise it is ordinary body text and dropping it silently loses the
-// object's opening sentence, which is exactly what a titleless card needs most.
+// The body under the title. Line one is dropped ONLY when line one IS the title —
+// decided by comparing the words, not by reading `titleSource`. Since SLICE-13b
+// `machine` covers both the first-line rule AND a model-drafted title kept
+// verbatim, and the latter is rarely line one; keying on the flag would eat the
+// opening sentence of every object with an AI-drafted headline. Dropping it
+// silently loses exactly what a card needs most.
 function snippetOf(o: RawObject): string {
   const lines = o.text.split('\n').map((l) => l.trim()).filter(Boolean);
-  const usedAsTitle = o.titleSource === undefined ? true : o.titleSource === 'machine';
-  const rest = (usedAsTitle ? lines.slice(1).join(' ') : lines.join(' ')) || lines[0] || '';
+  const title = (o.title ?? '').trim();
+  // Older committed payloads carry no title field at all; there, line one was
+  // always the headline, so the old behaviour is still the right one.
+  const legacy = o.title === undefined && o.titleSource === undefined;
+  const norm = (s: string) => s.replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const promoted = legacy || (!!title && !!lines.length && norm(lines[0]) === norm(title));
+  const rest = (promoted ? lines.slice(1).join(' ') : lines.join(' ')) || lines[0] || '';
   return rest.length > 180 ? rest.slice(0, 177).trimEnd() + '…' : rest;
 }
 function sourceKindOf(sourceClass: string): CalendarEvent['sourceKind'] {

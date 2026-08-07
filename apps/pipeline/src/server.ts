@@ -224,7 +224,9 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     try {
       const body = JSON.parse(await readBody(req));
       const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
-      const out = await setObjectTitle(id, body.title ?? null);
+      // `model` attributes the WORDS: present when the curator kept a suggestion
+      // verbatim, absent when they typed or edited it (SLICE-13b).
+      const out = await setObjectTitle(id, body.title ?? null, body.model ?? null);
       return json(res, 200, { ok: true, objectId: id, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
@@ -315,7 +317,9 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     try {
       const body = JSON.parse(await readBody(req));
       const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
-      const out = await setObjectSummary(id, body.summary ?? null);
+      // A summary is machine-written by definition here; the route carries the
+      // model that wrote it rather than letting approval read as authorship.
+      const out = await setObjectSummary(id, body.summary ?? null, body.model ?? null);
       return json(res, 200, { ok: true, objectId: id, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }

@@ -54,20 +54,56 @@ export function headlineShaped(s: string): boolean {
   return big.filter((w) => /^[^A-Za-z]*[A-Z]/.test(w)).length / big.length >= 0.6;
 }
 
-export type ResolvedTitle = { title: string | null; titleSource: "human" | "machine" | null };
+/**
+ * `titleSource` names WHO WROTE THE WORDS, not who approved them (SLICE-13b):
+ *
+ *   human    a person typed or edited this title.
+ *   machine  a machine produced these words — either the first-line rule below,
+ *            or a model that drafted the title and had it kept verbatim. Which
+ *            of the two, and which model, is `titleModel`.
+ *   null     this object has no title.
+ *
+ * A curator keeping a drafted title has APPROVED it; approval lives in
+ * `curation_status`. Reading it here as authorship credited Haiku's words to a
+ * person, which is exactly the confusion this contract now refuses.
+ */
+export type ResolvedTitle = {
+  title: string | null;
+  titleSource: "human" | "machine" | null;
+  /** the model that drafted the stored title; null for the first-line rule and
+   *  for anything a person wrote */
+  titleModel: string | null;
+};
 
-export function resolveTitle(text: string | null | undefined, displayTitle?: string | null): ResolvedTitle {
-  const human = (displayTitle ?? "").trim();
-  if (human) return { title: human, titleSource: "human" };
+export function resolveTitle(
+  text: string | null | undefined,
+  displayTitle?: string | null,
+  displayTitleModel?: string | null,
+): ResolvedTitle {
+  const stored = (displayTitle ?? "").trim();
+  const model = (displayTitleModel ?? "").trim() || null;
+  if (stored) {
+    return { title: stored, titleSource: model ? "machine" : "human", titleModel: model };
+  }
   const head = firstLine(text);
-  return headlineShaped(head) ? { title: head, titleSource: "machine" } : { title: null, titleSource: null };
+  return headlineShaped(head)
+    ? { title: head, titleSource: "machine", titleModel: null }
+    : { title: null, titleSource: null, titleModel: null };
 }
 
-// The body to show under the title. When line one WAS the title it must not be
-// repeated; when there is no title it is ordinary body text and has to stay.
-export function bodyAfterTitle(text: string | null | undefined, titleSource: ResolvedTitle["titleSource"]): string {
+/**
+ * The body to show under the title. Line one is dropped only when line one IS
+ * the title — decided by comparing the words, not by reading a provenance flag.
+ * A model-drafted title is `machine` too, and it is rarely the first line; the
+ * old titleSource check silently ate the opening sentence of every object that
+ * had one.
+ */
+export function bodyAfterTitle(text: string | null | undefined, title: string | null): string {
   const lines = String(text ?? "").split("\n");
-  if (titleSource !== "machine") return lines.join("\n").trim();
+  if (!title) return lines.join("\n").trim();
   const i = lines.findIndex((l) => l.replace(/\[[^\]]*\]/g, "").trim());
-  return lines.slice(i + 1).join("\n").trim();
+  if (i < 0) return lines.join("\n").trim();
+  const head = lines[i].replace(/\[[^\]]*\]/g, "").trim();
+  const same = head.replace(/\s+/g, " ").toLowerCase() === title.replace(/\s+/g, " ").toLowerCase();
+  return (same ? lines.slice(i + 1) : lines).join("\n").trim();
 }

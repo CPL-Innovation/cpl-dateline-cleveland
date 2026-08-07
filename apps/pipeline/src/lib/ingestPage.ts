@@ -424,13 +424,14 @@ export async function setObjectText(objectId: number, text: unknown) {
   if (clean.length > TEXT_MAX) throw new Error(`text exceeds ${TEXT_MAX} characters`);
 
   const r = await query<{
-    text: string; text_human: string | null; text_edited_at: Date | null; display_title: string | null;
+    text: string; text_human: string | null; text_edited_at: Date | null;
+    display_title: string | null; display_title_model: string | null;
   }>(
     `UPDATE content_objects
         SET text_human     = $1,
             text_edited_at = CASE WHEN $1::text IS NULL THEN NULL ELSE now() END
       WHERE id = $2
-      RETURNING text, text_human, text_edited_at, display_title`,
+      RETURNING text, text_human, text_edited_at, display_title, display_title_model`,
     // An edit that merely restates the machine's read is not an edit — store NULL
     // so the object doesn't wear a "corrected by hand" badge it hasn't earned.
     [clean && clean !== (await machineText(objectId)) ? clean : null, objectId],
@@ -444,7 +445,7 @@ export async function setObjectText(objectId: number, text: unknown) {
     textEditedAt: row.text_edited_at,
     // Correcting the text can change the headline it resolves to, so hand the
     // caller the re-resolved title rather than let the UI re-derive it.
-    ...resolveTitle(row.text_human ?? row.text, row.display_title),
+    ...resolveTitle(row.text_human ?? row.text, row.display_title, row.display_title_model),
   };
 }
 
@@ -528,7 +529,7 @@ export async function replaceObjectRawText(objectId: number, text: unknown, mode
               text_reread_model = $2,
               text_reread_at    = now()
         WHERE id = $3
-        RETURNING text, text_human, text_reread_model, text_reread_at, display_title`,
+        RETURNING text, text_human, text_reread_model, text_reread_at, display_title, display_title_model`,
       [clean, model, objectId]);
     if (!r.rowCount) throw new Error(`no content object with id ${objectId}`);
     const row = r.rows[0];
@@ -547,7 +548,7 @@ export async function replaceObjectRawText(objectId: number, text: unknown, mode
       // A human overlay sits on top of the raw, so replacing the raw changed the
       // stored read but NOT what a patron or curator currently sees.
       maskedByOverlay: row.text_human != null,
-      ...resolveTitle(row.text_human ?? row.text, row.display_title),
+      ...resolveTitle(row.text_human ?? row.text, row.display_title, row.display_title_model),
     };
   });
 }
@@ -557,28 +558,45 @@ export async function replaceObjectRawText(objectId: number, text: unknown, mode
 // object back to that rule — including back to "this one has no title".
 const TITLE_MAX = 300;
 
-export async function setObjectTitle(objectId: number, title: unknown) {
+/**
+ * `model` attributes the WORDS being stored (SLICE-13b): pass the drafting model
+ * when the curator kept a suggestion verbatim, and nothing when they typed or
+ * edited the title themselves. Either way the curator approved it — that is what
+ * `curation_status` is for, and it is not recorded here.
+ *
+ * The caller decides, because only the caller knows whether the committed string
+ * is still the model's: the workbench compares the field against the suggestion
+ * it put there. A model named for words a person rewrote would be a worse lie
+ * than the one this replaces.
+ */
+export async function setObjectTitle(objectId: number, title: unknown, model?: unknown) {
   if (!Number.isFinite(objectId)) throw new Error("objectId must be a number");
   if (title != null && typeof title !== "string") throw new Error("title must be a string or null");
+  if (model != null && typeof model !== "string") throw new Error("model must be a string or null");
   // A title is one line by definition — fold any pasted newlines into spaces
   // rather than storing something the headline slot cannot render.
   const clean = typeof title === "string" ? title.replace(/\s+/g, " ").trim() : "";
   if (clean.length > TITLE_MAX) throw new Error(`title exceeds ${TITLE_MAX} characters`);
+  const byModel = clean ? (typeof model === "string" ? model.trim() : "") || null : null;
 
-  const r = await query<{ text: string; display_title: string | null; display_title_at: Date | null }>(
+  const r = await query<{
+    text: string; display_title: string | null; display_title_at: Date | null; display_title_model: string | null;
+  }>(
     `UPDATE content_objects
-        SET display_title    = $1,
-            display_title_at = CASE WHEN $1::text IS NULL THEN NULL ELSE now() END
-      WHERE id = $2
-      RETURNING COALESCE(text_human, text) AS text, display_title, display_title_at`,
-    [clean || null, objectId],
+        SET display_title       = $1,
+            display_title_at    = CASE WHEN $1::text IS NULL THEN NULL ELSE now() END,
+            display_title_model = $2
+      WHERE id = $3
+      RETURNING COALESCE(text_human, text) AS text, display_title, display_title_at, display_title_model`,
+    [clean || null, byModel, objectId],
   );
   if (!r.rowCount) throw new Error(`no content object with id ${objectId}`);
   const row = r.rows[0];
   return {
-    ...resolveTitle(row.text, row.display_title),
+    ...resolveTitle(row.text, row.display_title, row.display_title_model),
     displayTitle: row.display_title,
     displayTitleAt: row.display_title_at,
+    displayTitleModel: row.display_title_model,
   };
 }
 
@@ -655,8 +673,8 @@ export async function getPageObjects(collection: string, pageRecord: number) {
     `SELECT id, page_record, seq, object_class, role, text, text_human, text_edited_at,
             is_publication_content, enrichment_tier,
             article_type, is_advertorial, summary, context_hint, event_type, curation_status, payload, region_bbox,
-            review_note, review_note_at, reviewed_at, display_title, display_title_at,
-            is_published, published_at, text_reread_model, text_reread_at
+            review_note, review_note_at, reviewed_at, display_title, display_title_at, display_title_model,
+            is_published, published_at, text_reread_model, text_reread_at, summary_model, summary_at
      FROM content_objects WHERE page_record=$1 ORDER BY seq`, [pageRecord]);
   const topics = await query<any>(
     `SELECT ot.object_id, t.name, ot.confidence, ot.rank FROM object_topics ot
@@ -684,8 +702,12 @@ export async function getPageObjects(collection: string, pageRecord: number) {
       // curator review state — internal to the workbench, never served to patrons
       reviewNote: o.review_note ?? null, reviewNoteAt: o.review_note_at ?? null, reviewedAt: o.reviewed_at ?? null,
       // the resolved title (null when this object genuinely has none) + the override
-      ...resolveTitle(o.text_human ?? o.text, o.display_title),
+      ...resolveTitle(o.text_human ?? o.text, o.display_title, o.display_title_model),
       displayTitle: o.display_title ?? null, displayTitleAt: o.display_title_at ?? null,
+      displayTitleModel: o.display_title_model ?? null,
+      // which machine wrote the summary this object holds now (NULL = the
+      // ingestion enrichment pass), and when it replaced the previous one
+      summaryModel: o.summary_model ?? null, summaryAt: o.summary_at ?? null,
       published: o.is_published === true, publishedAt: o.published_at ?? null,
       // provenance of the CURRENT machine read: null model = still the ingestion
       // transcription. The superseded read is not kept.

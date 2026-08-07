@@ -642,8 +642,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   border-radius:2px;white-space:nowrap}
 .sugbtn:hover{border-color:var(--brand);background:rgba(0,87,183,.05)}
 .sugbtn:disabled{opacity:.45;cursor:default;color:var(--tertiary)}
-#rv-titlab .tsrc{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:none;font-weight:400}
-#rv-titlab .tsrc.ai{color:var(--warn)}
+/* provenance chips: who wrote the words in this field (title, summary) */
+#rv-titlab .tsrc,#rv-enrich-lab .tsrc{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:none;font-weight:400}
+#rv-titlab .tsrc.ai,#rv-enrich-lab .tsrc.ai{color:var(--warn)}
 #rv-titlab .tsrc.auto{color:var(--tertiary)}
 #rv-titlab .tsrc.none{color:var(--warn)}
 #rv-titlab .tsrc.human{color:var(--brand)}
@@ -1470,6 +1471,12 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         // still findable; the patron app shows nothing at all.
         title:(o.title!==undefined ? o.title : firstLine(o.text)), titleSource:o.titleSource||null,
         displayTitle:o.displayTitle||'', displayTitleAt:o.displayTitleAt||null,
+        // WHO WROTE THE WORDS in these two fields (SLICE-13b). This mapper is a
+        // whitelist, so a field the service resolves but this list forgets simply
+        // never reaches the panel — which is how a model-drafted title read as
+        // "from the first line" for a while.
+        displayTitleModel:o.displayTitleModel||null,
+        summaryModel:o.summaryModel||null, summaryAt:o.summaryAt||null,
         page:pageNum, seq:o.seq, role:o.role, tier:o.tier, status:o.status||'unreviewed',
         isAdvertorial:o.isAdvertorial, articleType:o.articleType, summary:o.summary, contextHint:null, eventType:o.eventType,
         // transcript = what to show (the human overlay when there is one);
@@ -2354,7 +2361,14 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     function paintEnrichLab(o){
       var lab=document.getElementById('rv-enrich-lab'); if(!lab) return;
       var live=!!REGION_API;
-      lab.innerHTML = 'Enrichment'+(o.tier ? ' · '+esc(o.tier)+' tier' : '')+
+      // Who wrote the summary sitting there now: the ingestion enrichment pass,
+      // or a later rewrite by a named model. Never a person — nothing writes a
+      // summary by hand (SLICE-13b).
+      var sumProv = o.summaryModel
+        ? ' <span class="tsrc ai">· summary rewritten by '+esc(o.summaryModel)+
+          (o.summaryAt ? ' · '+esc(shortDate(o.summaryAt)) : '')+'</span>'
+        : '';
+      lab.innerHTML = 'Enrichment'+(o.tier ? ' · '+esc(o.tier)+' tier' : '')+sumProv+
         '<button class="tedit" id="rv-sum"'+(live && !sumBusy ? '' : ' disabled')+
         ' title="'+(live?'Rewrite the summary from the transcription as it stands now (Claude Sonnet)'
                         :'read-only in demo mode — needs the live service')+'">'+
@@ -2412,11 +2426,14 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         var m=document.getElementById('rv-sum-msg'); if(m) m.textContent='saving…';
         fetch(REGION_API+'/api/object-summary', {
           method:'POST', headers:{'content-type':'application/json'},
-          body: JSON.stringify({ objectId:o.id, summary:sumProposed.summary })
+          // The model travels with the words. A curator clicking KEEP IT has
+          // approved a machine's summary, not written one — approval is recorded
+          // in curation_status, authorship here (SLICE-13b).
+          body: JSON.stringify({ objectId:o.id, summary:sumProposed.summary, model:sumProposed.model })
         })
         .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
         .then(function(j){
-          o.summary=j.summary; sumProposed=null;
+          o.summary=j.summary; o.summaryModel=j.summaryModel; o.summaryAt=j.summaryAt; sumProposed=null;
           renderDetail(o);
           var v=document.getElementById('rv-vmsg'); if(v) v.textContent='summary regenerated';
         })
@@ -2483,13 +2500,24 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // The patron app shows nothing there; a list still needs something clickable.
     function rowLabel(o){ return o.title || ((o.role||o.class||'object').replace(/_/g,' ')); }
 
+    // The suggestion currently sitting UNSAVED in the title field, if any:
+    // { oid, title, model }. saveTitle() compares the committed string against it
+    // to decide whether the words being stored are the model's or the curator's —
+    // that comparison is the whole attribution rule (SLICE-13b).
+    var titleDraft = null;
+
     function paintTitle(o){
       var lab=document.getElementById('rv-titlab'), inp=document.getElementById('rv-title');
       if(!lab || !inp) return;
       var live=!!REGION_API;
+      // titleSource names who wrote the WORDS. 'machine' + a model = a draft the
+      // curator kept verbatim; 'machine' with no model = the first-line rule.
       var src = o.titleSource==='human' ? ['human','set by hand']
-              : o.titleSource==='machine' ? ['auto','from the first line']
-              : ['none','no title — patrons see body text only'];
+              : o.titleSource==='machine'
+                ? (o.displayTitleModel
+                    ? ['ai','drafted by '+o.displayTitleModel+' · kept as written']
+                    : ['auto','from the first line'])
+                : ['none','no title — patrons see body text only'];
       lab.innerHTML = 'Display title <span class="tsrc '+src[0]+'">· '+esc(src[1])+'</span>';
       if(document.activeElement !== inp) inp.value = o.displayTitle || '';
       inp.disabled = !live;
@@ -2520,6 +2548,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
               return;
             }
             // Into the field UNSAVED, selected, so editing or discarding is one action.
+            titleDraft = { oid:o.id, title:j.title, model:j.model };
             inp.value = j.title;
             inp.focus(); inp.select();
             lab.innerHTML = 'Display title <span class="tsrc ai">· drafted by '+esc(j.model)+
@@ -2537,14 +2566,21 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(!REGION_API || titleSaving) return;
       if((text||'').trim() === (o.displayTitle||'')) return;
       titleSaving=true;
+      // Verbatim from the draft → the model's words. Typed or edited → the
+      // curator's. Either way they approved it, and approval is not recorded here.
+      var norm = function(t){ return (t||'').replace(/\s+/g,' ').trim(); };
+      var byModel = (titleDraft && titleDraft.oid===o.id && norm(text) && norm(text)===norm(titleDraft.title))
+        ? titleDraft.model : null;
       fetch(REGION_API+'/api/object-title', {
         method:'POST', headers:{'content-type':'application/json'},
-        body: JSON.stringify({ objectId:o.id, title:text })
+        body: JSON.stringify({ objectId:o.id, title:text, model:byModel })
       })
       .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
       .then(function(j){
         o.title=j.title; o.titleSource=j.titleSource;
         o.displayTitle=j.displayTitle||''; o.displayTitleAt=j.displayTitleAt;
+        o.displayTitleModel=j.displayTitleModel||null;
+        titleDraft=null;
         paintTitle(o); repaintRow(o);
       })
       .catch(function(e){ setTmsg('title save failed — '+e.message); })

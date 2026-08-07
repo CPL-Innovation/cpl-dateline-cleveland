@@ -87,15 +87,36 @@ export async function resummarize(text: string, objectClass: string, role: strin
 // Commit a regenerated summary. `summary` is an enrichment field, not raw
 // transcription, so this writes it in place — the enrichment layer has always
 // been an overlay over immutable raw text, and this stays inside that layer.
-export async function setObjectSummary(objectId: number, summary: unknown) {
+//
+// This is RE-EXTRACTION's shape, not a curator's edit (SLICE-13b): a machine
+// redoing a machine field, replacing the previous machine read and recording
+// which model wrote what is there now. The superseded summary is not kept, for
+// the same reason the superseded transcription isn't — it is a machine read
+// everyone has agreed is wrong.
+//
+// So `model` is REQUIRED for any non-empty summary. A curator clicking KEEP IT
+// approves these words; they did not write them, and their approval is recorded
+// in `curation_status`, not here. There is no path through this function that
+// attributes a summary to a person, because there is no path that lets a person
+// write one.
+export async function setObjectSummary(objectId: number, summary: unknown, model: unknown) {
   const { query } = await import("./pg.ts");
   if (!Number.isFinite(objectId)) throw new Error("objectId must be a number");
   if (summary != null && typeof summary !== "string") throw new Error("summary must be a string or null");
   const clean = typeof summary === "string" ? summary.replace(/\s+/g, " ").trim() : "";
   if (clean.length > 2000) throw new Error("summary exceeds 2000 characters");
-  const r = await query<{ summary: string | null }>(
-    "UPDATE content_objects SET summary=$1 WHERE id=$2 RETURNING summary",
-    [clean || null, objectId]);
+  const by = typeof model === "string" ? model.trim() : "";
+  if (clean && !by) throw new Error("model is required — a summary is machine-written and must say which machine wrote it");
+
+  const r = await query<{ summary: string | null; summary_model: string | null; summary_at: Date | null }>(
+    `UPDATE content_objects
+        SET summary       = $1,
+            summary_model = $2,
+            summary_at    = CASE WHEN $2::text IS NULL THEN NULL ELSE now() END
+      WHERE id = $3
+      RETURNING summary, summary_model, summary_at`,
+    [clean || null, clean ? by : null, objectId]);
   if (!r.rowCount) throw new Error(`no content object with id ${objectId}`);
-  return { summary: r.rows[0].summary };
+  const row = r.rows[0];
+  return { summary: row.summary, summaryModel: row.summary_model, summaryAt: row.summary_at };
 }
