@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# macOS Finder metadata — never wanted, and this repo is public
+.DS_Store
+
 # dependencies & build output
 node_modules/
 apps/*/dist/
