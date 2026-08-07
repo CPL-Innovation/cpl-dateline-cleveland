@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "apps/discovery",
       "port": 5180
+    },
+    {
+      "name": "ingest-api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "server"],
+      "cwd": "apps/pipeline",
+      "port": 5170
     }
   ]
 }
