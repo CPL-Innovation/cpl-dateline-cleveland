@@ -91,6 +91,7 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
           >
             {tab('calendar', 'THIS WEEK, THEN')}
             {tab('index', 'THE INDEX')}
+            {tab('stacks', 'THE STACKS')}
             {stub('FRONT PAGES')}
             {stub('PLACES')}
             {stub('ABOUT')}

@@ -7,10 +7,45 @@ import { iiifId, iiifImageUrl } from "../config.ts";
 import { resolveTitle } from "./title.ts";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function dateLabel(sort: string | null): string {
+export function dateLabel(sort: string | null): string {
   const m = /(\d{4})-(\d{2})-(\d{2})/.exec(sort || "");
   if (!m) return (sort || "").toUpperCase() || "UNDATED";
   return `${MONTHS[+m[2] - 1]} ${+m[3]} ${m[1]}`;
+}
+
+/** One stored region, in either shape, as normalized rects a surface can draw.
+ *
+ *  The column holds EITHER the OCR-anchored shape written by ocrAnchor.ts
+ *  (`{rects:[[x,y,w,h],…], source, continuedIn}`) or a legacy single VLM estimate
+ *  (`[x,y,w,h]`), both normalized 0–1. Patron surfaces get one shape and the
+ *  PROVENANCE of the box — a curator-drawn region and a machine guess look
+ *  identical on screen unless the data says which it is.
+ */
+function regionOf(bb: unknown): { rects: number[][]; source: string; continuedIn: number } | null {
+  const rect = (r: unknown): number[] | null => {
+    if (!Array.isArray(r) || r.length < 4) return null;
+    let [x, y, w, h] = r.map(Number);
+    if (![x, y, w, h].every(Number.isFinite)) return null;
+    if (Math.max(x, y, w, h) > 1.2 || w <= 0 || h <= 0) return null;   // not normalized → unusable
+    x = Math.min(1, Math.max(0, x)); y = Math.min(1, Math.max(0, y));
+    return [x, y, Math.min(w, 1 - x), Math.min(h, 1 - y)];
+  };
+  if (!bb) return null;
+  if (Array.isArray(bb)) {
+    const one = rect(bb);
+    return one ? { rects: [one], source: "vlm", continuedIn: 0 } : null;
+  }
+  const o = bb as { rects?: unknown; source?: string; continuedIn?: number };
+  if (!Array.isArray(o.rects)) return null;
+  const rects = o.rects.map(rect).filter((r): r is number[] => !!r);
+  if (!rects.length) return null;
+  return {
+    rects,
+    source: o.source ?? "ocr-anchor",
+    // A COUNT of column runs the anchor found and deliberately did not store —
+    // it is what stops a partial box reading as the whole story.
+    continuedIn: o.continuedIn ?? 0,
+  };
 }
 
 export async function getDiscovery() {
@@ -18,7 +53,7 @@ export async function getDiscovery() {
     // Patrons read the corrected text where a curator has supplied one — the raw
     // machine read stays in co.text, it just isn't what the public surface shows.
     `SELECT co.id, co.issue_id, co.page_record, co.seq, co.object_class, co.role,
-            COALESCE(co.text_human, co.text) AS text, co.display_title,
+            COALESCE(co.text_human, co.text) AS text, co.display_title, co.region_bbox,
             co.is_publication_content, co.occurrences, co.transcription_confidence, co.run_id, co.model,
             co.enrichment_tier, co.article_type, co.is_advertorial, co.summary, co.context_hint, co.event_type, co.tags,
             pi.page_number, i.serial, i.sort_date
@@ -45,6 +80,8 @@ export async function getDiscovery() {
     id: `co-${r.id}`, issueId: r.issue_id, page: r.page_record, printedPage: r.page_number ?? 1,
     serial: r.serial ?? "Brooklyn News", dateLabel: dateLabel(r.sort_date), seq: r.seq,
     objectClass: r.object_class, role: r.role, text: r.text, bbox: null,
+    // Where this object sits on the page, normalized — the scan reader draws it.
+    region: regionOf(r.region_bbox),
     // Resolved once, here — the patron app renders what it is given and never
     // promotes a body line to a headline on its own. null = this one has no title.
     ...resolveTitle(r.text, r.display_title),

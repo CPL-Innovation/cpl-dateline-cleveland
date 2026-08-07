@@ -4,6 +4,8 @@
 // Endpoints (JSON unless noted):
 //   GET  /api/health                         → { ok, db }
 //   GET  /api/page?collection=&record=       → page state + objects (review panel load)
+//   GET  /api/shelf                          → patron shelf: ingested issues as books
+//   POST /api/chat  {pointer, messages}      → SSE reading-room chat about one issue
 //   GET  /api/ingest?collection=&pointer=&issueId=&record=&page=[&force=1]
 //                                            → text/event-stream of {phase,message,pct},
 //                                              then a `result` (objects) or `error` event
@@ -11,33 +13,16 @@
 // Rights gate + idempotency live in ingestPage(); this file is transport + seeding.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
-import { INGEST_PORT, CATALOG_JSON, CDM_QUERY_BASE, iiifId } from "./config.ts";
+import { INGEST_PORT, CATALOG_JSON, iiifId } from "./config.ts";
 import { reextractObject } from "./lib/reextract.ts";
 import { resummarize, setObjectSummary } from "./lib/resummarize.ts";
-import { fetchRetry } from "./lib/http.ts";
 import { migrate, query, closePool, getPool } from "./lib/pg.ts";
 import { ingestPage, importPage, getPageObjects, setObjectRegion, setObjectText, setObjectReview, setObjectTitle, replaceObjectRawText, deleteObject, RightsBlocked } from "./lib/ingestPage.ts";
 import { getDiscovery } from "./lib/discovery.ts";
+import { getShelf } from "./lib/shelf.ts";
+import { streamIssueChat, ChatRefused, type ChatMessage } from "./lib/chat.ts";
+import { resolveIssuePages } from "./lib/issuePages.ts";
 import { suggestTitle } from "./lib/suggestTitle.ts";
-
-// Resolve an issue's page structure (page number → ContentDM record) so ANY page
-// becomes addressable/ingestable, not just ones we already have records for.
-// Cached in-process — the structure is static.
-const pageCache = new Map<string, Array<{ page: number; record: number; title: string }>>();
-async function resolveIssuePages(collection: string, pointer: number) {
-  const key = `${collection}/${pointer}`;
-  if (pageCache.has(key)) return pageCache.get(key)!;
-  const res = await fetchRetry(
-    `${CDM_QUERY_BASE}?q=dmGetCompoundObjectInfo/${collection}/${pointer}/json`, {},
-    { label: `compoundInfo ${pointer}` });
-  if (!res.ok) throw new Error(`compoundInfo ${pointer} → HTTP ${res.status}`);
-  const d = (await res.json()) as any;
-  const pages = (Array.isArray(d?.page) ? d.page : d?.page ? [d.page] : []).map((p: any, i: number) => ({
-    page: i + 1, record: Number(p.pageptr), title: String(p.pagetitle ?? `Page ${i + 1}`),
-  }));
-  pageCache.set(key, pages);
-  return pages;
-}
 
 const ORIGIN = process.env.CORS_ORIGIN ?? "*";
 function cors(res: ServerResponse) {
@@ -133,6 +118,37 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
 
   if (url.pathname === "/api/discovery") {
     try { return json(res, 200, await getDiscovery()); }
+    catch (e) { return json(res, 500, { error: (e as Error).message }); }
+  }
+
+  // The reading-room assistant. Streams an answer about ONE issue, grounded in
+  // that issue's PUBLISHED text and nothing else (see lib/chat.ts). SSE, but over
+  // POST — the conversation goes up with the request, so EventSource can't serve.
+  if (url.pathname === "/api/chat" && req.method === "POST") {
+    let body: { pointer?: number; messages?: ChatMessage[] };
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+    const pointer = Number(body.pointer);
+    if (!pointer) return json(res, 400, { error: "pointer required" });
+
+    sseOpen(res);
+    try {
+      const out = await streamIssueChat(pointer, body.messages ?? [], (text) => sse(res, "delta", { text }));
+      sse(res, "done", out);
+    } catch (e) {
+      // A refusal is the patron's answer, not a crash — it reaches them as a
+      // message in the thread. Everything else is ours and says so.
+      const refused = e instanceof ChatRefused;
+      if (!refused) console.error("[chat]", (e as Error).message);
+      sse(res, "error", { message: (e as Error).message, refused });
+    }
+    return res.end();
+  }
+
+  // The patron shelf: ingested issues as BOOKS (spines + whole page structure).
+  if (url.pathname === "/api/shelf") {
+    try { return json(res, 200, await getShelf()); }
     catch (e) { return json(res, 500, { error: (e as Error).message }); }
   }
 

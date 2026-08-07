@@ -7,7 +7,7 @@ pilot corpus). An npm-workspaces monorepo with two surfaces over one shared cont
 | Workspace | What it is |
 |---|---|
 | [`apps/pipeline`](apps/pipeline) — `@dateline/pipeline` | The enrichment pipeline. `image → VLM → structured content-objects → SQLite → viewable` (**SLICE-01**), then `content-objects → tiered Stage-4 enrichment → topics · names · events · advertorial flag` (**SLICE-02**). Zero-dependency Node (built-in `node:sqlite` + TypeScript type-stripping, no build step). |
-| [`apps/discovery`](apps/discovery) — `@dateline/discovery` | The patron **discovery SPA** (*This Week, Then* cultural calendar + *The Index* faceted browse) **and** the staff **Editorial Workbench** at `/staff`. React + Vite. Implemented from the Claude Design prototypes. |
+| [`apps/discovery`](apps/discovery) — `@dateline/discovery` | The patron **discovery SPA** (*This Week, Then* cultural calendar · *The Index* faceted browse · *The Stacks* issue reader) **and** the staff **Editorial Workbench** at `/staff`. React + Vite. Implemented from the Claude Design prototypes. |
 
 The seam between them: `apps/discovery`'s **REAL DATA** toggle reads the pipeline's SQLite
 output (`apps/pipeline/data/slice01.sqlite`, exported to JSON at build time). Pipeline
@@ -94,6 +94,64 @@ Three of these carry consequences worth knowing before you use them:
 Text edits do **not** re-embed. `content_objects.embedding` still reflects the text as ingested,
 so semantic search (schema-ready, unpopulated) would match a superseded read.
 
+## The stacks: an issue as a book
+
+`THE INDEX` breaks the paper into clippings. `THE STACKS` puts it back together — one shelf of
+bound issues, grouped by serial, opening into a page-turning reader.
+
+- **What is shelved.** Any issue the pipeline has **read at least one page of**, served by
+  `GET /api/shelf` (`apps/pipeline/src/lib/shelf.ts`). Issues are grouped by ContentDM
+  *pointer*, not by `issue_id` — two ingest runs can slug the same compound issue differently,
+  and grouping by the id would shelve one paper twice, each missing the other's pages.
+- **Whole books, gaps included.** The shelf resolves each issue's full page structure from
+  `dmGetCompoundObjectInfo`, so a half-ingested issue still has all four leaves. Pages the
+  pipeline hasn't read are turnable as scans and say so. Rights gate: page images are attached
+  only for issues whose `rights_status` is `open`.
+- **Two registers, one place in the book.** `READ` sets the page's **published** objects as a
+  reading column in printed order (the printed headline is lifted out of the body so the page
+  doesn't print it twice). `SCAN` is a full-window stage: the site chrome steps aside, the
+  filmstrip stands up as a page rail in the dead margin beside a portrait leaf, and the scan
+  fills the rest. Arrow keys turn pages in both.
+- **The scan viewer.** Zoom is transform-based on a *virtual* 1600px page, anchored on the
+  cursor (⌘/ctrl-scroll, double-click, `+`/`-`/`0`), with panning clamped to the page's own
+  edges. Scale and offset are one piece of state advanced functionally — held apart, two zooms
+  in one React batch desynchronise and the page slides without growing. As you zoom in it climbs
+  a ladder of IIIF derivatives (1600 → 2600 → 4000 → 5332px), preloading each before it swaps,
+  so sharpening never blanks the page and the geometry never moves.
+- **Regions, on the leaf.** `REGIONS` (or `B`) draws every **published** object the pipeline
+  located on the page, coloured by the index's functional type colours; clicking one docks the
+  extracted transcription beside the leaf, with the provenance of the *box itself* — drawn by a
+  curator, anchored to the OCR word grid, or estimated by the model — and a warning when the box
+  is one column of a story that runs on. `READ IT SET →` leaves the room for that item in the
+  reading column. An object with no stored region is not drawn: a box in the wrong place is
+  worse than no box. `/api/discovery` carries `region` (normalized rects + source) for this.
+- **Shape and content come from different contracts.** `/api/shelf` supplies spines and page
+  structure; page text is the same `/api/discovery` payload `THE INDEX` reads — so the reader
+  can never show something the index wouldn't, and the publication gate holds in one place.
+- **Fallbacks.** With the service offline the shelf is rebuilt from the committed export (pages
+  with published objects only, and it says so). In MOCK mode the shelf is three hand-authored
+  issues (`src/data/mockShelf.ts`) with placeholder scans.
+
+### The reading-room assistant
+
+A floating call button in the reader opens a chat about **the issue you are reading** —
+`POST /api/chat` (SSE over POST), Sonnet, `apps/pipeline/src/lib/chat.ts`.
+
+- **The corpus is the constraint, not the prompt.** The server assembles the context from
+  `is_published` rows for that one issue's pages and sends nothing else — no other issue, no
+  unpublished read, no retrieval, no web. The model is also told which pages are read-but-withheld,
+  so "what's on page 3?" is answerable as a fact about the review queue rather than a shrug.
+- **Citations are structural.** The model marks a claim `[[co-269]]`; the client resolves that id
+  against the index and renders a chip that turns the reader to the page and marks the item. An id
+  the model invents resolves to nothing and is dropped — a bad citation degrades to no citation,
+  never to a false one.
+- **Outside knowledge is labelled, not banned.** At most one sentence of general background,
+  prefixed `Beyond this issue:` so a patron can see it did not come from the paper.
+- **Guards.** 20 questions per conversation (server-enforced, `CHAT_MAX_TURNS`), a corpus cap
+  (`CHAT_MAX_CORPUS_CHARS`), and the issue corpus travels as a cached system block. The assistant
+  is unavailable in MOCK mode and on issues with nothing published, and says which it is rather
+  than offering a dead box.
+
 ## Status & scope
 
 - **Pilot corpus = Brooklyn News**, treated as **public domain**. This is a deliberate pilot
@@ -108,8 +166,9 @@ so semantic search (schema-ready, unpopulated) would match a superseded read.
 - **Design intent** lives vault-side under `build/` (read-only; changes proposed back via
   `build/_FROM-BUILD.md`). Implementation detail lives in this code.
 
-Deferred surfaces (CTA/stub only): IIIF deep-zoom page reader (the CTA opens the object's
-**ContentDM catalogue page**), **semantic** search (the embedding column is
+Deferred surfaces (CTA/stub only): **tiled** deep-zoom (the reader in `THE STACKS` zooms and
+pans whole IIIF-served derivatives rather than tiles — there is no tiling server of our own, and
+`FULL RES ↗` hands off to ContentDM), **semantic** search (the embedding column is
 schema-ready but unpopulated — patron search is a literal text match and says so),
 Front Pages / Places / About tabs, cross-issue entity dedup.
 

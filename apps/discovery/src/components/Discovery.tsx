@@ -10,6 +10,10 @@ import { EventDetail } from './EventDetail';
 import { IndexBrowse } from './IndexBrowse';
 import { IndexDetail } from './IndexDetail';
 import { SearchResults } from './SearchResults';
+import { StacksBrowse } from './StacksBrowse';
+import { IssueReader, type ReaderView } from './IssueReader';
+import { deriveShelf, fetchShelf, type Shelf } from '../lib/shelf';
+import { mockShelf } from '../data/mockShelf';
 
 // The populated mock week (Jul 23–29 1970) sits at index 4.
 const MOCK_POPULATED_WEEK = 4;
@@ -26,6 +30,13 @@ export function Discovery() {
   // SLICE-08: REAL mode reads LIVE from the Postgres store via the ingestion
   // service; falls back to the committed dataset if the service is offline.
   const [liveReal, setLiveReal] = useState<Dataset | null>(null);
+  // THE STACKS: the shelf is SHAPE (issues + their pages), fetched separately
+  // from /api/shelf; page CONTENT comes from the dataset above.
+  const [liveShelf, setLiveShelf] = useState<Shelf | null>(null);
+  const [openIssue, setOpenIssue] = useState<string | null>(null);
+  const [readerPage, setReaderPage] = useState(1);
+  const [readerView, setReaderView] = useState<ReaderView>('read');
+  const [serial, setSerial] = useState<string | null>(null);
 
   useEffect(() => {
     if (mode !== 'real') return;
@@ -35,15 +46,32 @@ export function Discovery() {
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then((payload) => { if (!cancelled) setLiveReal(buildRealDataset(payload).dataset); })
       .catch(() => { if (!cancelled) setLiveReal(null); }); // fall back to committed
+    fetchShelf()
+      .then((s) => { if (!cancelled) setLiveShelf(s); })
+      .catch(() => { if (!cancelled) setLiveShelf(null); }); // fall back to derived
     return () => { cancelled = true; };
   }, [mode]);
 
   const dataset = mode === 'mock' ? mockDataset : (liveReal ?? realDataset);
+  const shelf = mode === 'mock' ? mockShelf : (liveShelf ?? deriveShelf(dataset));
+  const activeIssue = openIssue ? shelf.issues.find((i) => i.key === openIssue) ?? null : null;
 
   const goto = (p: Page) => {
     setPage(p);
     setSelectedId(null);
     setDetailId(null);
+    if (p !== 'stacks') setOpenIssue(null);
+  };
+
+  const openIssueAt = (key: string) => {
+    const iss = shelf.issues.find((i) => i.key === key);
+    setOpenIssue(key);
+    // Open on the first leaf that actually has something to read; failing that,
+    // page one — the scan is still worth turning to.
+    setReaderPage(iss?.pages.find((p) => p.publishedCount > 0)?.page ?? iss?.pages[0]?.page ?? 1);
+    setReaderView('read');
+    setDetailId(null);
+    window.scrollTo({ top: 0 });
   };
 
   const switchMode = (m: DatasetMode) => {
@@ -53,6 +81,8 @@ export function Discovery() {
     setSelectedId(null);
     setDetailId(null);
     setSelected({});
+    setOpenIssue(null);
+    setSerial(null);
     setWeekIdx(m === 'mock' ? MOCK_POPULATED_WEEK : 0);
     // A result list from the other dataset would be stale the moment the ids change.
     if (page === 'search') setPage('index');
@@ -78,10 +108,10 @@ export function Discovery() {
     return null;
   }, [page, selectedId, dataset]);
 
-  // The detail view is shared by the index and by search results — the difference
-  // is only where "back" returns to.
+  // The detail view is shared by the index, by search results and by the reader —
+  // the difference is only where "back" returns to.
   const activeItem = useMemo(() => {
-    if ((page !== 'index' && page !== 'search') || !detailId) return null;
+    if (page === 'calendar' || !detailId) return null;
     return dataset.indexItems.find((i) => i.id === detailId) ?? null;
   }, [page, detailId, dataset]);
 
@@ -124,6 +154,35 @@ export function Discovery() {
               onToggle={(id) => setSelected((s) => ({ ...s, [id]: !s[id] }))}
               onClearAll={() => setSelected({})}
               onOpen={setDetailId}
+            />
+          ))}
+
+        {page === 'stacks' &&
+          (activeItem ? (
+            <IndexDetail
+              item={activeItem}
+              dataset={dataset}
+              onBack={() => setDetailId(null)}
+              backLabel={activeIssue ? 'BACK TO THE READER' : 'BACK TO THE STACKS'}
+            />
+          ) : activeIssue ? (
+            <IssueReader
+              issue={activeIssue}
+              dataset={dataset}
+              pageNumber={readerPage}
+              view={readerView}
+              onPage={setReaderPage}
+              onView={setReaderView}
+              onBack={() => setOpenIssue(null)}
+              onOpenObject={(id) => { setDetailId(id); window.scrollTo({ top: 0 }); }}
+            />
+          ) : (
+            <StacksBrowse
+              shelf={shelf}
+              dataset={dataset}
+              serial={serial}
+              onSerial={setSerial}
+              onOpen={openIssueAt}
             />
           ))}
 

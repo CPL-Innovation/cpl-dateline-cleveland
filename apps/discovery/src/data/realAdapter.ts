@@ -16,6 +16,7 @@ import type {
   CalendarEvent,
   CalendarSection,
   Fact,
+  PageRegion,
 } from '../lib/types';
 import { buildSections, groupFor } from '../lib/calendar';
 import raw from './real.generated.json';
@@ -55,6 +56,7 @@ interface RawObject {
   names?: RawNameRef[];
   pageImage?: string | null;
   iiifId?: string | null;
+  region?: PageRegion | null;
 }
 
 interface RawEvent {
@@ -205,6 +207,9 @@ export function buildRealDataset(payload: RawPayload): { dataset: Dataset; meta:
       transcript: o.text, pageImage: o.pageImage ?? null, iiifId: o.iiifId ?? null,
       // carried through so a patron detail can open the exact page in the workbench
       pageRecord: o.page ?? null, printedPage: printedOf(o),
+      // …and so THE STACKS can bind objects back into the issue they were printed
+      // in, and draw them where they sit on the leaf
+      issueId: o.issueId, dateLabel: dateOf(o), serial: serialOf(o), region: o.region ?? null,
     };
   }
 

@@ -1,7 +1,7 @@
 // Shared shapes for both datasets (mock + real). The UI renders against these;
 // the mock module and the real adapter both produce them.
 
-export type Page = 'calendar' | 'index' | 'search';
+export type Page = 'calendar' | 'index' | 'stacks' | 'search';
 export type DatasetMode = 'mock' | 'real';
 
 /** A single machine-extracted fact row in a page-reader detail. */
@@ -67,6 +67,23 @@ export interface IndexItem {
    *  Present only in REAL mode; mock items have no page behind them to open. */
   pageRecord?: number | null;
   printedPage?: number | null;
+  /** Which bound issue this object was printed in — the shelf's grouping key
+   *  (THE STACKS). Real mode only; mock items belong to hand-authored issues. */
+  issueId?: string;
+  dateLabel?: string;
+  serial?: string;
+  /** Where this object sits on its page, normalized 0–1, with the provenance of
+   *  the box itself: 'human' (a curator drew it), 'ocr-anchor' (located against
+   *  the OCR word grid) or 'vlm' (the model's estimate). The scan reader draws
+   *  these; absent means nobody has located this object on the page. */
+  region?: PageRegion | null;
+}
+
+export interface PageRegion {
+  rects: number[][];
+  source: string;
+  /** column runs the anchor found but did not store — a box that stops short */
+  continuedIn: number;
 }
 
 export interface FacetValue {

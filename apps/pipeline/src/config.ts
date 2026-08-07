@@ -170,3 +170,13 @@ export const REEXTRACT_MAX_EDGE = Number(process.env.REEXTRACT_MAX_EDGE ?? 2500)
 // ── summary regeneration (SLICE-09j) ─────────────────────────────────────────
 // Sonnet, matching the enrichment tier that wrote the summaries in the first place.
 export const RESUMMARIZE_MODEL = process.env.RESUMMARIZE_MODEL ?? "claude-sonnet-5";
+
+// ── patron reading-room chat (THE STACKS) ────────────────────────────────────
+// Sonnet: this is a conversation with a member of the public about primary source
+// material, where a confident wrong answer is the expensive failure mode.
+export const CHAT_MODEL = process.env.CHAT_MODEL ?? "claude-sonnet-5";
+// Guards, not budgets. The corpus cap keeps one issue's published text inside a
+// sane prompt; the turn cap bounds a single conversation's spend (the client shows
+// the same number, but the server is the one that enforces it).
+export const CHAT_MAX_CORPUS_CHARS = Number(process.env.CHAT_MAX_CORPUS_CHARS ?? 160_000);
+export const CHAT_MAX_TURNS = Number(process.env.CHAT_MAX_TURNS ?? 20);

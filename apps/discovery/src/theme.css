@@ -112,3 +112,9 @@ input {
 .dc-facet-row:hover { background: var(--dc-sunken); color: var(--dc-navy); }
 .dc-wall-tile:hover .dc-wall-frame { border-color: var(--dc-navy) !important; }
 .dc-underline-hover:hover { text-decoration: underline; }
+
+/* Region boxes over a page scan (THE STACKS · scan reader). Resting state is a
+   thin keyline so the page still reads as a page; hover fills it and names it. */
+.dc-region-box { cursor: pointer; }
+.dc-region-box:hover { background: rgba(0, 87, 183, 0.14) !important; }
+.dc-region-box:hover .dc-region-tag { opacity: 1 !important; }
