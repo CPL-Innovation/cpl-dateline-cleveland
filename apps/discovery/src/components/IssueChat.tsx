@@ -236,32 +236,69 @@ function Header({ issue, onClose }: { issue: ShelfIssue; onClose: () => void }) 
   );
 }
 
+/**
+ * The community a serial speaks for, for the one prompt that names a place.
+ *
+ * A curated table, not a rule. Stripping the masthead word off the title is the
+ * obvious approach and it is wrong often enough to notice: *Plain Press* becomes
+ * "Plain", *High Gear* becomes "High Gear", and the prompt reads as a bug the
+ * first time a patron sees it. A paper's name is not its neighbourhood, and
+ * there are only a couple of dozen serials in the whole collection — so this is
+ * knowledge, kept where it can be corrected, with a generic question for
+ * everything not listed. Matched on prefix, since the catalog gives the same
+ * paper several parenthetical variants.
+ */
+const COMMUNITIES: Array<[string, string]> = [
+  ['the brooklyn news', 'Brooklyn'],
+  ['east side daily news', 'the East Side'],
+  ['cleveland scene', 'Cleveland'],
+  ['the tremonster', 'Tremont'],
+  ['plain press', 'the near West Side'],
+  ['view from the overlook', 'Cleveland Heights'],
+];
+
+function communityOf(serial: string): string | null {
+  const s = serial.trim().toLowerCase();
+  return COMMUNITIES.find(([k]) => s.startsWith(k))?.[1] ?? null;
+}
+
 function Opening({ issue, onPick }: { issue: ShelfIssue; onPick: (q: string) => void }) {
+  // Openings, not a menu of features. Each one is answerable from the published
+  // text and citable — the temptation with an archive assistant is prompts that
+  // sound evocative and can only be answered by inventing ("what was life like?").
+  // Concrete first, then the two that shift perspective, then texture.
+  const town = communityOf(issue.serial);
   const prompts = [
-    'What is this issue mostly about?',
-    'Who turns up more than once in these pages?',
-    'What did things cost this week?',
-    'Read me something surprising.',
+    'What could a dollar buy back then?',
+    'What in here would surprise a Clevelander today?',
+    'Show me something that hasn’t changed at all.',
+    town ? `What was on ${town}’s mind this week?` : 'What was this paper’s town talking about?',
+    'Read me the best sentence in this issue.',
+    'What would sound strangest to a reader now?',
+    'Whose names does this paper keep printing?',
   ];
   return (
     <div>
       <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 21, lineHeight: 1.25, color: C.ink }}>
         Ask about this issue.
       </div>
+      {/* The blurb no longer lists what you can ask — the buttons below do that
+          job now. What it must keep is the boundary: what I have read, and that
+          every answer points back at it. */}
       <div style={{ fontFamily: SERIF, fontSize: 14.5, lineHeight: 1.6, color: C.secondary, marginTop: 8 }}>
         I’ve read the {issue.publishedCount} published items in {issue.serial}, {issue.dateLabel} — and nothing else.
-        Ask what happened, who was named, what a thing cost. Every answer points back at the page it came from.
+        Every answer points back at the page it came from.
       </div>
-      <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: C.tertiary, marginTop: 22 }}>
+      <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: C.tertiary, marginTop: 18 }}>
         TRY
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 9 }}>
         {prompts.map((p) => (
           <button
             key={p}
             className="dc-facet-row"
             onClick={() => onPick(p)}
-            style={{ border: `1px solid ${C.hairMed}`, padding: '9px 11px', fontFamily: SERIF, fontSize: 14, color: C.body }}
+            style={{ border: `1px solid ${C.hairMed}`, padding: '8px 11px', fontFamily: SERIF, fontSize: 13.5, lineHeight: 1.35, color: C.body }}
           >
             {p}
           </button>
