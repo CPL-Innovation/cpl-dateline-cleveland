@@ -199,13 +199,17 @@ export async function saveProposal(args: {
   const { groups } = normalizeGroups(boxes, args.groups ?? [], [], false);
   const at = new Date().toISOString();
   const ops = (args.ops ?? []).slice(0, 500).map((o) => ({ ...o, op: String(o.op ?? "edit"), at }));
+  // An undone correction was never needed, so it must not count against the
+  // detector: `undo` takes one back. The log keeps both, so nothing is hidden.
+  const undos = ops.filter((o) => o.op === "undo").length;
+  const delta = ops.length - 2 * undos;
 
   await query(
-    `UPDATE box_proposals SET boxes=$4, groups=$5, edits=edits+$6,
+    `UPDATE box_proposals SET boxes=$4, groups=$5, edits=GREATEST(0, edits+$6),
        edit_log = edit_log || $7::jsonb, updated_at=now()
      WHERE collection=$1 AND page_record=$2 AND detector=$3`,
     [args.collection, args.pageRecord, args.detector,
-     JSON.stringify(boxes), JSON.stringify(groups), ops.length, JSON.stringify(ops)],
+     JSON.stringify(boxes), JSON.stringify(groups), delta, JSON.stringify(ops)],
   );
   await query("UPDATE page_ingests SET detector=$3 WHERE collection=$1 AND page_record=$2 AND status='review'",
     [args.collection, args.pageRecord, args.detector]);

@@ -699,6 +699,82 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* footer honesty band */
 .hband{background:var(--brand);color:#fff;padding:10px 34px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between}
 .hband b{color:var(--accent);font-weight:500}
+/* ══ BOX-FIRST REVIEW (SLICE-14) ══════════════════════════════════════════════
+   A detector's boxes, grouped into objects, before anything is transcribed.
+   Colour = GROUP, not class: the question on this screen is "which boxes are one
+   object", and one colour per group is what makes a wrong join visible at a
+   glance. Class lives in the list and the panel. Boxes in no group are grey. */
+.bf-layer{position:absolute;inset:0}
+.bf-bx{position:absolute;border:1.5px solid var(--g);border-radius:2px;cursor:pointer;
+  transition:opacity .12s ease}
+.bf-bx::before{content:"";position:absolute;inset:0;background:var(--g);opacity:.10;pointer-events:none}
+.bf-bx:hover::before{opacity:.22}
+.bf-bx .bf-n{position:absolute;left:-1.5px;top:-1.5px;font-family:var(--mono);font-size:9px;line-height:12px;
+  padding:0 3px;color:#fff;background:var(--g);border-radius:2px 0 2px 0;pointer-events:none;white-space:nowrap}
+.bf-bx .bf-g{position:absolute;right:-9px;top:-9px;min-width:18px;height:18px;border-radius:9px;padding:0 4px;
+  font-family:var(--sans);font-weight:700;font-size:10px;line-height:18px;text-align:center;color:#fff;
+  background:var(--g);box-shadow:0 0 0 1.5px #fff;pointer-events:none;z-index:3}
+.bf-bx.loose{--g:#8A94A3;border-style:dashed}
+.bf-bx.discarded{opacity:.45}
+.bf-bx.human{border-style:dashed}
+.bf-layer.focus .bf-bx{opacity:.3}
+.bf-layer.focus .bf-bx.ing{opacity:1}
+.bf-layer.focus .bf-bx.ing::before{opacity:.2}
+.bf-bx.sel{opacity:1 !important;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--g);z-index:5;cursor:move}
+.bf-bx.sel .bx-h{border-color:var(--g)}
+.pagewrap.drawing .bf-bx{pointer-events:none}
+.bf-ghost{position:absolute;border:1.5px dashed var(--warn);background:rgba(241,196,0,.14);pointer-events:none;z-index:8}
+/* the group list */
+.bf-row{display:flex;align-items:center;gap:7px;min-height:24px;padding:2px 6px 2px 0;cursor:pointer;
+  border-left:2px solid transparent;font-family:var(--sans);font-size:11.5px;color:var(--body)}
+.bf-row:hover{background:var(--sunken)}
+.bf-row.sel{border-left-color:var(--accent);background:var(--sunken)}
+.bf-row .sw{flex:none;width:9px;height:9px;margin-left:7px;border-radius:2px;background:var(--g)}
+.bf-row .o{flex:none;font-family:var(--mono);font-size:10px;color:var(--tertiary);min-width:18px;text-align:right}
+.bf-row .t{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-row .k{flex:none;font-family:var(--mono);font-size:9.5px;color:var(--tertiary)}
+.bf-row .warn{flex:none;color:var(--warn);font-weight:700}
+.bf-sub{padding:10px 9px 4px;font-family:var(--sans);font-weight:700;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tertiary)}
+/* the panel */
+.bf-tbl{width:100%;border-collapse:collapse;font-family:var(--sans);font-size:12px}
+.bf-tbl td{padding:6px 4px;border-top:1px solid var(--hair);vertical-align:middle}
+.bf-tbl tr.cur td{background:rgba(0,87,183,.06)}
+.bf-tbl td.num{font-family:var(--mono);font-size:11px;text-align:right;color:var(--body)}
+.bf-tbl th{font-family:var(--sans);font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tertiary);text-align:right;padding:0 4px 4px}
+.bf-tbl th:first-child{text-align:left}
+.bf-tbl .nm{font-weight:600;color:var(--ink)}
+.bf-tbl .off{color:var(--tertiary);font-style:italic}
+.bf-btn{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:4px 9px;border:1px solid var(--hair-2);background:#fff;color:var(--secondary);border-radius:2px}
+.bf-btn:hover:not(:disabled){border-color:var(--brand);color:var(--brand)}
+.bf-btn:disabled{opacity:.45;cursor:default}
+.bf-btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.bf-btn.pri:hover:not(:disabled){background:var(--brand-press);color:#fff}
+.bf-btn.danger:hover:not(:disabled){border-color:var(--danger);color:var(--danger)}
+.bf-note{font-family:var(--mono);font-size:10px;line-height:1.6;color:var(--tertiary);margin-top:8px}
+.bf-note.warn{color:var(--warn)}
+.bf-field{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-family:var(--sans);font-size:12px}
+.bf-field label{flex:none;width:44px;font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tertiary)}
+.bf-field select,.bf-field input{flex:1;font-family:var(--sans);font-size:12.5px;color:var(--ink);padding:5px 7px;
+  border:1px solid var(--hair-2);border-radius:2px;background:#fff;min-width:0}
+.bf-bxrow{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--hair);border-radius:2px;
+  margin-bottom:4px;font-family:var(--sans);font-size:12px;cursor:pointer}
+.bf-bxrow.sel{border-color:var(--accent);background:rgba(241,196,0,.10)}
+.bf-bxrow .n{font-family:var(--mono);font-size:11px;color:var(--ink);min-width:34px}
+.bf-bxrow .l{flex:1;color:var(--secondary);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-bxrow button{font-size:12px;width:22px;height:20px;border:1px solid var(--hair-2);border-radius:2px;background:#fff;color:var(--secondary)}
+.bf-bxrow button:hover:not(:disabled){border-color:var(--brand);color:var(--brand)}
+.bf-bxrow button:disabled{opacity:.35;cursor:default}
+.bf-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.bf-acts select{font-family:var(--sans);font-size:11px;padding:3px 5px;border:1px solid var(--hair-2);border-radius:2px;max-width:190px}
+.bf-keys{font-family:var(--mono);font-size:10px;line-height:1.9;color:var(--tertiary)}
+.bf-keys kbd{font-family:var(--mono);font-size:9.5px;border:1px solid var(--hair-2);border-bottom-width:2px;border-radius:3px;
+  padding:0 4px;color:var(--secondary);background:#fff}
+.bf-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.bf-pick select{font-family:var(--sans);font-size:13px;padding:8px 10px;border:1px solid var(--hair-2);border-radius:2px}
+.pmap.review{border-style:dashed;border-color:var(--warn)}
 </style>
 </head>
 <body>
@@ -1335,6 +1411,8 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
             if (e) { e.status = pg.state.status; e.object_count = (pg.objects||[]).length; }
           }
           if (pg.state && pg.state.status === 'done' && pg.objects.length) render(buildD(pg));
+          // a page under box-first review (SLICE-14) reopens where the curator left it
+          else if (pg.state && pg.state.status === 'review') openBoxFirst(pg);
           else showIngestPrompt(pg);
         })
         .catch(function(e){ html('wl-rows', '<div class="prog">Ingestion service unreachable — start it with <span class="mono">npm run server</span>. ('+esc(e.message)+')</div>'); });
@@ -1352,8 +1430,8 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var box=document.getElementById('rv-pagemap'); if(!box) return;
       if(!allPages || !allPages.length){ box.innerHTML=''; return; }
       box.innerHTML = allPages.map(function(pp){
-        var done = pp.status==='done';
-        return '<div class="pmap'+(pp.page===active?' active':'')+(done?' done':'')+'" data-record="'+pp.record+'" data-page="'+pp.page+'" title="Review page '+pp.page+(done?' ('+pp.object_count+' objects)':' — not ingested')+'">'+
+        var done = pp.status==='done', rev = pp.status==='review';
+        return '<div class="pmap'+(pp.page===active?' active':'')+(done?' done':'')+(rev?' review':'')+'" data-record="'+pp.record+'" data-page="'+pp.page+'" title="Review page '+pp.page+(done?' ('+pp.object_count+' objects)':rev?' — box-first review in progress':' — not ingested')+'">'+
           '<img class="thumb" src="'+esc(thumbUrl(pp.record))+'" alt="page '+pp.page+'"><div class="pl">P.'+pp.page+'</div></div>';
       }).join('');
       box.querySelectorAll('.pmap').forEach(function(elm){
@@ -1380,10 +1458,12 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         '<span class="mono">object_class</span>, <span class="mono">text</span> (required), plus optional '+
         '<span class="mono">seq · role · region_bbox · enrichment_tier · summary · article_type · event_type · '+
         'topics[] · entities[] · events[]</span>.</div>'+
+        '<div class="bf-pick" id="bf-pick"></div>'+
         '</div>');
       html('rv-facts',''); html('rv-confline',''); html('rv-flag','');
       var btn=document.getElementById('ing-btn');
       if(btn) btn.addEventListener('click', function(){ btn.disabled=true; btn.textContent='Ingesting…'; doIngest(); });
+      offerBoxFirst(pg);
       var impBtn=document.getElementById('imp-btn'), impFile=document.getElementById('imp-file');
       if(impBtn && impFile){
         impBtn.addEventListener('click', function(){ impFile.click(); });
@@ -1395,6 +1475,41 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           reader.readAsText(f);
         });
       }
+    }
+
+    // ── box-first (SLICE-14) ───────────────────────────────────────────────
+    function bfCtx(pg){
+      return { api:API, collection:collection, record:record, pointer:pointer, issueId:issueId, pageNum:pageNum,
+               imageUrl:pg.imageUrl, renderStrip:renderStrip, runActivity:runActivity };
+    }
+    function openBoxFirst(pg){ boxFirstReview(bfCtx(pg)); }
+    // The second way in, offered beside the page-first ingest button: pick a
+    // detector, and its boxes + a proposed grouping open for review.
+    function offerBoxFirst(pg){
+      fetch(API + '/api/boxfirst/detectors').then(function(r){ return r.json(); }).then(function(j){
+        var box=document.getElementById('bf-pick'); if(!box) return;
+        var ds=j.detectors||[];
+        var pick=ds.filter(function(d){ return d.id==='american-stories' && d.available; })[0] || ds.filter(function(d){ return d.available; })[0];
+        box.innerHTML=
+          '<div style="flex-basis:100%;margin-top:18px;font-family:var(--sans);font-size:14px;color:var(--body);line-height:1.6">'+
+            'Or ingest <b>box-first</b>: a detector draws the boxes, you correct and group them, then each box is transcribed from its own full-resolution crop.</div>'+
+          '<select id="bf-det">'+ds.map(function(d){
+            return '<option value="'+esc(d.id)+'"'+(d.available?'':' disabled')+(pick&&d.id===pick.id?' selected':'')+'>'+esc(d.label)+(d.available?'':' (weights missing)')+'</option>';
+          }).join('')+'</select>'+
+          '<button id="bf-go" class="vbtn" style="border:1px solid var(--brand);color:var(--brand)"'+(pick?'':' disabled')+'>▦ Detect boxes</button>'+
+          '<div class="mono" id="bf-detnote" style="flex-basis:100%;font-size:10.5px;color:var(--tertiary);line-height:1.6"></div>';
+        var sel=document.getElementById('bf-det'), go=document.getElementById('bf-go');
+        function note(){ var d=ds.filter(function(x){ return x.id===sel.value; })[0]; set('bf-detnote', d ? d.note : ''); }
+        sel.onchange=note; note();
+        go.onclick=function(){
+          go.disabled=true; sel.disabled=true;
+          var ib=document.getElementById('ing-btn'); if(ib) ib.disabled=true;
+          progressBar(2, 'Starting box-first…');
+          bfRunDetect(bfCtx(pg), sel.value, progressBar)
+            .then(function(){ openBoxFirst(pg); })
+            .catch(function(e){ progressBar(0, 'Box-first failed: '+e.message); go.disabled=false; sel.disabled=false; if(ib) ib.disabled=false; });
+        };
+      }).catch(function(){});
     }
 
     function doImport(text, filename){
@@ -1508,6 +1623,573 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         controlledTopicsMatched:0, proposedTopics:[], review:{ total:pub.length, reviewed:0, flagged:0, unreviewed:pub.length },
         lowConfidence:0, worklist:wl, worklistClassCounts:wcc
       };
+    }
+  }
+
+  // ══ BOX-FIRST REVIEW (SLICE-14) ═════════════════════════════════════════════
+  // The other way to ingest a page. Page-first has the VLM read the whole page and
+  // OCR locate each object afterwards; box-first reverses it — a detector draws
+  // the boxes, a VLM proposes which boxes make one object, and the curator fixes
+  // both HERE, before a single word is transcribed. Each box is later read from
+  // its own full-resolution crop, so a box that clips a line loses that line: this
+  // screen is where that gets caught.
+  //
+  // It owns the review layout while it runs (render() never runs for a page in
+  // review), and it autosaves: every correction is POSTed as it happens, with an
+  // op name the service counts. That count, per detector, is the point of offering
+  // three detectors — the one a curator has to correct least is the one to keep.
+  var BF_CLASSES = ['article','advertisement','listing','classified_section','legal_notice','coupon',
+    'masthead','filler_slug','manuscript_annotation','caption','illustration'];
+  var BF_CLASS_LABEL = { article:'Article', advertisement:'Advertisement', listing:'Listing',
+    classified_section:'Classified', legal_notice:'Legal notice', coupon:'Coupon', masthead:'Masthead',
+    filler_slug:'Filler', manuscript_annotation:'Handwriting', caption:'Caption', illustration:'Illustration' };
+  // Mirrors the service's label → class hint (lib/group.ts), for groups made here.
+  var BF_LABEL_CLASS = { cartoon_or_advertisement:'advertisement', image_caption:'caption', photograph:'illustration',
+    image:'illustration', chart:'illustration', masthead:'masthead', newspaper_header:'masthead', table:'listing',
+    page_number:'filler_slug', header:'filler_slug', footer:'filler_slug', figure_title:'caption' };
+  // One colour per group, spread by the golden angle so neighbours never match.
+  function bfColor(i){ return 'hsl('+Math.round((i*137.508)%360)+' 66% 42%)'; }
+  function enc(s){ return encodeURIComponent(s); }
+  function r4(n){ return Math.round(n*10000)/10000; }
+
+  // GET an SSE endpoint of the service and hand each event to onEvent(name, data).
+  function streamSSE(url, onEvent){
+    return fetch(url).then(function(res){
+      var reader=res.body.getReader(), dec=new TextDecoder(), buf='';
+      return (function pump(){ return reader.read().then(function(r){
+        if(r.done) return;
+        buf += dec.decode(r.value, {stream:true});
+        var parts=buf.split('\n\n'); buf=parts.pop();
+        parts.forEach(function(chunk){
+          var ev=null, data=null;
+          chunk.split('\n').forEach(function(line){
+            if(line.indexOf('event:')===0) ev=line.slice(6).trim();
+            else if(line.indexOf('data:')===0) data=line.slice(5).trim();
+          });
+          if(ev && data!=null){ var d; try{ d=JSON.parse(data); }catch(e){ return; } onEvent(ev, d); }
+        });
+        return pump();
+      }); })();
+    });
+  }
+
+  // Run one detector (+ the grouper) on the page. Resolves with the proposal.
+  function bfRunDetect(ctx, detector, onProgress){
+    return new Promise(function(resolve, reject){
+      var got=null, err=null;
+      if(ctx.runActivity) ctx.runActivity(true);
+      streamSSE(ctx.api+'/api/boxfirst/detect?collection='+enc(ctx.collection)+'&pointer='+ctx.pointer+
+          '&issueId='+enc(ctx.issueId)+'&record='+ctx.record+'&page='+ctx.pageNum+'&detector='+enc(detector),
+        function(ev, d){
+          if(ev==='progress') onProgress(d.pct, d.message);
+          else if(ev==='result') got=d;
+          else if(ev==='error') err=d;
+        })
+      .then(function(){
+        if(ctx.runActivity) ctx.runActivity(false);
+        if(got) resolve(got);
+        else reject(new Error(err ? (err.rights ? 'rights-locked — ' : '')+err.message : 'the service closed the stream without a result'));
+      }, function(e){ if(ctx.runActivity) ctx.runActivity(false); reject(e); });
+    });
+  }
+
+  function boxFirstReview(ctx){
+    var API = ctx.api;
+    var detectors = [], proposals = [], P = null;  // P: the proposal under review
+    var selGi = -1, selBox = null;                  // selected group (index) / box (id)
+    var hist = [], queue = [], saving = false, saveMsg = '', hoverMsg = '';
+    var busy = null, busyMsg = '';
+    var zoom = 1, panned = false, drawArmed = false;
+    var page = null, wrap = null, img = null, layer = null;
+
+    mount();
+    return load();
+
+    // ── setup ────────────────────────────────────────────────────────────────
+    function mount(){
+      page = document.getElementById('rv-page');
+      page.classList.add('zoomable');
+      page.style.aspectRatio='auto'; page.style.backgroundImage='none'; page.style.background='var(--sunken)';
+      page.innerHTML = '<div class="pagewrap"><img src="'+esc(ctx.imageUrl)+'" alt="page image" draggable="false"><div class="bf-layer"></div></div>';
+      wrap = page.querySelector('.pagewrap'); img = wrap.querySelector('img'); layer = wrap.querySelector('.bf-layer');
+      // The section list becomes the group list; tools that act on transcriptions
+      // have nothing to act on yet.
+      var f=document.querySelector('#rv-seclist .sl-filters'); if(f) f.style.display='none';
+      var h=document.querySelector('#rv-seclist .sl-head .h'); if(h) h.textContent='Groups';
+      var eye=document.getElementById('sl-all'); if(eye) eye.style.visibility='hidden';
+      var fill=document.getElementById('bx-fill'); if(fill) fill.disabled=true;
+      var fi=document.getElementById('bx-find'); if(fi){ fi.disabled=true; fi.placeholder='find — after transcription'; }
+      var cta=document.getElementById('rv-iiif'); if(cta) cta.style.display='none';
+      html('rv-region','');
+      var claims=document.querySelector('#review .claims'); if(claims) claims.innerHTML='<div id="bf-panel"></div>';
+      set('h-runlab', 'Box-first review');
+      html('u-banner', 'Internal Editorial Workbench · <b>Box-first review</b> · '+esc(ctx.issueId)+' · P.'+ctx.pageNum+
+        ' · nothing is transcribed until you say so');
+      if(ctx.renderStrip) ctx.renderStrip(ctx.pageNum);
+      wireLayer(); wireZoom(); wireKeys();
+    }
+
+    function load(prefer){
+      return Promise.all([
+        fetch(API+'/api/boxfirst/detectors').then(function(r){ return r.json(); }),
+        fetch(API+'/api/boxfirst/proposal?collection='+enc(ctx.collection)+'&record='+ctx.record).then(function(r){ return r.json(); })
+      ]).then(function(a){
+        detectors = a[0].detectors || [];
+        proposals = a[1].proposals || [];
+        var want = prefer || (a[1].state && a[1].state.detector);
+        P = proposals.filter(function(p){ return p.detector===want; })[0] || proposals[0] || null;
+        selGi=-1; selBox=null; hist=[]; saveMsg='';
+        paintAll();
+      }).catch(function(e){ html('wl-rows','<div class="prog">Could not load the proposal ('+esc(e.message)+').</div>'); });
+    }
+
+    // ── model helpers ────────────────────────────────────────────────────────
+    function boxById(id){ for(var i=0;i<P.boxes.length;i++) if(P.boxes[i].id===id) return P.boxes[i]; return null; }
+    function groupOf(id){ for(var i=0;i<P.groups.length;i++) if(P.groups[i].boxes.indexOf(id)>=0) return i; return -1; }
+    function detInfo(id){ for(var i=0;i<detectors.length;i++) if(detectors[i].id===id) return detectors[i]; return null; }
+    function propFor(id){ for(var i=0;i<proposals.length;i++) if(proposals[i].detector===id) return proposals[i]; return null; }
+    function snapshot(){ return JSON.stringify({ boxes:P.boxes, groups:P.groups }); }
+    function takeOut(id){ // remove a box from whatever group holds it; drop the group if emptied
+      var gi=groupOf(id); if(gi<0) return -1;
+      var g=P.groups[gi]; g.boxes.splice(g.boxes.indexOf(id),1);
+      if(!g.boxes.length){ P.groups.splice(gi,1); if(selGi===gi) selGi=-1; else if(selGi>gi) selGi--; return -1; }
+      return gi;
+    }
+    function renumber(){ P.groups.forEach(function(g,i){ g.id=i+1; }); }
+    function classForLabel(label){ return BF_LABEL_CLASS[label] || 'article'; }
+
+    // Every correction goes through here: remember the state before it (undo),
+    // queue its op for the service, repaint.
+    function commit(op, extra, before){
+      hist.push(before); if(hist.length>200) hist.shift();
+      var o={ op:op }; for(var k in (extra||{})) o[k]=extra[k];
+      queue.push(o); P.edits++;
+      renumber(); flush(); paintAll();
+    }
+    function undo(){
+      if(!hist.length || !P) return;
+      var s=JSON.parse(hist.pop()); P.boxes=s.boxes; P.groups=s.groups;
+      if(selBox!=null && !boxById(selBox)) selBox=null;
+      if(selGi>=P.groups.length) selGi=-1;
+      queue.push({ op:'undo' }); P.edits=Math.max(0,P.edits-1);
+      flush(); paintAll();
+    }
+    function flush(){
+      if(saving || !queue.length || !P) return;
+      saving=true;
+      var ops=queue.splice(0), det=P.detector;
+      setSave('saving…');
+      fetch(API+'/api/boxfirst/proposal', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ collection:ctx.collection, record:ctx.record, detector:det, boxes:P.boxes, groups:P.groups, ops:ops })
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){
+        saving=false;
+        if(P && P.detector===det){ P.edits=j.edits; P.status=j.status; P.updatedAt=j.updatedAt; }
+        setSave('saved · '+j.edits+' correction'+(j.edits===1?'':'s')+' on this detector');
+        if(queue.length) flush(); else paintPanel();
+      })
+      .catch(function(e){
+        saving=false; queue=ops.concat(queue);   // kept; the next correction retries them
+        setSave('NOT SAVED — '+e.message);
+      });
+    }
+    function setSave(m){ saveMsg=m; paintBarMsg(); }
+
+    // ── corrections ──────────────────────────────────────────────────────────
+    function selectBox(id){ selBox=id; selGi=(id==null?-1:groupOf(id)); paintAll(); }
+    function selectGroup(i){ selGi=i; selBox=null; paintAll(); }
+    function setClass(cls){ var b=snapshot(); P.groups[selGi].object_class=cls; commit('class',{group:selGi+1, to:cls},b); }
+    function setRole(role){ var g=P.groups[selGi]; if((g.role||'')===role) return; var b=snapshot(); g.role=role||null; commit('role',{group:selGi+1},b); }
+    function reorderBox(k, dir){
+      var b=snapshot(), a=P.groups[selGi].boxes, t=a[k]; a[k]=a[k+dir]; a[k+dir]=t;
+      commit('reorder',{group:selGi+1, box:t},b);
+    }
+    function moveGroup(dir){
+      var j=selGi+dir; if(j<0 || j>=P.groups.length) return;
+      var b=snapshot(), g=P.groups.splice(selGi,1)[0]; P.groups.splice(j,0,g); selGi=j;
+      commit('order',{group:j+1},b);
+    }
+    function ungroupBox(id){ var b=snapshot(); takeOut(id); if(selBox===id) selGi=-1; commit('ungroup',{box:id},b); }
+    function dissolve(){ var b=snapshot(), g=P.groups.splice(selGi,1)[0]; selGi=-1; selBox=null; commit('dissolve',{boxes:g.boxes},b); }
+    function mergeInto(target){
+      var b=snapshot(), src=P.groups[selGi], dst=P.groups[target];
+      dst.boxes=dst.boxes.concat(src.boxes); delete dst.unplaced;
+      P.groups.splice(selGi,1); selGi=P.groups.indexOf(dst);
+      commit('merge',{into:selGi+1, boxes:src.boxes},b);
+    }
+    // Shift-click: put a box into the selected group (moving it out of any other).
+    function assignToSelected(id){
+      if(selGi<0){ setSave('select a group first, then shift-click boxes to add them to it'); return; }
+      var dst=P.groups[selGi]; if(dst.boxes.indexOf(id)>=0) return;
+      var b=snapshot(), bx=boxById(id);
+      takeOut(id); delete bx.discarded;
+      selGi=P.groups.indexOf(dst); dst.boxes.push(id);
+      commit('assign',{box:id, group:selGi+1},b);
+    }
+    function assignTo(id, target){ selGi=target; assignToSelected(id); }
+    // A box becomes a group of its own, placed right after the group it left.
+    function newGroupFrom(id){
+      if(id==null) return;
+      var b=snapshot(), bx=boxById(id), gi=groupOf(id);
+      var cls = gi>=0 ? P.groups[gi].object_class : classForLabel(bx.label);
+      if(gi>=0 && P.groups[gi].boxes.length===1){ setSave('#'+id+' is already a group of its own'); return; }
+      var at = takeOut(id); delete bx.discarded;
+      var ng={ id:0, boxes:[id], object_class:cls, role:null };
+      var pos = at>=0 ? at+1 : P.groups.length;
+      P.groups.splice(pos,0,ng); selGi=pos; selBox=id;
+      commit('split',{box:id},b);
+    }
+    function deleteBox(id){
+      if(id==null) return;
+      var b=snapshot(); takeOut(id);
+      P.boxes=P.boxes.filter(function(x){ return x.id!==id; });
+      selBox=null; commit('delete',{box:id},b);
+    }
+    function addBox(rect){
+      var b=snapshot(), id=P.boxes.reduce(function(m,x){ return Math.max(m,x.id); },0)+1;
+      P.boxes.push({ id:id, rect:rect.map(r4), label:'human', conf:null, source:'human' });
+      if(selGi>=0) P.groups[selGi].boxes.push(id);
+      else { P.groups.push({ id:0, boxes:[id], object_class:'article', role:null }); selGi=P.groups.length-1; }
+      selBox=id; commit('add',{box:id},b);
+    }
+
+    // ── the page: boxes ──────────────────────────────────────────────────────
+    function paintLayer(){
+      if(!layer) return;
+      layer.innerHTML='';
+      layer.classList.toggle('focus', selGi>=0);
+      if(!P) return;
+      var gi={}; P.groups.forEach(function(g,i){ g.boxes.forEach(function(id){ gi[id]=i; }); });
+      P.boxes.forEach(function(b){
+        var i=gi[b.id], loose=(i==null), r=b.rect;
+        var el=document.createElement('div');
+        el.className='bf-bx'+(loose?' loose':'')+(b.discarded?' discarded':'')+(b.source==='human'?' human':'')+
+          (!loose && i===selGi?' ing':'')+(b.id===selBox?' sel':'');
+        if(!loose) el.style.setProperty('--g', bfColor(i));
+        el.style.left=(r[0]*100)+'%'; el.style.top=(r[1]*100)+'%'; el.style.width=(r[2]*100)+'%'; el.style.height=(r[3]*100)+'%';
+        // box number always; the GROUP's number on the first box it reads from, so
+        // the page shows the reading order of objects without opening the list
+        el.innerHTML='<span class="bf-n">#'+b.id+'</span>'+(!loose && P.groups[i].boxes[0]===b.id ? '<span class="bf-g">'+(i+1)+'</span>' : '');
+        el.dataset.id=b.id;
+        if(b.id===selBox) ['nw','ne','sw','se'].forEach(function(k){
+          var hd=document.createElement('div'); hd.className='bx-h '+k; hd.dataset.k=k; el.appendChild(hd);
+        });
+        layer.appendChild(el);
+      });
+    }
+
+    function pctAt(ev){
+      var r=img.getBoundingClientRect();
+      return { x:Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)), y:Math.max(0,Math.min(1,(ev.clientY-r.top)/r.height)) };
+    }
+
+    function wireLayer(){
+      layer.addEventListener('mousedown', function(ev){
+        if(ev.button!==0 || ev.metaKey || drawArmed || !P) return;  // ⌘-drag pans; drawing owns the wrap
+        var el=ev.target.closest('.bf-bx');
+        if(!el){ if(selBox!=null || selGi>=0){ selBox=null; selGi=-1; paintAll(); } return; }
+        ev.preventDefault(); ev.stopPropagation();
+        var id=+el.dataset.id;
+        if(ev.shiftKey){ assignToSelected(id); return; }
+        if(id!==selBox){ selectBox(id); return; }
+        drag(ev, el, id, ev.target.dataset ? ev.target.dataset.k : null);
+      });
+      layer.addEventListener('mouseover', function(ev){
+        var el=ev.target.closest('.bf-bx'); if(!el || !P) return;
+        var b=boxById(+el.dataset.id), gi=groupOf(b.id);
+        hoverMsg='#'+b.id+' · '+b.label+(b.conf!=null?' '+b.conf.toFixed(2):'')+
+          (gi>=0 ? ' · group '+(gi+1)+' '+(BF_CLASS_LABEL[P.groups[gi].object_class]||'') : ' · in no group')+
+          (b.discarded?' · discarded by the grouper':'');
+        paintBarMsg();
+      });
+      layer.addEventListener('mouseleave', function(){ hoverMsg=''; paintBarMsg(); });
+
+      // drawing a new box: armed by ＋ BOX or `b`, one box per arming
+      wrap.addEventListener('mousedown', function(ev){
+        if(!drawArmed || ev.button!==0 || ev.metaKey) return;
+        ev.preventDefault(); ev.stopPropagation();
+        var start=pctAt(ev), r=null;
+        var ghost=document.createElement('div'); ghost.className='bf-ghost'; wrap.appendChild(ghost);
+        function move(e2){
+          var p=pctAt(e2);
+          r=[Math.min(start.x,p.x),Math.min(start.y,p.y),Math.abs(p.x-start.x),Math.abs(p.y-start.y)];
+          ghost.style.left=(r[0]*100)+'%'; ghost.style.top=(r[1]*100)+'%'; ghost.style.width=(r[2]*100)+'%'; ghost.style.height=(r[3]*100)+'%';
+        }
+        function up(){
+          document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+          ghost.remove(); armDraw(false);
+          if(r && r[2]>=0.005 && r[3]>=0.004) addBox(r);   // smaller is a slip, not a box
+        }
+        document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+      }, true);
+    }
+
+    // Move (drag the body) or resize (drag a corner) the SELECTED box. Saved on
+    // release — a draft proposal has undo, so no separate confirm step.
+    function drag(ev, el, id, k){
+      var b=boxById(id), start=pctAt(ev), r0=b.rect.slice(), moved=false, before=snapshot();
+      function move(e2){
+        var p=pctAt(e2), dx=p.x-start.x, dy=p.y-start.y, r=r0.slice();
+        if(Math.abs(dx)+Math.abs(dy) > 0.0015) moved=true;
+        if(!k){ r[0]=r0[0]+dx; r[1]=r0[1]+dy; }
+        else {
+          var x0=r0[0], y0=r0[1], x1=r0[0]+r0[2], y1=r0[1]+r0[3];
+          if(k==='nw'){ x0+=dx; y0+=dy; } else if(k==='ne'){ x1+=dx; y0+=dy; }
+          else if(k==='sw'){ x0+=dx; y1+=dy; } else { x1+=dx; y1+=dy; }
+          r=[Math.min(x0,x1), Math.min(y0,y1), Math.abs(x1-x0), Math.abs(y1-y0)];
+        }
+        r[2]=Math.max(0.004,Math.min(1,r[2])); r[3]=Math.max(0.003,Math.min(1,r[3]));
+        r[0]=Math.max(0,Math.min(1-r[2],r[0])); r[1]=Math.max(0,Math.min(1-r[3],r[1]));
+        b.rect=r.map(r4);
+        el.style.left=(r[0]*100)+'%'; el.style.top=(r[1]*100)+'%'; el.style.width=(r[2]*100)+'%'; el.style.height=(r[3]*100)+'%';
+      }
+      function up(){
+        document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+        if(moved){ b.source='human'; commit(k?'resize':'move', {box:id}, before); }
+      }
+      document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+    }
+
+    function armDraw(on){
+      drawArmed=on; wrap.classList.toggle('drawing', on);
+      if(on) setSave(selGi>=0 ? 'drag a rectangle — it joins group '+(selGi+1) : 'drag a rectangle — it becomes a new group');
+      paintBar();
+    }
+
+    // ── zoom + pan (the same gestures as the ingested-page review) ───────────
+    function setZoom(z, cx, cy){
+      z=Math.max(1,Math.min(6,z));
+      var pr=page.getBoundingClientRect();
+      if(cx==null){ cx=pr.left+pr.width/2; cy=pr.top+pr.height/2; }
+      var before=wrap.getBoundingClientRect();
+      var fx=before.width?(cx-before.left)/before.width:0, fy=before.height?(cy-before.top)/before.height:0;
+      zoom=z; wrap.style.width=(zoom*100)+'%';
+      var after=wrap.getBoundingClientRect();
+      page.scrollLeft+=(after.left+fx*after.width)-cx; page.scrollTop+=(after.top+fy*after.height)-cy;
+      set('zm-lvl', Math.round(zoom*100)+'%');
+    }
+    function wireZoom(){
+      var oi=document.getElementById('zm-in'), oo=document.getElementById('zm-out'), fit=document.getElementById('zm-fit');
+      if(oi) oi.onclick=function(){ setZoom(zoom*1.25); };
+      if(oo) oo.onclick=function(){ setZoom(zoom/1.25); };
+      if(fit) fit.onclick=function(){ setZoom(1); page.scrollLeft=0; page.scrollTop=0; };
+      page.onwheel=function(ev){
+        if(!ev.metaKey) return; ev.preventDefault();
+        setZoom(zoom*Math.min(1.5,Math.max(1/1.5,Math.exp(-ev.deltaY*0.001))), ev.clientX, ev.clientY);
+      };
+      page.onmousedown=function(ev){
+        if(!(ev.button===1 || (ev.button===0 && ev.metaKey))) return;
+        ev.preventDefault();
+        var sx=ev.clientX, sy=ev.clientY, l=page.scrollLeft, t=page.scrollTop;
+        page.classList.add('panning');
+        function mv(e2){ page.scrollLeft=l-(e2.clientX-sx); page.scrollTop=t-(e2.clientY-sy); }
+        function up(){ page.classList.remove('panning'); document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); }
+        document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+      };
+      page.onauxclick=function(ev){ if(ev.button===1) ev.preventDefault(); };
+    }
+
+    function wireKeys(){
+      document.onkeydown=function(ev){
+        var t=ev.target, tag=t && t.tagName;
+        if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || (t && t.isContentEditable)) return;
+        if(!P) return;
+        if((ev.metaKey||ev.ctrlKey) && (ev.key==='z' || ev.key==='Z')){ ev.preventDefault(); undo(); return; }
+        if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
+        var k=ev.key;
+        if(k==='Escape'){ if(drawArmed) armDraw(false); else { selBox=null; selGi=-1; paintAll(); } }
+        else if(k==='b' || k==='B') armDraw(!drawArmed);
+        else if(k==='n' || k==='N') newGroupFrom(selBox);
+        else if(k==='Backspace' || k==='Delete') deleteBox(selBox);
+        else return;
+        ev.preventDefault();
+      };
+    }
+
+    // ── the group list (in the section list's place) ─────────────────────────
+    function paintList(){
+      if(!P){ set('sl-count','—'); set('wl-prog','no proposal'); html('wl-rows','<div class="prog">No detector has run on this page yet — run one from the panel.</div>'); return; }
+      var loose=P.boxes.filter(function(b){ return groupOf(b.id)<0; });
+      set('sl-count', P.groups.length+' groups');
+      html('wl-prog', P.boxes.length+' boxes · <b>'+P.edits+'</b> correction'+(P.edits===1?'':'s'));
+      var h=P.groups.map(function(g,i){
+        return '<div class="bf-row'+(i===selGi?' sel':'')+'" data-g="'+i+'" style="--g:'+bfColor(i)+'">'+
+          '<span class="sw"></span><span class="o">'+(i+1)+'</span>'+
+          '<span class="t" title="'+esc(g.role||'')+'">'+esc(BF_CLASS_LABEL[g.object_class]||g.object_class)+(g.role?' · '+esc(g.role):'')+'</span>'+
+          (g.unplaced?'<span class="warn" title="The grouper did not place this box — check where it belongs">!</span>':'')+
+          '<span class="k">'+g.boxes.length+'▢</span></div>';
+      }).join('');
+      if(loose.length){
+        h+='<div class="bf-sub">In no group · '+loose.length+'</div>'+loose.map(function(b){
+          return '<div class="bf-row'+(b.id===selBox?' sel':'')+'" data-b="'+b.id+'" style="--g:#8A94A3">'+
+            '<span class="sw"></span><span class="o">#'+b.id+'</span><span class="t">'+esc(b.label)+(b.discarded?' · discarded':'')+'</span></div>';
+        }).join('');
+      }
+      html('wl-rows', h);
+      document.querySelectorAll('#wl-rows .bf-row').forEach(function(row){
+        row.addEventListener('click', function(){
+          if(row.dataset.g!=null) selectGroup(+row.dataset.g); else selectBox(+row.dataset.b);
+        });
+      });
+      var s=document.querySelector('#wl-rows .bf-row.sel'); if(s) s.scrollIntoView({ block:'nearest' });
+    }
+
+    // ── the panel (in the claims column's place) ─────────────────────────────
+    function paintPanel(){
+      var el=document.getElementById('bf-panel'); if(!el) return;
+      var di = P ? detInfo(P.detector) : null;
+      var h='<div class="objhead"><span class="oc-chip" style="background:var(--brand)">BOX-FIRST</span>'+
+        '<span class="oid">'+esc(ctx.issueId)+'</span><span class="pg">page '+ctx.pageNum+(P?' · '+esc(P.status):'')+'</span></div>';
+
+      // Detectors, side by side. "Fixes" is the comparison: corrections a curator
+      // made to that detector's proposal.
+      h+='<div class="blk"><div class="lab">Detectors</div><table class="bf-tbl"><tr><th>Detector</th><th>Boxes</th><th>Groups</th>'+
+        '<th title="Corrections made to this detector’s proposal — fewer means the detector did more of the work">Fixes</th><th></th></tr>';
+      detectors.forEach(function(d){
+        var p=propFor(d.id), cur=P && P.detector===d.id;
+        h+='<tr class="'+(cur?'cur':'')+'"><td><span class="nm">'+esc(d.label)+'</span></td>'+
+          (p ? '<td class="num">'+p.boxes.length+'</td><td class="num">'+(p.groups||[]).length+'</td><td class="num">'+p.edits+'</td>'
+             : '<td class="num off" colspan="3">'+(d.available?'not run':'weights missing')+'</td>')+
+          '<td style="text-align:right">'+(cur ? '<span class="bf-note">open</span>'
+            : p ? '<button class="bf-btn" data-open="'+d.id+'"'+(busy?' disabled':'')+'>Open</button>'
+            : '<button class="bf-btn" data-run="'+d.id+'"'+(d.available && !busy?'':' disabled')+'>Run</button>')+'</td></tr>';
+      });
+      h+='</table>';
+      if(P){
+        h+='<div class="bf-note">'+esc(di?di.note:'')+'</div>'+
+          '<div class="bf-note">'+esc(P.detectorModel)+(P.detectMs!=null?' · '+(P.detectMs/1000).toFixed(1)+'s':'')+
+          ' · grouped by '+esc(P.groupingModel||'—')+'</div>'+
+          '<div class="bf-acts"><button class="bf-btn" data-a="regroup"'+(busy?' disabled':'')+' title="Ask the grouper again, over the boxes as they are now">Regroup</button>'+
+          '<button class="bf-btn" data-a="rerun"'+(busy||!di||!di.available?' disabled':'')+'>Re-run '+esc(di?di.label:'')+'</button></div>';
+      }
+      h+='<div class="bf-note" id="bf-busy">'+esc(busyMsg)+'</div></div>';
+
+      h+='<div class="blk">'+detailHtml()+'</div>';
+
+      var n=P ? P.groups.length : 0;
+      h+='<div class="blk"><div class="lab">Transcribe</div>'+
+        '<button class="bf-btn pri" disabled title="SLICE-14 step 4 — not built yet">Transcribe '+n+' group'+(n===1?'':'s')+'</button>'+
+        '<div class="bf-note">Reads every box from its own full-resolution crop and joins them per group, in the order above. '+
+        'Boxes in no group are not transcribed. <b>Not built yet</b> — this is the next step.</div></div>';
+
+      h+='<div class="blk"><div class="lab">Keys</div><div class="bf-keys">'+
+        'click a box to select it · drag it to move · drag a corner to resize<br>'+
+        '<kbd>shift</kbd>+click a box to put it in the selected group<br>'+
+        '<kbd>b</kbd> draw a box · <kbd>n</kbd> make the box its own group · <kbd>⌫</kbd> delete the box<br>'+
+        '<kbd>⌘</kbd><kbd>Z</kbd> undo · <kbd>esc</kbd> deselect · <kbd>⌘</kbd>+drag pans · <kbd>⌘</kbd>+scroll zooms</div></div>';
+      el.innerHTML=h;
+      bindPanel(el);
+    }
+
+    function detailHtml(){
+      if(!P) return '<div class="lab">Selection</div><div class="bf-note">Run a detector to get boxes for this page.</div>';
+      if(selGi>=0){
+        var g=P.groups[selGi], opts=BF_CLASSES.map(function(c){
+          return '<option value="'+c+'"'+(c===g.object_class?' selected':'')+'>'+esc(BF_CLASS_LABEL[c])+'</option>'; }).join('');
+        var others=P.groups.map(function(o,i){ return i===selGi ? '' :
+          '<option value="'+i+'">'+(i+1)+' · '+esc(BF_CLASS_LABEL[o.object_class]||o.object_class)+(o.role?' · '+esc(o.role.slice(0,28)):'')+'</option>'; }).join('');
+        return '<div class="lab"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:'+bfColor(selGi)+'"></span>'+
+            'Group '+(selGi+1)+' of '+P.groups.length+'</div>'+
+          (g.unplaced ? '<div class="bf-note warn" style="margin:0 0 10px">The grouper did not place this box. It was given a group of its own so nothing is lost — check where it belongs.</div>' : '')+
+          '<div class="bf-field"><label>Type</label><select id="bf-class">'+opts+'</select></div>'+
+          '<div class="bf-field"><label>Role</label><input id="bf-role" value="'+esc(g.role||'')+'" placeholder="e.g. headline+body" spellcheck="false"></div>'+
+          '<div class="bf-note" style="margin:0 0 6px">Boxes, in reading order</div>'+
+          g.boxes.map(function(id,k){
+            var b=boxById(id)||{label:'?'};
+            return '<div class="bf-bxrow'+(id===selBox?' sel':'')+'" data-b="'+id+'"><span class="n">#'+id+'</span>'+
+              '<span class="l">'+esc(b.label)+(b.conf!=null?' · '+b.conf.toFixed(2):'')+(b.source==='human'?' · edited':'')+'</span>'+
+              '<button data-up="'+k+'"'+(k?'':' disabled')+' title="Read earlier">↑</button>'+
+              '<button data-dn="'+k+'"'+(k<g.boxes.length-1?'':' disabled')+' title="Read later">↓</button>'+
+              '<button data-out="'+id+'" title="Take out of this group">✕</button></div>';
+          }).join('')+
+          '<div class="bf-acts"><button class="bf-btn" data-a="gup"'+(selGi?'':' disabled')+'>↑ Earlier on page</button>'+
+            '<button class="bf-btn" data-a="gdn"'+(selGi<P.groups.length-1?'':' disabled')+'>↓ Later</button></div>'+
+          '<div class="bf-acts">'+(others ? '<select id="bf-merge"><option value="">Merge into group…</option>'+others+'</select>' : '')+
+            '<button class="bf-btn danger" data-a="dissolve" title="The boxes stay, in no group">Dissolve group</button></div>'+
+          '<div class="bf-note">Shift-click boxes on the page to add them to this group. Press <b>b</b> to draw a box into it.</div>';
+      }
+      if(selBox!=null){
+        var bx=boxById(selBox), groups=P.groups.map(function(o,i){
+          return '<option value="'+i+'">'+(i+1)+' · '+esc(BF_CLASS_LABEL[o.object_class]||o.object_class)+(o.role?' · '+esc(o.role.slice(0,28)):'')+'</option>'; }).join('');
+        return '<div class="lab">Box #'+bx.id+' · in no group</div>'+
+          '<div class="bf-note" style="margin:0 0 8px">'+esc(bx.label)+(bx.conf!=null?' · '+bx.conf.toFixed(2):'')+' — '+
+            (bx.discarded ? 'the grouper judged this box to hold no publication content.' : 'left out of every group, so it will not be transcribed.')+'</div>'+
+          '<div class="bf-acts"><button class="bf-btn" data-a="newgroup">Make it a group</button>'+
+            (groups ? '<select id="bf-addto"><option value="">Add to group…</option>'+groups+'</select>' : '')+
+            '<button class="bf-btn danger" data-a="delbox">Delete box</button></div>';
+      }
+      return '<div class="lab">Selection</div><div class="bf-note">Select a group in the list, or a box on the page. '+
+        'Check that every printed item on the page is inside some box — text outside every box will not be transcribed.</div>';
+    }
+
+    function bindPanel(el){
+      el.querySelectorAll('[data-open]').forEach(function(b){ b.onclick=function(){ openDetector(b.dataset.open); }; });
+      el.querySelectorAll('[data-run]').forEach(function(b){ b.onclick=function(){ runDetector(b.dataset.run); }; });
+      el.querySelectorAll('[data-up]').forEach(function(b){ b.onclick=function(ev){ ev.stopPropagation(); reorderBox(+b.dataset.up,-1); }; });
+      el.querySelectorAll('[data-dn]').forEach(function(b){ b.onclick=function(ev){ ev.stopPropagation(); reorderBox(+b.dataset.dn,1); }; });
+      el.querySelectorAll('[data-out]').forEach(function(b){ b.onclick=function(ev){ ev.stopPropagation(); ungroupBox(+b.dataset.out); }; });
+      el.querySelectorAll('.bf-bxrow').forEach(function(r){ r.onclick=function(){ selBox=+r.dataset.b; paintAll(); }; });
+      el.querySelectorAll('[data-a]').forEach(function(b){ b.onclick=function(){
+        var a=b.dataset.a;
+        if(a==='gup') moveGroup(-1); else if(a==='gdn') moveGroup(1);
+        else if(a==='dissolve') dissolve();
+        else if(a==='newgroup') newGroupFrom(selBox);
+        else if(a==='delbox') deleteBox(selBox);
+        else if(a==='regroup') regroup();
+        else if(a==='rerun') runDetector(P.detector, true);
+      }; });
+      var cls=document.getElementById('bf-class'); if(cls) cls.onchange=function(){ setClass(cls.value); };
+      var role=document.getElementById('bf-role');
+      if(role){ role.onchange=function(){ setRole(role.value.trim()); };
+        role.onkeydown=function(ev){ if(ev.key==='Enter') role.blur(); }; }
+      var mg=document.getElementById('bf-merge'); if(mg) mg.onchange=function(){ if(mg.value!=='') mergeInto(+mg.value); };
+      var at=document.getElementById('bf-addto'); if(at) at.onchange=function(){ if(at.value!=='') assignTo(selBox, +at.value); };
+    }
+
+    // ── detectors: switch, run, regroup ──────────────────────────────────────
+    function idle(){ if(saving || queue.length){ setSave('still saving — try again in a moment'); return false; } return true; }
+    function openDetector(id){ if(!idle()) return; load(id); }
+    function runDetector(id, rerun){
+      if(!idle()) return;
+      if(rerun && !confirm('Re-run '+(detInfo(id)||{}).label+'?\n\nIts boxes and grouping are replaced and its corrections count starts again from zero.')) return;
+      busy='detect'; busyMsg='starting…'; paintPanel();
+      bfRunDetect(ctx, id, function(pct, msg){ busyMsg=msg; var b=document.getElementById('bf-busy'); if(b) b.textContent=msg; })
+        .then(function(){ busy=null; busyMsg=''; return load(id); })
+        .catch(function(e){ busy=null; busyMsg='failed — '+e.message; paintPanel(); });
+    }
+    function regroup(){
+      if(!idle()) return;
+      if(!confirm('Ask the grouper again?\n\nYour box corrections are kept; the grouping — including any regrouping you did — is replaced. Takes about a minute.')) return;
+      busy='regroup'; busyMsg='regrouping '+P.boxes.length+' boxes…'; paintPanel();
+      fetch(API+'/api/boxfirst/group', { method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ collection:ctx.collection, record:ctx.record, detector:P.detector }) })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){ busy=null; busyMsg=''; return load(j.detector); })
+      .catch(function(e){ busy=null; busyMsg='regroup failed — '+e.message; paintPanel(); });
+    }
+
+    // ── the toolbar ──────────────────────────────────────────────────────────
+    function paintBar(){
+      var bar=document.getElementById('rv-editbar'); if(!bar) return;
+      bar.innerHTML=
+        '<button data-a="draw"'+(drawArmed?' class="pri"':'')+(P?'':' disabled')+' title="Draw a box (b)">'+(drawArmed?'DRAWING… ⎋':'＋ BOX')+'</button>'+
+        '<button data-a="undo"'+(hist.length?'':' disabled')+' title="Undo (⌘Z)">UNDO</button>'+
+        '<span class="msg" id="bf-msg"></span>';
+      bar.querySelector('[data-a="draw"]').onclick=function(){ armDraw(!drawArmed); };
+      bar.querySelector('[data-a="undo"]').onclick=undo;
+      paintBarMsg();
+    }
+    function paintBarMsg(){ var m=document.getElementById('bf-msg'); if(m) m.textContent=hoverMsg||saveMsg||'autosaves every correction'; }
+
+    function paintAll(){
+      paintLayer(); paintList(); paintPanel(); paintBar();
+      if(P){
+        var di=detInfo(P.detector);
+        set('h-run', 'box-first · '+(di?di.label:P.detector));
+        set('rv-credit', 'Boxes: '+P.detectorModel+' · grouping: '+(P.groupingModel||'—')+' · proposal saved '+(P.updatedAt?String(P.updatedAt).slice(0,16).replace('T',' '):''));
+      }
     }
   }
 
