@@ -139,8 +139,13 @@ rectangles; one box over both would claim 7–31× the page area it holds. `cove
 transcript tokens ÷ total — below `OCR_MIN_COVERAGE` the region is stored as `null`, because "no
 region located" beats a confidently drawn wrong box.
 
-Curators correct regions in the workbench (`POST /api/region`). Those are stamped `source:'human'`
-and `relocate` leaves them alone unless `--force`.
+`continuedIn` is the number of rects beyond the primary. The workbench draws each object's primary
+rect; its ⧉ toggle draws them all.
+
+Curators correct regions in the workbench (`POST /api/region`): any box can be moved, resized or
+deleted, and the save keeps the object's whole set of rects. Corrected regions are stamped
+`source:'human'` and `relocate` leaves them alone unless `--force`. `relocate` never touches
+box-first pages — their regions are the boxes the text was read from.
 
 ## Box-first ingestion (SLICE-14)
 

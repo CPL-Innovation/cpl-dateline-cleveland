@@ -20,8 +20,10 @@ const force = argv.includes("--force");
 const only = argv.filter((a) => /^\d+$/.test(a)).map(Number);
 
 async function relocatePage(pageRecord: number) {
+  // Box-first objects are never re-anchored, even when a page is named explicitly
+  // (see main()) — their regions are where their text was read from.
   const all = await query<{ id: number; text: string; region_bbox: any }>(
-    "SELECT id, text, region_bbox FROM content_objects WHERE page_record=$1 ORDER BY seq", [pageRecord],
+    "SELECT id, text, region_bbox FROM content_objects WHERE page_record=$1 AND run_id NOT LIKE 'boxfirst%' ORDER BY seq", [pageRecord],
   );
   // Regions a curator corrected by hand are NOT the machine's to overwrite. Since
   // human edits land in region_bbox itself (the chosen design), the source stamp is
@@ -66,7 +68,9 @@ async function main() {
   let records = only;
   if (!records.length) {
     const r = await query<{ page_record: number }>(
-      "SELECT page_record FROM page_ingests WHERE collection=$1 AND status='done' ORDER BY page_record",
+      // Box-first pages are not OCR-anchored: their regions are the boxes the text
+      // was read from, checked by a curator. Anchoring would overwrite them.
+      "SELECT page_record FROM page_ingests WHERE collection=$1 AND status='done' AND mode <> 'box-first' ORDER BY page_record",
       [CDM_COLLECTION],
     );
     records = r.rows.map((x) => x.page_record);

@@ -375,8 +375,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bx:hover{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 0 3px var(--bxc,var(--c-article))}
 .bx.sel{opacity:0}                    /* the selected one is drawn by .bbox-hl instead */
 .bx.human{border-style:dashed;border-width:1.5px}
-/* ⧉ every-box view (SLICE-14): a box-first object's other boxes. View-only — the
-   primary (largest) box is still the one that gets corrected. On the selected
+/* ⧉ every-box view (SLICE-14): an object's boxes beyond its largest — a story's
+   other column runs, or a box-first object's other boxes. Dotted so the primary
+   still reads as the primary; each can be corrected like it. On the selected
    object they take the same amber as its glow, so its whole extent reads as one. */
 .bx.extra{border-style:dotted;cursor:default}
 .bx.sel.extra{opacity:1;background:rgba(241,196,0,.15);border:1.5px solid rgba(241,196,0,.85);border-radius:3px}
@@ -923,7 +924,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <button class="tbtn on" id="pm-toggle" title="Hide page thumbnails">◧</button>
               <button class="tbtn on" id="sl-toggle" title="Hide the section list">◨</button>
               <button class="tbtn" id="bx-fill" title="Fill every visible region (F)">▣</button>
-              <button class="tbtn" id="bx-all" title="Show every box of box-first objects" hidden>⧉</button>
+              <button class="tbtn" id="bx-all" title="Show every box of objects that have several" hidden>⧉</button>
               <span class="tsep"></span>
               <div class="zoomctl">
                 <button id="zm-out" title="Zoom out (⌘ + scroll down)">−</button>
@@ -2707,18 +2708,18 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     try { fillBoxes = localStorage.getItem('dl:fillboxes') === '1'; } catch(e){}
 
     // ── every-box view (SLICE-14) ───────────────────────────────────────────
-    // The map draws ONE box per object — the rule from anchoring, whose extra
-    // rects were mostly noise. A box-first object's rects are not noise: a curator
-    // checked each one and its text was read from them. This view draws them all,
-    // for box-first objects only. A view preference, stored like the fill toggle.
+    // An object can occupy several boxes — a story that jumps columns, or a
+    // box-first object made of several boxes. By default the map draws each
+    // object's largest box only, so every object is one target for the eye; this
+    // view draws them all. A view preference, stored like the fill toggle.
     var allBoxes = false;
     try { allBoxes = localStorage.getItem('dl:allboxes') === '1'; } catch(e){}
-    function isBoxFirst(o){ return !!(o && (o.classification || /^detector:/.test((o.bbox && o.bbox.source) || ''))); }
+    function multiBox(o){ var r = o && regionOf(o.bbox); return !!(r && r.every && r.every.length > 1); }
     function paintAllBtn(){
       var b = document.getElementById('bx-all'); if(!b) return;
-      b.hidden = !wl.some(isBoxFirst);
+      b.hidden = !wl.some(multiBox);
       b.classList.toggle('on', allBoxes);
-      b.title = allBoxes ? 'Show only the largest box of each object' : 'Show every box of box-first objects';
+      b.title = allBoxes ? 'Show only the largest box of each object' : 'Show every box of objects that have several';
     }
     function toggleAllBoxesView(){
       allBoxes = !allBoxes;
@@ -2871,7 +2872,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       wl.forEach(function(o){
         if(o.page !== sel.page) return;
         var reg = regionOf(o.bbox); if(!reg) return;
-        var rects = (allBoxes && isBoxFirst(o) && reg.every) ? reg.every : reg.all;
+        var rects = (allBoxes && reg.every) ? reg.every : reg.all;
         rects.forEach(function(p, ri){
           var b = document.createElement('div');
           b.className = 'bx' + (o.id===sel.id ? ' sel' : '') + (reg.source==='human' ? ' human' : '') + (ri ? ' extra' : '');
@@ -2896,8 +2897,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           b.addEventListener('dblclick', function(ev){
             ev.preventDefault(); ev.stopPropagation();
             clearTimeout(clickTimer);
-            if(ri) return;               // the every-box view is for looking; the primary is the one corrected
-            startEdit(o, ri, b, wrap);
+            startEdit(o, ri, b, wrap);     // any box — the save sends the object's whole set
           });
           layer.appendChild(b);
         });
@@ -3051,6 +3051,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(editing){
         h = '<button class="pri" data-a="save"'+(editing.dirty?'':' disabled')+'>SAVE REGION ⏎</button>'+
             '<button data-a="cancel">CANCEL ⎋</button>'+
+            (editing.rects.length > 1 ? '<button data-a="delbox" title="Remove this box; the object keeps its other '+(editing.rects.length-1)+'">DELETE THIS BOX</button>' : '')+
             '<span class="msg">'+esc(msg||'drag to move · drag a corner to resize · Enter to save · Esc to cancel')+'</span>';
       } else if(drawing){
         h = '<button data-a="cancel">CANCEL ⎋</button>'+
@@ -3068,6 +3069,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           var a=b.dataset.a;
           if(a==='cancel') cancelEdit();
           else if(a==='save') commit(editing.oid, editing.rects);
+          else if(a==='delbox'){ var ri=editing.ri; commit(editing.oid, editing.rects.filter(function(_,i){ return i!==ri; })); }
           else if(a==='clear') commit(o.id, []);
           else if(a==='draw'){ var w=document.querySelector('#rv-page .pagewrap'); if(w) armDraw(o, w); }
         });
@@ -3798,14 +3800,15 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         else if(reg && reg.source==='human'){
           rn.className='region-note';
           rn.innerHTML='<b>✎</b> region corrected by hand'+
-            ' — this one is not the machine’s';
+            ' — this one is not the machine’s'+
+            (reg.every && reg.every.length>1 ? ' · <b>'+reg.every.length+' boxes</b> — '+(allBoxes ? 'all shown' : '⧉ in the toolbar shows them') : '');
         }
         else if(reg && reg.source==='ocr-anchor'){
           rn.className='region-note';
           rn.innerHTML='<b>◈</b> region located by OCR word match — '+
             Math.round((reg.coverage||0)*100)+'% of the transcript matched'+
-            (reg.continuedIn ? ' · <b>continues in '+reg.continuedIn+' more column'+(reg.continuedIn>1?'s':'')+
-              '</b> — this box is only the first' : '')+
+            (reg.continuedIn ? ' · <b>continues in '+reg.continuedIn+' more column'+(reg.continuedIn>1?'s':'')+'</b> — '+
+              (reg.every && reg.every.length>1 ? (allBoxes ? 'all shown' : '⧉ in the toolbar shows them') : 'this box is only the first') : '')+
             (reg.ocrConf!=null ? ' · page OCR conf '+reg.ocrConf : '');
         }
         // box-first (SLICE-14): a detector drew it and a curator reviewed it before

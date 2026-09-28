@@ -300,10 +300,10 @@ async function persistObject(c: PoolClient, o: AssembledRow, en: Enriched, issue
 // ── Import: persist an already-enriched, schema-compliant JSON for a page,
 //    skipping harvest/VLM/enrich. Same store, same rights gate, marked done —
 //    the page becomes indistinguishable from an ingested one. ──────────────────
-// Normalize an imported region into the canonical single-box shape. Accepts a
-// bare [x,y,w,h] or an array of them (older exports carried column runs); keeps
-// the largest and drops the rest, so import cannot reintroduce multi-box objects.
-// Anything malformed becomes null rather than being stored as unreadable geometry.
+// Normalize an imported region into the canonical shape. Accepts a bare
+// [x,y,w,h] or an array of them (one per column run); keeps every well-formed
+// rect, largest first. Anything malformed becomes null rather than being stored
+// as unreadable geometry.
 function importRegion(bb: unknown): string | null {
   if (!Array.isArray(bb) || !bb.length) return null;
   const rects: number[][] = Array.isArray(bb[0]) ? (bb as number[][]) : [bb as number[]];
@@ -312,11 +312,7 @@ function importRegion(bb: unknown): string | null {
     .map((r) => r.slice(0, 4).map(Number));
   if (!clean.length) return null;
   clean.sort((a, b) => b[2] * b[3] - a[2] * a[3]);
-  return JSON.stringify({
-    rects: [clean[0]],
-    source: "imported",
-    ...(clean.length > 1 ? { continuedIn: clean.length - 1 } : {}),
-  });
+  return JSON.stringify({ rects: clean, source: "imported", continuedIn: clean.length - 1 });
 }
 
 export interface ImportObject {
@@ -406,13 +402,21 @@ export async function setObjectRegion(objectId: number, rects: unknown) {
       }
       return [x, y, w, h].map((n) => Math.round(n * 1e4) / 1e4);
     });
-    // Largest first, then keep ONE (Jungu's call — an object has at most a single
-    // bounding box). Callers may still send several; the largest wins rather than
-    // the request being rejected, so an older client or an import can't fail on a
-    // rule it predates. The array shape is kept for compatibility with what is
-    // already stored — it just never holds more than one entry now.
+    // EVERY rect is kept (SLICE-14 — an object may have several boxes, one per
+    // column run or per box-first box). The workbench sends the object's whole
+    // set with one box changed, added or removed; keeping only the largest used to
+    // delete the rest without a word. Largest first, so rects[0] stays the primary.
     clean.sort((a, b) => b[2] * b[3] - a[2] * a[3]);
-    region = { rects: [clean[0]], source: "human", editedAt: new Date().toISOString() };
+    // A box-first region remembers which detector drew it, even once a curator has
+    // moved a box: the rest are still that detector's. The box ids it carried do
+    // not survive an edit — they no longer line up with the rects.
+    const prev = await query<{ region_bbox: any }>("SELECT region_bbox FROM content_objects WHERE id=$1", [objectId]);
+    const before = prev.rows[0]?.region_bbox;
+    const detector = before && typeof before === "object" && !Array.isArray(before) ? before.detector : undefined;
+    region = {
+      rects: clean, source: "human", editedAt: new Date().toISOString(), continuedIn: clean.length - 1,
+      ...(detector ? { detector } : {}),
+    };
   }
   const r = await query(
     "UPDATE content_objects SET region_bbox=$1 WHERE id=$2 RETURNING id",
