@@ -206,3 +206,16 @@ export const UV_BIN = process.env.UV_BIN ?? "uv";
 // Tesseract blocks smaller than this share of the page are specks, rules and
 // stray marks, not layout.
 export const TESS_MIN_BLOCK_AREA = Number(process.env.TESS_MIN_BLOCK_AREA ?? 0.0004);
+// The grouper: one call per page that reads the numbered-box overview and says
+// which boxes make one content object, in what order. Sonnet, matching the
+// page-ingestion tier — deciding what is one story IS the judgement page-first
+// ingestion makes implicitly, so it gets the same capability.
+export const GROUPING_MODEL = process.env.GROUPING_MODEL ?? "claude-sonnet-5";
+// Sonnet 5 thinks adaptively by default at effort "high"; left there, grouping a
+// 56-box page took 30–160s and once spent its whole output budget thinking. This
+// is structure, not transcription — "medium" is the starting point to measure
+// from. low | medium | high | xhigh | max.
+export const GROUPING_EFFORT = process.env.GROUPING_EFFORT ?? "medium";
+// Long edge of the overview the grouper sees. Box numbers must stay legible on a
+// 200-box page; Claude downsamples anything above ~2576px, so this sits under it.
+export const GROUPING_MAX_EDGE = Number(process.env.GROUPING_MAX_EDGE ?? 2400);

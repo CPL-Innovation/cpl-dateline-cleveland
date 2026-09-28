@@ -163,6 +163,20 @@ npm run detect -- 7618         # every detector on one page → out/detect/7618/
 npm run detect -- 7618 --detector pp-doclayout
 ```
 
+**Grouping** (`src/lib/group.ts`). A detector finds regions, not stories, so one VLM call per page
+(`GROUPING_MODEL`, default Sonnet 5) reads the page with every box drawn and numbered, and answers in
+numbers — `{ boxes: [3, 7, 8], object_class: "article" }` — never in coordinates. Every box ends up in
+exactly one group or explicitly discarded; any box the model forgets gets a group of its own flagged
+`unplaced`. If the call fails, the page keeps its boxes (one group each) and the reason is logged.
+`GROUPING_EFFORT` defaults to `medium`: measured on a 56-box Brooklyn News page, `high` took 30–160s,
+`medium` 60–90s with near-identical groups, and `low` 8–12s but joined half as many headlines to
+their bodies.
+
+**Proposals** (`src/lib/boxFirst.ts`, table `box_proposals`). One per (page, detector): the raw boxes,
+the curator-corrected boxes, the grouping, and an edit count. Box-first is refused on pages already
+ingested, and a page under review has `page_ingests.status = 'review'`. Endpoints: `/api/boxfirst/*`
+(see the header of `src/server.ts`).
+
 ## Implementation notes (not intent — see `_FROM-BUILD` for intent changes)
 
 - The SLICE-01 brief recommended a Next.js scaffold to mirror CN. For this slice's throwaway view
@@ -183,6 +197,8 @@ src/lib/ocrAnchor.ts   transcript x OCR words -> measured region rects (Stage 2b
 src/ingest.ts          the run command
 src/relocate.ts        re-derive regions for already-ingested pages (no VLM spend)
 src/lib/detect.ts      box-first detector adapter (tesseract | american-stories | pp-doclayout)
+src/lib/group.ts       box-first grouper: numbered-box overview → content objects
+src/lib/boxFirst.ts    box-first proposals: detect → group → draft, curator saves, regroup
 src/detect.ts          run detectors on a page, write numbered-box overlays
 detect/                the Python half: detect.py (ONNX detectors + overlay), fetch-models.sh
 src/view.ts            "look at it" — console + out/view.html

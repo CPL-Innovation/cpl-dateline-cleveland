@@ -10,6 +10,17 @@
 //                                            → text/event-stream of {phase,message,pct},
 //                                              then a `result` (objects) or `error` event
 //
+// Box-first ingestion (SLICE-14) — detect → group → curator review → transcribe:
+//   GET  /api/boxfirst/detectors             → [{ id, label, note, available }]
+//   GET  /api/boxfirst/detect?collection=&pointer=&issueId=&record=&page=&detector=
+//                                            → SSE like /api/ingest; `result` is the proposal
+//   GET  /api/boxfirst/proposal?collection=&record=
+//                                            → { state, proposals: [one per detector run] }
+//   POST /api/boxfirst/proposal {collection, record, detector, boxes, groups, ops}
+//                                            → the curator's corrections; returns the proposal
+//   POST /api/boxfirst/group {collection, record, detector}
+//                                            → re-run the grouper over the current boxes
+//
 // Rights gate + idempotency live in ingestPage(); this file is transport + seeding.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -23,6 +34,9 @@ import { getShelf } from "./lib/shelf.ts";
 import { streamIssueChat, ChatRefused, type ChatMessage } from "./lib/chat.ts";
 import { resolveIssuePages } from "./lib/issuePages.ts";
 import { suggestTitle } from "./lib/suggestTitle.ts";
+import { proposeBoxes, getProposals, saveProposal, regroup, listDetectors, BoxFirstRefused } from "./lib/boxFirst.ts";
+import { DetectorUnavailable } from "./lib/detect.ts";
+import type { DetectorId } from "./config.ts";
 
 const ORIGIN = process.env.CORS_ORIGIN ?? "*";
 function cors(res: ServerResponse) {
@@ -341,6 +355,61 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       if (e instanceof RightsBlocked) return json(res, 403, { rights: true, error: (e as Error).message });
       return json(res, 400, { error: (e as Error).message });
     }
+  }
+
+  // ── box-first ingestion (SLICE-14) ────────────────────────────────────────
+  if (url.pathname === "/api/boxfirst/detectors") return json(res, 200, { detectors: listDetectors() });
+
+  if (url.pathname === "/api/boxfirst/detect") {
+    const record = Number(q.get("record"));
+    if (!record) return json(res, 400, { error: "record required" });
+    sseOpen(res);
+    const ka = setInterval(() => res.write(": keepalive\n\n"), 15000);
+    try {
+      const proposal = await proposeBoxes({
+        collection: q.get("collection") ?? "p16014coll5",
+        issuePointer: q.get("pointer") ? Number(q.get("pointer")) : null,
+        issueId: q.get("issueId") ?? `issue_${record}`,
+        pageRecord: record,
+        pageNumber: Number(q.get("page") ?? 1),
+        detector: (q.get("detector") ?? "") as DetectorId,
+      }, (e) => sse(res, "progress", e));
+      sse(res, "result", proposal);
+    } catch (e) {
+      const m = (e as Error).message;
+      if (e instanceof RightsBlocked) sse(res, "error", { rights: true, message: m });
+      else sse(res, "error", { message: m, refused: e instanceof BoxFirstRefused || e instanceof DetectorUnavailable });
+      console.error(`[boxfirst] detect ${record} failed:`, m);
+    } finally {
+      clearInterval(ka);
+      res.end();
+    }
+    return;
+  }
+
+  if (url.pathname === "/api/boxfirst/proposal" && req.method === "GET") {
+    const record = Number(q.get("record"));
+    if (!record) return json(res, 400, { error: "record required" });
+    try { return json(res, 200, await getProposals(q.get("collection") ?? "p16014coll5", record)); }
+    catch (e) { return json(res, 500, { error: (e as Error).message }); }
+  }
+
+  if (url.pathname === "/api/boxfirst/proposal" && req.method === "POST") {
+    try {
+      const b = JSON.parse(await readBody(req));
+      const proposal = await saveProposal({
+        collection: b.collection ?? "p16014coll5", pageRecord: Number(b.record), detector: b.detector,
+        boxes: b.boxes, groups: b.groups, ops: b.ops,
+      });
+      return json(res, 200, proposal);
+    } catch (e) { return json(res, e instanceof BoxFirstRefused ? 409 : 400, { error: (e as Error).message }); }
+  }
+
+  if (url.pathname === "/api/boxfirst/group" && req.method === "POST") {
+    try {
+      const b = JSON.parse(await readBody(req));
+      return json(res, 200, await regroup(b.collection ?? "p16014coll5", Number(b.record), b.detector));
+    } catch (e) { return json(res, e instanceof BoxFirstRefused ? 409 : 502, { error: (e as Error).message }); }
   }
 
   if (url.pathname === "/api/ingest") {

@@ -81,7 +81,7 @@ type Tier = "heavy" | "light" | "structured" | "capture_only";
 interface Enriched { tier: Tier; heavy?: EnrichResult; light?: LightPayload; }
 
 // ── rights gate (server-side source of truth) ─────────────────────────────────
-async function assertIngestable(pointer: number | null): Promise<{ status: string; label: string | null }> {
+export async function assertIngestable(pointer: number | null): Promise<{ status: string; label: string | null }> {
   if (pointer == null) return { status: "unknown", label: null };
   const r = await query<{ rights_status: string; rights_label: string | null }>(
     "SELECT rights_status, rights_label FROM issues WHERE pointer = $1", [pointer],

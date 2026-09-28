@@ -64,6 +64,12 @@ const ONNX_MODEL: Record<Exclude<DetectorId, "tesseract">, { file: string; id: s
   "pp-doclayout": { file: "pp-doclayout-v3.onnx", id: "PaddlePaddle/PP-DocLayoutV3_onnx" },
 };
 
+// False when an ONNX detector's weights are missing, so a picker can say so
+// before a curator chooses it rather than failing after.
+export function detectorAvailable(id: DetectorId): boolean {
+  return id === "tesseract" || existsSync(resolve(MODELS_DIR, ONNX_MODEL[id].file));
+}
+
 // ── public entry ─────────────────────────────────────────────────────────────
 export async function detectBoxes(imagePath: string, detector: DetectorId): Promise<Detection> {
   const raw = detector === "tesseract" ? await detectTesseract(imagePath) : await detectOnnx(imagePath, detector);
