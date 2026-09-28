@@ -14,6 +14,7 @@
     "pg:seed": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/migrate-sqlite-to-pg.ts",
     "view": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/view.ts",
     "enrich": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/enrich.ts",
+    "reset-page": "node --env-file-if-exists=.env --experimental-strip-types src/reset-page.ts",
     "detect": "node --env-file-if-exists=.env --experimental-strip-types src/detect.ts",
     "detect:models": "sh detect/fetch-models.sh"
   },

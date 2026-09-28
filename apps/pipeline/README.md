@@ -28,7 +28,11 @@ npm run server                 # the ingestion service on :5170; applies migrati
 npm run detect:models          # fetch detector weights into models/ (gitignored) + uv sync
 npm run detect -- 7618         # every detector on one page → out/detect/7618/<detector>.jpg|json
 npm run detect -- 7618 --detector pp-doclayout
+npm run reset-page -- 7600 --dry   # clear an ingested page so it can go through box-first again
 ```
+
+`reset-page` refuses any page carrying curator work (hand-drawn regions, corrected text, reviews,
+notes, titles, publications, accepted re-reads or summaries) and says what is on it.
 
 Endpoints are listed in the header of `src/server.ts`. The server does not hot-reload: restart it
 after changing anything under `src/`.
@@ -136,8 +140,9 @@ Box-first replaced it: it reads text at native resolution rather than ~200px per
 coverage check catches text a whole-page read drops (classified columns, captions, ad panels), and its
 regions are where the words were read from rather than matched afterwards. The code (`vlmExtract.ts`,
 `ocrAnchor.ts`'s anchoring, `ingestPage()`, `relocate.ts`, `ingest.ts`, `probe.ts`) is in git history
-up to commit `ece22b9`. Pages ingested page-first keep `page_ingests.mode = 'page-first'`, their
-`ocr-anchor` regions, and every curator correction made on them.
+up to commit `ece22b9`. Pages ingested page-first that curators had corrected (7599, 7618, 7619, 7621)
+keep `page_ingests.mode = 'page-first'`, their `ocr-anchor` regions, and every correction made on
+them; the two nobody had touched (7600, 7620) were reset for box-first.
 
 The SQLite prototype's remaining scripts still run against an existing `data/slice01.sqlite`:
 `npm run enrich` (SLICE-02 enrichment overlay) and `npm run view` (console + `out/view.html`).
