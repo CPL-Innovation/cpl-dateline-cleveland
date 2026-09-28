@@ -368,10 +368,11 @@ export async function importPage(args: IngestArgs, objects: ImportObject[], onPr
       await persistObject(c, row, importedToEnriched(o), issueId);
     }
     await c.query(
-      `INSERT INTO page_ingests (collection,issue_pointer,issue_id,page_record,page_number,status,run_id,vlm_model,enrich_model,object_count,finished_at)
-       VALUES ($1,$2,$3,$4,$5,'done',$6,'imported','imported',$7, now())
+      `INSERT INTO page_ingests (collection,issue_pointer,issue_id,page_record,page_number,status,mode,run_id,vlm_model,enrich_model,object_count,finished_at)
+       VALUES ($1,$2,$3,$4,$5,'done','import',$6,'imported','imported',$7, now())
        ON CONFLICT (collection,page_record) DO UPDATE SET
-         status='done', run_id=$6, vlm_model='imported', enrich_model='imported', object_count=$7, finished_at=now(), error=NULL`,
+         status='done', mode='import', detector=NULL, grouping_model=NULL,
+         run_id=$6, vlm_model='imported', enrich_model='imported', object_count=$7, finished_at=now(), error=NULL`,
       [collection, issuePointer, issueId, pageRecord, pageNumber, runId, objects.length]);
     return objects.length;
   });

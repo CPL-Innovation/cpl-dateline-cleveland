@@ -68,8 +68,8 @@ async function main() {
     let pageNum = 1;
     for (const [rec, count] of [...perPage].sort((a, b) => a[0] - b[0])) {
       await c.query(
-        `INSERT INTO page_ingests (collection,issue_pointer,issue_id,page_record,page_number,status,run_id,vlm_model,object_count,finished_at)
-         VALUES ('p16014coll5',7622,$1,$2,$3,'done',$4,$5,$6, now())
+        `INSERT INTO page_ingests (collection,issue_pointer,issue_id,page_record,page_number,status,mode,run_id,vlm_model,object_count,finished_at)
+         VALUES ('p16014coll5',7622,$1,$2,$3,'done','page-first',$4,$5,$6, now())
          ON CONFLICT (collection,page_record) DO UPDATE SET status='done', object_count=EXCLUDED.object_count, finished_at=now()`,
         [issueId, rec, pageNum++, cos[0].run_id, cos[0].model, count]);
     }
