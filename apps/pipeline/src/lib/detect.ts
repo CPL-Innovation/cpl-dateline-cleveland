@@ -13,6 +13,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { pageOcr, OcrUnavailable } from "./ocrAnchor.ts";
+import { readingOrder } from "./region.ts";
 import {
   DETECT_DIR, MODELS_DIR, UV_BIN, TESS_MIN_BLOCK_AREA, TESSERACT_BIN,
   type DetectorId,
@@ -184,24 +185,8 @@ export async function renderOverlay(
 
 // ── reading order ────────────────────────────────────────────────────────────
 // Box ids are what a curator and the grouper say out loud ("3, 7, 8"), so they
-// should run the way the page reads. A detector that predicts reading order
-// (pp-doclayout) is taken at its word. Otherwise: cluster boxes into column bands
-// by left edge, read bands left to right, each band top to bottom. Headlines that
-// span columns start at a column's left edge, so they fall into that column's
-// band above the story they head — which is the order a reader meets them.
-function readingOrder<T extends { rect: Rect; order?: number }>(boxes: T[]): T[] {
-  if (boxes.length && boxes.every((b) => typeof b.order === "number")) {
-    return [...boxes].sort((a, b) => a.order! - b.order!);
-  }
-  const byX = [...boxes].sort((a, b) => a.rect[0] - b.rect[0]);
-  const bands: T[][] = [];
-  let bandLeft = -1;
-  for (const b of byX) {
-    if (!bands.length || b.rect[0] - bandLeft > 0.02) { bands.push([b]); bandLeft = b.rect[0]; }
-    else bands[bands.length - 1].push(b);
-  }
-  return bands.flatMap((band) => band.sort((a, b) => a.rect[1] - b.rect[1]));
-}
+// run the way the page reads — see readingOrder in region.ts, which re-extraction
+// also reads a region's boxes by.
 
 function round(v: number, p: number) { const k = 10 ** p; return Math.round(v * k) / k; }
 function norm4(x: number, y: number, w: number, h: number): Rect {

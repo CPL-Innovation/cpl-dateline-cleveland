@@ -280,7 +280,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
 
-  // Re-transcribe one object from its own crop. SUGGESTS ONLY — the re-read goes
+  // Re-transcribe one object from all its boxes. SUGGESTS ONLY — the re-read goes
   // back to the workbench and the curator saves it, or doesn't.
   if (url.pathname === "/api/object-text/reextract" && req.method === "POST") {
     try {
@@ -291,15 +291,11 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         `SELECT page_record, object_class, role, region_bbox FROM content_objects WHERE id = $1`, [id]);
       if (!r.rowCount) throw new Error(`no content object with id ${id}`);
       const row = r.rows[0];
-      const bb = row.region_bbox;
-      const rect = Array.isArray(bb) ? bb : (Array.isArray(bb?.rects) ? bb.rects[0] : null);
-      if (!rect) throw new Error("this object has no region to crop — draw one first");
       const out = await reextractObject({
         iiifId: iiifId(row.page_record),
-        rect,
+        region: row.region_bbox,
         objectClass: row.object_class,
         role: row.role,
-        continuedIn: Number(bb?.continuedIn ?? 0),
       });
       return json(res, 200, { ok: true, objectId: id, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }

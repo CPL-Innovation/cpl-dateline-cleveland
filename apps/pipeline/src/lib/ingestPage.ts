@@ -16,6 +16,7 @@ import { CONTROLLED_TOPICS, type LightPayload } from "./enrich-prompt.ts";
 import { locateObjects } from "./ocrAnchor.ts";
 import { query, tx } from "./pg.ts";
 import { resolveTitle } from "./title.ts";
+import { orderFor, inheritOrder } from "./region.ts";
 import { iiifId, iiifImageUrl, PROMPT_VERSION, ENRICH_PROMPT_VERSION, OCR_ENABLED } from "../config.ts";
 import type { PoolClient } from "pg";
 
@@ -301,18 +302,19 @@ async function persistObject(c: PoolClient, o: AssembledRow, en: Enriched, issue
 //    skipping harvest/VLM/enrich. Same store, same rights gate, marked done —
 //    the page becomes indistinguishable from an ingested one. ──────────────────
 // Normalize an imported region into the canonical shape. Accepts a bare
-// [x,y,w,h] or an array of them (one per column run); keeps every well-formed
-// rect, largest first. Anything malformed becomes null rather than being stored
+// [x,y,w,h] or an array of them (one per column run, in reading order); keeps
+// every well-formed rect, largest first, with the listed order kept as `order`. Anything malformed becomes null rather than being stored
 // as unreadable geometry.
 function importRegion(bb: unknown): string | null {
   if (!Array.isArray(bb) || !bb.length) return null;
   const rects: number[][] = Array.isArray(bb[0]) ? (bb as number[][]) : [bb as number[]];
-  const clean = rects
+  const reading = rects
     .filter((r) => Array.isArray(r) && r.length >= 4 && r.slice(0, 4).every((n) => Number.isFinite(Number(n))))
     .map((r) => r.slice(0, 4).map(Number));
-  if (!clean.length) return null;
-  clean.sort((a, b) => b[2] * b[3] - a[2] * a[3]);
-  return JSON.stringify({ rects: clean, source: "imported", continuedIn: clean.length - 1 });
+  if (!reading.length) return null;
+  const clean = [...reading].sort((a, b) => b[2] * b[3] - a[2] * a[3]);
+  // the JSON lists an object's rects in the order it reads
+  return JSON.stringify({ rects: clean, source: "imported", continuedIn: clean.length - 1, order: orderFor(clean, reading) });
 }
 
 export interface ImportObject {
@@ -416,6 +418,8 @@ export async function setObjectRegion(objectId: number, rects: unknown) {
     const detector = before && typeof before === "object" && !Array.isArray(before) ? before.detector : undefined;
     region = {
       rects: clean, source: "human", editedAt: new Date().toISOString(), continuedIn: clean.length - 1,
+      // reading order survives the edit: each box keeps the place of the one it replaced
+      order: inheritOrder(clean, before),
       ...(detector ? { detector } : {}),
     };
   }

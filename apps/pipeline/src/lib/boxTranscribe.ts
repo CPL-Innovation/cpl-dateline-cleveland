@@ -17,7 +17,8 @@
 import { fetchRetry } from "./http.ts";
 import { query } from "./pg.ts";
 import { pageOcr, type PageOcr } from "./ocrAnchor.ts";
-import { pageSize, jpegSize } from "./reextract.ts";
+import { pageSize, jpegSize } from "./iiif.ts";
+import { orderFor } from "./region.ts";
 import { explodePage } from "./explode.ts";
 import { SYSTEM_PROMPT, OBJECT_CLASSES, type ObjectClass, type VlmBlock } from "./vlm-prompt.ts";
 import { assertIngestable, enrichAndPersist, pMap, type AssembledRow, type Progress } from "./ingestPage.ts";
@@ -130,15 +131,17 @@ const READ_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-// The rules are lifted from the page-ingestion contract (vlm-prompt.ts) and the
-// single-object re-read (reextract.ts), so a box-first object's text has the same
-// shape and the same honesty markers as one ingested page-first.
+// The rules are lifted from the page-ingestion contract (vlm-prompt.ts), so a
+// box-first object's text has the same shape and honesty markers as one ingested
+// page-first. Re-extraction (reextract.ts) reads through this same call.
 //
 // One call reads ONE GROUP: every box of the object, in the curator's reading
 // order. Reading a story's boxes together is what lets the model carry a
 // sentence — or a word hyphenated at the foot of a column — across the break
 // between two boxes, and read a line that two boxes both clip exactly once.
-function buildPrompt(a: { cls: string; role: string | null; slices: number[]; chunk?: [number, number] }): string {
+function buildPrompt(a: {
+  cls: string; role: string | null; slices: number[]; chunk?: [number, number]; basis?: "layout" | "stored";
+}): string {
   const what = `"${a.cls}"${a.role ? ` (role: ${a.role})` : ""}`;
   const n = a.slices.length, sliced = a.slices.some((k) => k > 1);
   const lines = [
@@ -147,7 +150,10 @@ function buildPrompt(a: { cls: string; role: string | null; slices: number[]; ch
       : `This is one region of a historical newspaper page, cropped from the archival scan. It is one content object.`,
     // Said plainly so the proposal informs the read without deciding it: the
     // layout step never saw the words, and class is the transcriber's call too.
-    `A layout step proposed it is ${what}, judging from a low-resolution view of the whole page without reading the text.`,
+    // A re-read of an ingested object says where its class came from instead.
+    a.basis === "stored"
+      ? `It is currently classified as ${what}.`
+      : `A layout step proposed it is ${what}, judging from a low-resolution view of the whole page without reading the text.`,
   ];
   if (sliced) lines.push(`A tall region is delivered as consecutive vertical slices, top to bottom; adjacent slices overlap by a few lines — transcribe those lines ONCE.`);
   if (a.chunk) lines.push(`This is part ${a.chunk[0]} of ${a.chunk[1]} of the object's regions; transcribe only these.`);
@@ -183,7 +189,7 @@ function buildPrompt(a: { cls: string; role: string | null; slices: number[]; ch
 }
 
 // The crop for a box, as one or more IIIF pixel-region URLs. ContentDM honours
-// pixel regions and `w,` sizes exactly (reextract.ts documents what it silently
+// pixel regions and `w,` sizes exactly (iiif.ts documents what it silently
 // ignores). A box no taller than the image ceiling is one native-resolution
 // image; a taller one is cut into overlapping slices, each at the ceiling.
 function sliceUrls(iiif: string, rect: number[], page: { w: number; h: number }, max = REEXTRACT_MAX_EDGE) {
@@ -226,7 +232,7 @@ async function fetchCrop(s: { url: string; w: number; h: number }, page: { w: nu
 // Read one group — or one chunk of a very large group — in a single call.
 export async function readGroup(
   iiif: string, page: { w: number; h: number }, boxes: ProposalBox[],
-  ctx: { cls: string; role: string | null; chunk?: [number, number] },
+  ctx: { cls: string; role: string | null; chunk?: [number, number]; basis?: "layout" | "stored" },
 ): Promise<{ text: string; object_class: ObjectClass | null; role: string | null; images: number; pixels: number }> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY is not set — box-first transcription needs it");
@@ -241,7 +247,7 @@ export async function readGroup(
       content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: im.buf.toString("base64") } });
     });
   });
-  content.push({ type: "text", text: buildPrompt({ cls: ctx.cls, role: ctx.role, slices: crops.map((c) => c.length), chunk: ctx.chunk }) });
+  content.push({ type: "text", text: buildPrompt({ ...ctx, slices: crops.map((c) => c.length) }) });
 
   const ids = boxes.map((b) => `#${b.id}`).join(" ");
   const res = await fetchRetry("https://api.anthropic.com/v1/messages", {
@@ -365,8 +371,8 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
 
   // One block per group, in the curator's page order; the region keeps EVERY
   // rect of the object — a person checked them, so they are not the anchoring
-  // noise that made page-first keep only one. Largest first: the workbench and
-  // re-extraction treat rects[0] as the primary.
+  // noise that made page-first keep only one. Largest first: the workbench
+  // treats rects[0] as the primary; `order` keeps the reading order.
   // WHAT each object is. A curator's explicit class stands; otherwise the
   // transcriber's, the only judgement made from the words at full resolution —
   // the grouper's was a layout guess from an overview. Every disagreement is
@@ -390,7 +396,8 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
 
   const blocks: VlmBlock[] = p.groups.map((g, gi) => {
     const boxes = g.boxes.map((id) => byId.get(id)!).filter(Boolean);
-    const rects = boxes.map((b) => b.rect).sort((a, b) => b[2] * b[3] - a[2] * a[3]);
+    const reading = boxes.map((b) => b.rect);
+    const rects = [...reading].sort((a, b) => b[2] * b[3] - a[2] * a[3]);
     return {
       object_class: classification[gi].final,
       role: classification[gi].role,
@@ -399,6 +406,8 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
         rects, source: boxes.some((b) => b.source === "human") ? "human" : `detector:${detector}`,
         // the workbench draws rects[0] and says "continues in N more" from this
         detector, boxes: g.boxes, continuedIn: rects.length - 1,
+        // the curator's reading order, as indices into rects (region.ts)
+        order: orderFor(rects, reading),
       } as unknown as VlmBlock["region_bbox"],
       continues_hint: null,
     };

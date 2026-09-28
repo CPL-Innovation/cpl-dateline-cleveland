@@ -3117,9 +3117,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         ((rexNote && rexNote.oid===o.id) ? '<span class="ai-badge">'+rexNote.html+'</span>' : '')+
         '<button class="tedit" id="rv-trex"'+(live && !on && reg && !rexBusy ? '' : ' disabled')+
         ' title="'+(!reg ? 'no region to crop — draw one first'
-          : live ? 'Read this object again from its crop of the source scan (Claude Sonnet)'
+          : live ? 'Read this object again from all its boxes, cropped from the source scan (Claude Sonnet)'
                  : 'read-only in demo mode — needs the live service')+'">'+
-        (rexBusy ? 'READING…' : (rexArmed===o.id ? 'RE-EXTRACT ANYWAY' : 'RE-EXTRACT'))+'</button>'+
+        (rexBusy ? 'READING…' : 'RE-EXTRACT')+'</button>'+
         '<button class="tedit" id="rv-tedit"'+(live && !on ? '' : ' disabled')+
         ' title="'+(live?'Correct this transcription (e)':'read-only in demo mode — needs the live service')+'">'+
         (on ? 'EDITING' : 'EDIT')+'</button>';
@@ -3284,28 +3284,18 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // reads it against the page image and saves it, or backs out. Nothing is
     // written until they do.
     //
-    // One box per object now, so an object whose story jumps columns will be
-    // re-read from the first column only. Where the anchor recorded that, this
-    // says so and makes the curator ask for it twice — a truncated re-read that
-    // silently replaces a fuller transcription is the failure worth guarding.
-    // The warning and any error live in STATE, not written straight into the label
-    // — the label is the buttons' own container, so rewriting it destroys the very
-    // control the curator has to click next. paintTranscript() owns the markup.
-    var rexArmed = null;   // object id whose continuation warning is showing
+    // Every box of the object is read, in reading order, in one call — the same
+    // read box-first ingestion makes — so a story that jumps columns comes back
+    // whole rather than cut off at the foot of the first one.
+    // Any error lives in STATE, not written straight into the label — the label
+    // is the buttons' own container, so rewriting it destroys the very control
+    // the curator has to click next. paintTranscript() owns the markup.
     var rexNote  = null;   // { oid, html } — badge to render beside the label
     var rexBusy  = false;
 
     function reextract(o){
       if(!REGION_API || rexBusy) return;
-      var reg = regionOf(o.bbox);
-      if(reg && reg.continuedIn && rexArmed !== o.id){
-        rexArmed = o.id;
-        rexNote = { oid:o.id, html:'⚠ this box is only the first of '+(reg.continuedIn+1)+
-          ' columns — a re-read covers just this part. Click again to go ahead' };
-        paintTranscript(o);
-        return;
-      }
-      rexArmed = null; rexNote = null; rexBusy = true;
+      rexNote = null; rexBusy = true;
       paintTranscript(o);
       fetch(REGION_API+'/api/object-text/reextract', {
         method:'POST', headers:{'content-type':'application/json'},
@@ -3318,8 +3308,8 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         // `reread` marks this draft as a MACHINE read, so committing it replaces
         // the machine's text rather than landing in the human overlay.
         tedit = { oid:o.id, draft:j.text, reread:j.model,
-                  msg:'re-read by '+j.model+' from a '+j.cropPixels+' crop'+
-                      (j.continuedIn ? ' (first of '+(j.continuedIn+1)+' columns)' : '')+
+                  msg:'re-read by '+j.model+' from '+(j.boxes>1 ? 'all '+j.boxes+' boxes' : 'its box')+
+                      (j.images>j.boxes ? ' ('+j.images+' crops)' : '')+
                       (o.textEdited ? ' — NOTE: your hand-corrected version stays on top of it' : '')+
                       ' — compare against the page, then REPLACE' };
         showRaw = false;
@@ -3730,7 +3720,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         if(prev && tedit.draft !== (prev.transcript||'')) drafts[tedit.oid] = tedit.draft;
         tedit = null;
       }
-      if(currentObj !== o){ showRaw = false; confirmingDelete = null; rexArmed = null; rexNote = null; sumProposed = null; }
+      if(currentObj !== o){ showRaw = false; confirmingDelete = null; rexNote = null; sumProposed = null; }
       currentObj = o;
       hideTip();
       var chip=document.getElementById('rv-chip');
