@@ -15,9 +15,9 @@ export function dateLabel(sort: string | null): string {
 
 /** One stored region, in either shape, as normalized rects a surface can draw.
  *
- *  The column holds EITHER the OCR-anchored shape written by ocrAnchor.ts
- *  (`{rects:[[x,y,w,h],…], source, continuedIn}`) or a legacy single VLM estimate
- *  (`[x,y,w,h]`), both normalized 0–1. Patron surfaces get one shape and the
+ *  The column holds EITHER the shape `{rects:[[x,y,w,h],…], source, continuedIn}`
+ *  (box-first, human, imported, or page-first's OCR anchoring) or a page-first
+ *  single VLM estimate (`[x,y,w,h]`), both normalized 0–1. Patron surfaces get one shape and the
  *  PROVENANCE of the box — a curator-drawn region and a machine guess look
  *  identical on screen unless the data says which it is.
  */

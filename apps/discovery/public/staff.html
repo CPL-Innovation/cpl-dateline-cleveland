@@ -548,6 +548,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .vbtn{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:11px 18px;border:1px solid var(--hair-2);color:var(--secondary)}
 .vbtn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
 .vbtn.primary:hover{background:var(--brand-press)}
+.vbtn:disabled,.vbtn:disabled:hover{opacity:.45;cursor:not-allowed}
 .vbtn.warn{border-color:var(--warn);color:var(--warn)}
 .vbtn.warn:hover{background:var(--warn);color:#fff}
 .vbtn.ghost:hover{border-color:var(--ink);color:var(--ink)}
@@ -1295,9 +1296,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     return { x:(x*100).toFixed(2), y:(y*100).toFixed(2), w:(w*100).toFixed(2), h:(h*100).toFixed(2) };
   }
 
-  // A stored region is EITHER the OCR-anchored shape written by ocrAnchor.ts
-  //   { rects:[[x,y,w,h],…], coverage, source:'ocr-anchor', ocrConf }
-  // OR a legacy single VLM-estimated [x,y,w,h].
+  // A stored region is EITHER the shape { rects:[[x,y,w,h],…], source, … } — source
+  // 'detector:<id>' (box-first), 'human', 'imported', or 'ocr-anchor' (page-first,
+  // with coverage + ocrConf) — OR a page-first single VLM-estimated [x,y,w,h].
   //
   // An object CAN occupy several rectangles — a story jumping columns genuinely
   // does, and one bounding box over both would claim 7-30× the page area it holds
@@ -1306,7 +1307,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
   //
   // The REVIEW TOOL does not. Its job is "guide my eye to this thing", and two
   // glows make a reviewer ask which one to trust. So we draw the PRIMARY rect
-  // (largest — ocrAnchor sorts it first) and say in words that there are more.
+  // (largest — every writer stores it first) and say in words that there are more.
   // Honest data, single target for the eye.
   function regionOf(bb){
     if(!bb) return null;
@@ -1325,6 +1326,20 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     return { primary:rects[0], all:[rects[0]], every:rects, detector:bb.detector||null,
              continuedIn:(bb.continuedIn!=null ? bb.continuedIn : rects.length-1),
              source:bb.source||'ocr-anchor', coverage:bb.coverage, ocrConf:bb.ocrConf };
+  }
+
+  // Who read this page's words, and how. Honest per mode: an imported page was
+  // read by no model, and a page-first page by a method that no longer runs.
+  function howRead(run){
+    var v=(run&&run.vlm)||{}, who=esc((v.provider||'')+'/'+(v.engine||'unknown'));
+    var det={ 'tesseract':'Tesseract blocks', 'american-stories':'American Stories', 'pp-doclayout':'PP-DocLayoutV3' };
+    switch(run && run.mode){
+      case 'import':     return 'imported from JSON — no model transcribed this page';
+      case 'box-first':  return 'transcribed by '+who+' · box-first, from full-resolution crops'+
+                                (run.detector ? ' of boxes drawn by '+esc(det[run.detector]||run.detector) : '');
+      case 'page-first': return 'transcribed by '+who+' · page-first whole-page read (retired method)';
+      default:           return 'transcribed by '+who;
+    }
   }
 
   // Box-first objects record who decided what they ARE (SLICE-14, migration 009):
@@ -1476,11 +1491,15 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       set('rv-oid', esc(issueId)); set('rv-pg', 'page '+pageNum+' · not ingested');
       html('rv-transcript',
         '<div style="font-family:var(--sans);font-size:14px;color:var(--body);line-height:1.6">'+
-        'This page has <b>not been ingested yet.</b> Either run the live pipeline (<i>harvest → VLM → assembly → enrichment → Postgres</i>), '+
+        'This page has <b>not been ingested yet.</b> Ingest it <b>box-first</b> below, '+
         'or <b>import</b> an already-enriched, schema-compliant JSON to skip ingestion.'+
         '<div id="ing-prog" style="margin:16px 0"></div>'+
-        '<button id="ing-btn" class="vbtn primary" style="border:1px solid var(--brand)">⚡ Ingest this page</button>'+
-        '<button id="imp-btn" class="vbtn" style="margin-left:8px;border:1px solid var(--hair-2)">⬆ Import JSON</button>'+
+        // Placeholder, deliberately inert: page-first ingestion (one whole-page VLM
+        // read) is retired. The button is kept for what may replace it — running
+        // the box-first steps unattended, for every page of an issue, in one go.
+        '<button id="imp-btn" class="vbtn" style="border:1px solid var(--hair-2)">⬆ Import JSON</button>'+
+        '<button id="ing-btn" class="vbtn" style="margin-left:8px;border:1px dashed var(--hair-2)" disabled '+
+          'title="Not yet — planned: run the box-first steps for every page of this issue in one go">⚡ Ingest this page · coming</button>'+
         '<input id="imp-file" type="file" accept="application/json,.json" style="display:none">'+
         '<div class="mono" style="font-size:10.5px;color:var(--tertiary);margin-top:12px;line-height:1.6">'+
         'JSON = an array of content objects (or <span class="mono">{"objects":[…]}</span>). Each: '+
@@ -1490,8 +1509,6 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         '<div class="bf-pick" id="bf-pick"></div>'+
         '</div>');
       html('rv-facts',''); html('rv-confline',''); html('rv-flag','');
-      var btn=document.getElementById('ing-btn');
-      if(btn) btn.addEventListener('click', function(){ btn.disabled=true; btn.textContent='Ingesting…'; doIngest(); });
       offerBoxFirst(pg);
       var impBtn=document.getElementById('imp-btn'), impFile=document.getElementById('imp-file');
       if(impBtn && impFile){
@@ -1512,8 +1529,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
                imageUrl:pg.imageUrl, renderStrip:renderStrip, runActivity:runActivity };
     }
     function openBoxFirst(pg){ boxFirstReview(bfCtx(pg)); }
-    // The second way in, offered beside the page-first ingest button: pick a
-    // detector, and its boxes + a proposed grouping open for review.
+    // The way in: pick a detector, and its boxes + a proposed grouping open for review.
     function offerBoxFirst(pg){
       fetch(API + '/api/boxfirst/detectors').then(function(r){ return r.json(); }).then(function(j){
         var box=document.getElementById('bf-pick'); if(!box) return;
@@ -1521,7 +1537,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         var pick=ds.filter(function(d){ return d.id==='american-stories' && d.available; })[0] || ds.filter(function(d){ return d.available; })[0];
         box.innerHTML=
           '<div style="flex-basis:100%;margin-top:18px;font-family:var(--sans);font-size:14px;color:var(--body);line-height:1.6">'+
-            'Or ingest <b>box-first</b>: a detector draws the boxes, you correct and group them, then each box is transcribed from its own full-resolution crop.</div>'+
+            '<b>Box-first</b>: a detector draws the boxes, you correct and group them, then each group is transcribed from its own full-resolution crops.</div>'+
           '<select id="bf-det">'+ds.map(function(d){
             return '<option value="'+esc(d.id)+'"'+(d.available?'':' disabled')+(pick&&d.id===pick.id?' selected':'')+'>'+esc(d.label)+(d.available?'':' (weights missing)')+'</option>';
           }).join('')+'</select>'+
@@ -1532,11 +1548,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         sel.onchange=note; note();
         go.onclick=function(){
           go.disabled=true; sel.disabled=true;
-          var ib=document.getElementById('ing-btn'); if(ib) ib.disabled=true;
           progressBar(2, 'Starting box-first…');
           bfRunDetect(bfCtx(pg), sel.value, progressBar)
             .then(function(){ openBoxFirst(pg); })
-            .catch(function(e){ progressBar(0, 'Box-first failed: '+e.message); go.disabled=false; sel.disabled=false; if(ib) ib.disabled=false; });
+            .catch(function(e){ progressBar(0, 'Box-first failed: '+e.message); go.disabled=false; sel.disabled=false; });
         };
       }).catch(function(){});
     }
@@ -1571,37 +1586,6 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var lab=document.getElementById('h-runlab'), val=document.getElementById('h-run');
       if(lab) lab.textContent = on ? 'Ingesting now' : 'Run in view';
       if(val) val.style.color = on ? 'var(--accent)' : '';
-    }
-
-    function doIngest(){
-      progressBar(2, 'Starting…');
-      runActivity(true);
-      fetch(API + '/api/ingest?collection=' + encodeURIComponent(collection) + '&pointer=' + pointer +
-        '&issueId=' + encodeURIComponent(issueId) + '&record=' + record + '&page=' + pageNum)
-        .then(function(res){
-          var reader=res.body.getReader(), dec=new TextDecoder(), buf='';
-          (function pump(){ return reader.read().then(function(r){
-            if(r.done){ runActivity(false); return; }
-            buf += dec.decode(r.value, {stream:true});
-            var parts = buf.split('\n\n'); buf = parts.pop();
-            parts.forEach(handleSSE);
-            return pump();
-          }); })();
-        })
-        .catch(function(e){ runActivity(false); progressBar(0, 'Failed: '+e.message); });
-    }
-
-    function handleSSE(chunk){
-      var ev=null, data=null;
-      chunk.split('\n').forEach(function(line){
-        if(line.indexOf('event:')===0) ev=line.slice(6).trim();
-        else if(line.indexOf('data:')===0) data=line.slice(5).trim();
-      });
-      if(!ev || data==null) return;
-      var d; try{ d=JSON.parse(data); }catch(e){ return; }
-      if(ev==='progress') progressBar(d.pct, d.message);
-      else if(ev==='result'){ progressBar(100, 'Done — loading objects…'); loadPage(); }
-      else if(ev==='error') progressBar(0, (d.rights? 'Rights-locked: ' : 'Error: ') + d.message);
     }
 
     // Map the service's page payload into the staff-run.json shape render() expects.
@@ -1641,6 +1625,8 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         loaded:true, live:true,
         issue:{ id:issueId, label:issueId+' · P.'+pageNum, date:'' },
         run:{ runId:(pg.state&&pg.state.run_id)||'live', vlm:{provider:'anthropic',engine:(pg.state&&pg.state.vlm_model)||'claude-sonnet-5'},
+          // how this page's objects were made (migration 010): box-first | import | page-first (retired)
+          mode:(pg.state&&pg.state.mode)||null, detector:(pg.state&&pg.state.detector)||null,
           enrich:{provider:'anthropic',engine:(pg.state&&pg.state.enrich_model)||'claude-sonnet-5'}, enriched:true },
         source:{ kind:'contentdm-iiif', collection:collection, server:'cdm16014.contentdm.oclc.org', pageCount:(allPages?allPages.length:1) },
         pages:(allPages?allPages.length:1),
@@ -2471,7 +2457,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // resize. Objects the machine could not place can be drawn from scratch.
     //
     // Writes go straight to region_bbox (Jungu's call — simplest, one column) and
-    // are stamped source:'human' so `relocate` won't clobber them on a re-run.
+    // are stamped source:'human', so the region says it is a person's.
     var editing = null;   // { oid, ri, el, rects } — a box currently under correction
     var drawing = null;   // { oid } — armed to draw a region from scratch
     var tipEl   = null;
@@ -3795,7 +3781,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         }
         else if(reg && reg.source==='ocr-anchor'){
           rn.className='region-note';
-          rn.innerHTML='<b>◈</b> region located by OCR word match — '+
+          rn.innerHTML='<b>◈</b> region located by OCR word match (page-first anchoring, a retired method) — '+
             Math.round((reg.coverage||0)*100)+'% of the transcript matched'+
             (reg.continuedIn ? ' · <b>continues in '+reg.continuedIn+' more column'+(reg.continuedIn>1?'s':'')+'</b> — '+
               (reg.every && reg.every.length>1 ? (allBoxes ? 'all shown' : '⧉ in the toolbar shows them') : 'this box is only the first') : '')+
@@ -3809,14 +3795,15 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           rn.innerHTML='<b>▦</b> box-first region — drawn by '+esc(dn)+', reviewed before transcription; the text was read from this box'+
             (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b> — '+(allBoxes ? 'all shown' : 'only the largest is highlighted; ⧉ in the toolbar shows them all') : '');
         }
-        else if(reg){ rn.className='region-note'; rn.innerHTML='<b>◈</b> region highlighted — approximate (VLM-estimated, not OCR-anchored)'; }
+        else if(reg && reg.source==='imported'){ rn.className='region-note'; rn.innerHTML='<b>⬆</b> region supplied with the imported JSON'; }
+        else if(reg){ rn.className='region-note'; rn.innerHTML='<b>◈</b> page-first region (retired method) — approximate, estimated by the VLM, not OCR-anchored'; }
         else if(o.bbox===null){ rn.className='region-note none'; rn.innerHTML='<b>—</b> no region located for this object'; }
         else { rn.className='region-note'; rn.innerHTML=''; } // undefined → not a live-ingested object
       }
       paintEditbar(); // correction affordances follow the selection
       html('rv-credit', 'SOURCE: BROOKLYN NEWS · '+esc((d.issue&&d.issue.label)||'')+
         ' · P.'+o.page+' · SEQ '+o.seq+'<br>'+
-        'transcribed by '+esc((vlm.provider||'')+'/'+engine)+classLine(o.classification)+
+        howRead(d.run)+classLine(o.classification)+
         (o.iiifId ? '<br>IIIF: '+esc(o.iiifId) : ' · region_bbox: null'));
       // transcription — headline + body, the edit affordance, and (under a
       // correction) the machine's immutable original

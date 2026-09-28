@@ -1,19 +1,20 @@
 // SLICE-08 — the live per-page ingestion service (Postgres + pgvector).
-//   npm run server        (VLM_PROVIDER/ENRICH_PROVIDER forced to anthropic)
+//   npm run server        (ENRICH_PROVIDER forced to anthropic)
 //
 // Endpoints (JSON unless noted):
 //   GET  /api/health                         → { ok, db }
 //   GET  /api/page?collection=&record=       → page state + objects (review panel load)
 //   GET  /api/shelf                          → patron shelf: ingested issues as books
 //   POST /api/chat  {pointer, messages}      → SSE reading-room chat about one issue
-//   GET  /api/ingest?collection=&pointer=&issueId=&record=&page=[&force=1]
-//                                            → text/event-stream of {phase,message,pct},
-//                                              then a `result` (objects) or `error` event
+//   POST /api/import?collection=&pointer=&issueId=&record=&page=  body: objects JSON
+//                                            → the page, stored as supplied (mode 'import')
 //
-// Box-first ingestion (SLICE-14) — detect → group → curator review → transcribe:
+// Ingestion is box-first (SLICE-14) — detect → group → curator review → transcribe.
+// Page-first (GET /api/ingest: one whole-page VLM read) is retired; its pages stay.
 //   GET  /api/boxfirst/detectors             → [{ id, label, note, available }]
 //   GET  /api/boxfirst/detect?collection=&pointer=&issueId=&record=&page=&detector=
-//                                            → SSE like /api/ingest; `result` is the proposal
+//                                            → text/event-stream of {phase,message,pct}, then a
+//                                              `result` (the proposal) or `error` event
 //   GET  /api/boxfirst/proposal?collection=&record=
 //                                            → { state, proposals: [one per detector run] }
 //   POST /api/boxfirst/proposal {collection, record, detector, boxes, groups, ops}
@@ -27,14 +28,15 @@
 //                                              coverage gaps remain unless force=1, else
 //                                              `result` = the ingested page, as /api/page
 //
-// Rights gate + idempotency live in ingestPage(); this file is transport + seeding.
+// The rights gate lives in assertIngestable() (ingestPage.ts), called by every way
+// in; this file is transport + seeding.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { INGEST_PORT, CATALOG_JSON, iiifId } from "./config.ts";
 import { reextractObject } from "./lib/reextract.ts";
 import { resummarize, setObjectSummary } from "./lib/resummarize.ts";
 import { migrate, query, closePool, getPool } from "./lib/pg.ts";
-import { ingestPage, importPage, getPageObjects, setObjectRegion, setObjectText, setObjectReview, setObjectTitle, replaceObjectRawText, deleteObject, RightsBlocked } from "./lib/ingestPage.ts";
+import { importPage, getPageObjects, setObjectRegion, setObjectText, setObjectReview, setObjectTitle, replaceObjectRawText, deleteObject, RightsBlocked } from "./lib/ingestPage.ts";
 import { getDiscovery } from "./lib/discovery.ts";
 import { getShelf } from "./lib/shelf.ts";
 import { streamIssueChat, ChatRefused, type ChatMessage } from "./lib/chat.ts";
@@ -450,34 +452,6 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     return;
   }
 
-  if (url.pathname === "/api/ingest") {
-    const record = Number(q.get("record"));
-    if (!record) return json(res, 400, { error: "record required" });
-    sseOpen(res);
-    const args = {
-      collection: q.get("collection") ?? "p16014coll5",
-      issuePointer: q.get("pointer") ? Number(q.get("pointer")) : null,
-      issueId: q.get("issueId") ?? `issue_${record}`,
-      pageRecord: record,
-      pageNumber: Number(q.get("page") ?? 1),
-      force: q.get("force") === "1",
-    };
-    // keepalive comments so proxies don't close the idle socket during the long VLM call
-    const ka = setInterval(() => res.write(": keepalive\n\n"), 15000);
-    try {
-      const result = await ingestPage(args, (e) => sse(res, "progress", e));
-      sse(res, "result", result);
-    } catch (e) {
-      if (e instanceof RightsBlocked) sse(res, "error", { rights: true, message: e.message });
-      else sse(res, "error", { message: (e as Error).message });
-      console.error(`[ingest] page ${record} failed:`, (e as Error).message);
-    } finally {
-      clearInterval(ka);
-      res.end();
-    }
-    return;
-  }
-
   json(res, 404, { error: "not found" });
 }
 
@@ -489,7 +463,7 @@ async function main() {
     handle(req, res).catch((e) => { try { json(res, 500, { error: (e as Error).message }); } catch {} }),
   );
   server.listen(INGEST_PORT, () => {
-    console.log(`[server] ingestion service on http://localhost:${INGEST_PORT}  (VLM=${process.env.VLM_PROVIDER}, enrich=${process.env.ENRICH_PROVIDER})`);
+    console.log(`[server] ingestion service on http://localhost:${INGEST_PORT}  (enrich=${process.env.ENRICH_PROVIDER})`);
   });
   const shutdown = async () => { console.log("\n[server] shutting down…"); server.close(); await closePool(); process.exit(0); };
   process.on("SIGINT", shutdown);

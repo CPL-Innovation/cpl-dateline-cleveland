@@ -23,9 +23,7 @@ Public domain (NoC-US), Old Brooklyn Historical Society provenance. ~5332×6845 
 
 - **The image files are gitignored** (`inbox/*.jpg`) — they are not committed. Obtain them from the
   ContentDM collection `p16014coll5` (records 7618–7621) or the project vault, and drop them here.
-- The **`fixture` provider does not need these images** — it replays the committed transcriptions in
-  `fixtures/`, so `npm run slice01` works without them. The images are required only for **live**
-  providers (`gemini` / `anthropic` / `openai`) and `npm run probe`.
-- To keep the images somewhere else, point the pipeline at them:
-  `INBOX_DIR=/path/to/images npm run probe`.
+- They fed SLICE-01's whole-page VLM ingest (`npm run ingest` / `probe`), retired with page-first
+  ingestion on 2026-09-28. Live ingestion (box-first) crops pages straight from ContentDM's IIIF
+  server and does not read this folder. `fixtures/` keeps the SLICE-01 transcriptions of these pages.
 - The page → record → filename map is defined in `src/config.ts` (`PAGES`).

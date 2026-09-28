@@ -1,23 +1,19 @@
-// SLICE-08 — ingest ONE page live, end to end, into Postgres.
-//   harvest (ContentDM IIIF) → VLM transcription → object assembly → tiered
-//   enrichment → persist (raw immutable + enrichment overlay). Emits progress so
-//   the review panel can stream it. Rights-gated and idempotent.
+// Everything a page's objects go through once their words and geometry exist,
+// and every curator correction after that. Two ways fill a page:
+//   box-first (boxFirst.ts → boxTranscribe.ts) reads it, then enrichAndPersist
+//   import (importPage below) stores objects a person supplies as JSON
+// Page-first — one VLM read of the whole page, regions found afterwards by OCR
+// anchoring — was the first way in (SLICE-08/09) and is retired; the pages it
+// made are kept as they are (page_ingests.mode = 'page-first').
 //
-// The slow AI work (VLM + enrichment) runs BEFORE the DB transaction, so we never
-// hold a Postgres transaction open across a multi-minute model call.
-import { writeFile, unlink } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { resolve } from "node:path";
-import { fetchRetry } from "./http.ts";
-import { vlmExtract } from "./vlmExtract.ts";
-import { explodePage } from "./explode.ts";
+// The slow AI work (reading + enrichment) runs BEFORE the DB transaction, so we
+// never hold a Postgres transaction open across a multi-minute model call.
 import { enrichObject, enrichObjectOptional, type EnrichResult } from "./enrichAdapter.ts";
 import { CONTROLLED_TOPICS, type LightPayload } from "./enrich-prompt.ts";
-import { locateObjects } from "./ocrAnchor.ts";
 import { query, tx } from "./pg.ts";
 import { resolveTitle } from "./title.ts";
 import { orderFor, inheritOrder } from "./region.ts";
-import { iiifId, iiifImageUrl, PROMPT_VERSION, ENRICH_PROMPT_VERSION, OCR_ENABLED } from "../config.ts";
+import { iiifId, iiifImageUrl, ENRICH_PROMPT_VERSION } from "../config.ts";
 import type { PoolClient } from "pg";
 
 export interface IngestArgs {
@@ -26,7 +22,6 @@ export interface IngestArgs {
   issueId: string;
   pageRecord: number;
   pageNumber: number;
-  force?: boolean;
 }
 export type Progress = (e: { phase: string; message: string; pct?: number }) => void;
 
@@ -95,80 +90,11 @@ export async function assertIngestable(pointer: number | null): Promise<{ status
   return { status: row.rights_status, label: row.rights_label };
 }
 
-async function existingPage(collection: string, pageRecord: number) {
-  const r = await query<{ status: string; object_count: number }>(
-    "SELECT status, object_count FROM page_ingests WHERE collection=$1 AND page_record=$2",
-    [collection, pageRecord],
-  );
-  return r.rows[0] ?? null;
-}
-
-export async function ingestPage(args: IngestArgs, onProgress: Progress = () => {}) {
-  const { collection, issuePointer, issueId, pageRecord, pageNumber } = args;
-
-  onProgress({ phase: "rights", message: "Checking rights…", pct: 2 });
-  await assertIngestable(issuePointer);
-
-  const prior = await existingPage(collection, pageRecord);
-  if (prior && prior.status === "done" && !args.force) {
-    onProgress({ phase: "done", message: `Already ingested (${prior.object_count} objects).`, pct: 100 });
-    return { alreadyDone: true, ...(await getPageObjects(collection, pageRecord)) };
-  }
-
-  const runId = `slice08_anthropic_p${pageRecord}`;
-  const createdAt = new Date().toISOString();
-  await query(
-    `INSERT INTO page_ingests (collection, issue_pointer, issue_id, page_record, page_number, status, run_id, started_at)
-     VALUES ($1,$2,$3,$4,$5,'running',$6, now())
-     ON CONFLICT (collection, page_record)
-     DO UPDATE SET status='running', run_id=$6, started_at=now(), error=NULL`,
-    [collection, issuePointer, issueId, pageRecord, pageNumber, runId],
-  );
-
-  const tmp = resolve(tmpdir(), `ingest_${collection}_${pageRecord}.jpg`);
-  try {
-    // 1) harvest full-res page image from ContentDM IIIF
-    onProgress({ phase: "harvest", message: "Harvesting page image from ContentDM…", pct: 8 });
-    const imgRes = await fetchRetry(iiifImageUrl(pageRecord, "full"), {}, { label: `IIIF full ${pageRecord}` });
-    if (!imgRes.ok) throw new Error(`IIIF image ${pageRecord} → HTTP ${imgRes.status}`);
-    await writeFile(tmp, Buffer.from(await imgRes.arrayBuffer()));
-
-    // 2) VLM transcription (the long pole; streams internally)
-    onProgress({ phase: "transcribe", message: "Transcribing the page with the VLM…", pct: 20 });
-    const vlm = await vlmExtract({ imagePath: tmp, pageRecord, pageNumber, provider: "anthropic" });
-
-    // 3) assemble into content-object rows
-    onProgress({ phase: "assemble", message: `Assembling ${vlm.blocks.length} blocks into objects…`, pct: 55 });
-    const rows = explodePage({ blocks: vlm.blocks, issueId, pageRecord, runId, model: vlm.model, createdAt }) as AssembledRow[];
-
-    // 3b) LOCATE — replace the VLM's estimated region_bbox with one anchored to
-    //     OCR word coordinates. Non-fatal by design: if Tesseract is missing we
-    //     keep the VLM's guess rather than losing the page.
-    onProgress({ phase: "locate", message: "Locating regions against OCR…", pct: 58 });
-    applyOcrRegions(tmp, rows, onProgress);
-
-    // 4-5) tiered enrichment, then persist raw + overlay atomically
-    const count = await enrichAndPersist({
-      collection, pageRecord, issueId, rows, vlmModel: vlm.model, onProgress,
-    });
-
-    onProgress({ phase: "done", message: `Ingested ${count} objects.`, pct: 100 });
-    return { alreadyDone: false, ...(await getPageObjects(collection, pageRecord)) };
-  } catch (e) {
-    await query("UPDATE page_ingests SET status='error', error=$1, finished_at=now() WHERE collection=$2 AND page_record=$3",
-      [(e as Error).message.slice(0, 500), collection, pageRecord]);
-    throw e;
-  } finally {
-    await unlink(tmp).catch(() => {});
-  }
-}
-
-// ── enrich + persist: the half of ingestion every mode shares ────────────────
-// Page-first (above) and box-first (boxFirst.ts) differ in where a page's WORDS
-// and GEOMETRY come from; from assembled rows on, they are the same pipeline:
-// tiered enrichment, then one transaction that replaces the page's objects and
-// marks it done. `extra` runs inside that transaction, for a mode's own
-// bookkeeping (box-first records its detector and marks its proposal used).
+// ── enrich + persist ─────────────────────────────────────────────────────────
+// From assembled rows on: tiered enrichment, then one transaction that replaces
+// the page's objects and marks it done. `extra` runs inside that transaction for
+// the caller's own bookkeeping (box-first records its mode and detector and marks
+// its proposal used). The page's mode is the caller's to write.
 export async function enrichAndPersist(args: {
   collection: string; pageRecord: number; issueId: string; rows: AssembledRow[];
   vlmModel: string; onProgress: Progress;
@@ -204,33 +130,6 @@ export async function enrichAndPersist(args: {
     if (args.extra) await args.extra(c, rows.length);
     return rows.length;
   });
-}
-
-// Overwrite each row's region_bbox with an OCR-anchored Region. Mutates `rows`.
-// Silent no-op when OCR_ENABLED=0; a warning (not a throw) when OCR is missing or
-// the page is unreadable — a page with weak regions still ingests fine.
-export function applyOcrRegions(imagePath: string, rows: AssembledRow[], onProgress: Progress = () => {}) {
-  if (!OCR_ENABLED || rows.length === 0) return { located: 0, total: rows.length };
-  try {
-    const { regions, meanConf, columns } = locateObjects(imagePath, rows.map((r) => r.text));
-    let located = 0;
-    for (let i = 0; i < rows.length; i++) {
-      // A located region wins; otherwise store null rather than falling back to
-      // the VLM's guess — "no region" is the honest answer, not a worse box.
-      rows[i].region_bbox = regions[i] ? JSON.stringify(regions[i]) : null;
-      if (regions[i]) located++;
-    }
-    onProgress({
-      phase: "locate",
-      message: `Located ${located}/${rows.length} regions (OCR conf ${meanConf}, ${columns} columns).`,
-      pct: 60,
-    });
-    return { located, total: rows.length };
-  } catch (e) {
-    console.warn(`  ⚠ region anchoring skipped: ${(e as Error).message}`);
-    onProgress({ phase: "locate", message: `Region anchoring skipped — keeping VLM estimates.`, pct: 60 });
-    return { located: 0, total: rows.length };
-  }
 }
 
 function eargs(o: AssembledRow) {
@@ -384,10 +283,8 @@ export async function importPage(args: IngestArgs, objects: ImportObject[], onPr
 
 // ── human region correction (SLICE-09b) ──────────────────────────────────────
 // A curator drags/resizes/draws a box in the workbench and it lands HERE. Per
-// Jungu's call this writes region_bbox in place — one column, no parallel schema.
-// The safeguard against that choice's one real cost (a later `relocate` silently
-// overwriting human work) is the source stamp: 'human' instead of 'ocr-anchor'.
-// relocate skips those unless --force.
+// Jungu's call this writes region_bbox in place — one column, no parallel schema —
+// stamped source 'human', so the region says it is a person's, not a machine's.
 export async function setObjectRegion(objectId: number, rects: unknown) {
   if (!Number.isFinite(objectId)) throw new Error("objectId must be a number");
   // null/undefined/[] clear the region; anything else must be a well-formed array.

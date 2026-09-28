@@ -52,7 +52,7 @@ if (!existsSync(dbPath)) {
     console.log(`[export-staff] no store at ${rel(dbPath)}; keeping committed ${rel(outFile)} (last real run).`);
     process.exit(0);
   }
-  writeEmpty('no pipeline store — run `npm run pipeline` (and `npm run enrich`) from the repo root first');
+  writeEmpty('no SLICE-01 pipeline store — the ingest that built it is retired with page-first ingestion');
   process.exit(0);
 }
 

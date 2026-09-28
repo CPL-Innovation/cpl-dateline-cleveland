@@ -12,7 +12,7 @@ import { writeFile, unlink, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { pageOcr, OcrUnavailable } from "./ocrAnchor.ts";
+import { pageOcr, OcrUnavailable } from "./ocr.ts";
 import { readingOrder } from "./region.ts";
 import {
   DETECT_DIR, MODELS_DIR, UV_BIN, TESS_MIN_BLOCK_AREA, TESSERACT_BIN,

@@ -1,8 +1,10 @@
-// Vendored VLM prompt module — the transcription CONTRACT for SLICE-01.
-// Spec is intent; THIS FILE is truth (SLICE-01 §"Vendored prompt file", hand-synced
-// to the brief's §Prompt contract). Ported honesty spine from CPL Cleveland Neighborhoods.
+// Vendored VLM prompt module — the transcription CONTRACT (SLICE-01 §Prompt contract).
+// Spec is intent; THIS FILE is truth. Ported honesty spine from CPL Cleveland Neighborhoods.
 //
-// The model returns ONE JSON array per page: ordered content-object blocks in reading order.
+// SLICE-01's whole-page instruction (one JSON array of blocks per page) is retired
+// with page-first ingestion. What remains is shared by every reader: the fixed
+// object classes, the block shape, and the system prompt. Box-first's per-group
+// rules (boxTranscribe.ts) are lifted from that contract.
 
 // object_class enum is FIXED by data-schema v0.3 (§object_class spine). Do not extend it.
 export const OBJECT_CLASSES = [
@@ -33,27 +35,3 @@ export interface VlmBlock {
 export const SYSTEM_PROMPT = `You are a faithful newspaper transcription engine for a library digitization pipeline.
 You transcribe historical newspaper page images into ordered, classified content-object blocks.
 You never invent, summarize, or embellish. You report only what is printed and visible in the frame.`;
-
-// The per-page instruction. Baked rules mirror SLICE-01 §Prompt contract exactly.
-export function buildUserPrompt(pageNumber: number): string {
-  return `Transcribe this newspaper page (page ${pageNumber}) into a JSON array of content-object blocks.
-
-Return ONLY a JSON array. Each element:
-{
-  "object_class": one of [${OBJECT_CLASSES.join(", ")}],
-  "role": "headline | subhead | body | ..." (free text, or null),
-  "text": "verbatim transcription of what is printed",
-  "region_bbox": [x, y, w, h] NORMALIZED 0-1 (or null),
-  "continues_hint": string or null
-}
-
-RULES (follow exactly):
-- ONE CONTENT-OBJECT PER STORY. A single article is ONE block: emit its headline, any subhead/deck, and its body TOGETHER in that block's "text" (headline line first, then the body), with role "headline+body". Do NOT split one story into separate headline / subhead / body blocks — a headline and the body beneath it are the same object. Keep DISTINCT stories as separate blocks. (The same one-object rule holds for ads, listings, and notices: group the whole unit, not its typographic parts.)
-- READING ORDER: read DOWN each column, then move to the next column. NEVER read across columns.
-- TRANSCRIBE ONLY WHAT IS PRINTED AND VISIBLE. Mark unreadable text [illegible] and physical damage [loss]. NEVER invent text to bridge a gap.
-- HANDWRITING IS NOT PUBLICATION CONTENT. Pencil/pen marginalia -> object_class "manuscript_annotation"; do NOT fold it into adjacent article text.
-- region_bbox: give the object's approximate rectangle on the page as [x, y, w, h] where x,y is the TOP-LEFT corner and w,h the width/height, ALL as fractions 0-1 of the page's width and height (x+w<=1, y+h<=1). An approximate region is expected and useful — provide one whenever you can locate the object on the page. Use null ONLY when you genuinely cannot place it. Do not fabricate false precision, and do not return pixel values.
-- object_class enum is FIXED. Do not extend it.
-- Classify by what the object IS: a display ad is "advertisement" (not "article"); a repeated column-divider ad bar is "filler_slug"; a bucket of many micro-entries is "classified_section"; the publication statement/officers block is "masthead".
-- Output valid JSON only. No prose before or after.`;
-}

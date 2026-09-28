@@ -45,7 +45,9 @@ if (!existsSync(dbPath)) {
     console.log(`[export-real] no store at ${dbPath}; keeping committed ${outFile.replace(repoRoot + '/', '')} (last real run).`);
     process.exit(0);
   }
-  console.error(`[export-real] no store at ${dbPath} and no committed export — run \`npm run pipeline\` from the repo root first.`);
+  // (The SLICE-01 ingest that built the store is retired with page-first ingestion;
+  // an existing store can still be enriched and exported.)
+  console.error(`[export-real] no store at ${dbPath} and no committed export — the SLICE-01 ingest that built it is retired.`);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(outFile, JSON.stringify({ generatedAt: null, issue: null, objects: [] }, null, 2));
   process.exit(0);

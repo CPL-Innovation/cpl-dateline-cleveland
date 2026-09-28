@@ -8,7 +8,7 @@
 //   it sees the page with every box drawn and NUMBERED, and answers in numbers
 //   ("3, 7, 8, 12 are one article"). It never emits a coordinate.
 //
-// That keeps the VLM on the side of the line ocrAnchor drew: excellent at reading
+// That keeps the VLM on the side of the line OCR anchoring (SLICE-09) drew: excellent at reading
 // a page's structure, poor at regressing geometry. The geometry is the detector's
 // and the curator's; the grouping is a proposal the curator corrects.
 import { readFile } from "node:fs/promises";

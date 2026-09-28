@@ -16,7 +16,7 @@
 // the curator has looked at them and said to go ahead.
 import { fetchRetry } from "./http.ts";
 import { query } from "./pg.ts";
-import { pageOcr, type PageOcr } from "./ocrAnchor.ts";
+import { pageOcr, type PageOcr } from "./ocr.ts";
 import { pageSize, jpegSize } from "./iiif.ts";
 import { orderFor } from "./region.ts";
 import { explodePage } from "./explode.ts";

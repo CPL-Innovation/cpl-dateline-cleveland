@@ -6,7 +6,7 @@ pilot corpus). An npm-workspaces monorepo with two surfaces over one shared cont
 
 | Workspace | What it is |
 |---|---|
-| [`apps/pipeline`](apps/pipeline) — `@dateline/pipeline` | The enrichment pipeline. `image → VLM → structured content-objects → SQLite → viewable` (**SLICE-01**), then `content-objects → tiered Stage-4 enrichment → topics · names · events · advertorial flag` (**SLICE-02**). Zero-dependency Node (built-in `node:sqlite` + TypeScript type-stripping, no build step). |
+| [`apps/pipeline`](apps/pipeline) — `@dateline/pipeline` | The ingestion service. Box-first ingestion (**SLICE-14**): `detect boxes → group → curator review → transcribe each group from full-res crops`, then `tiered Stage-4 enrichment → topics · names · events · advertorial flag` (**SLICE-02**), into Postgres. Node with TypeScript type-stripping, no build step. |
 | [`apps/discovery`](apps/discovery) — `@dateline/discovery` | The patron **discovery SPA** (*This Week, Then* cultural calendar · *The Index* faceted browse · *The Stacks* issue reader) **and** the staff **Editorial Workbench** at `/staff`. React + Vite. Implemented from the Claude Design prototypes. |
 
 The seam between them: `apps/discovery`'s **REAL DATA** toggle reads the pipeline's SQLite
@@ -25,18 +25,16 @@ Requires **Node ≥ 22.5**. One install at the root covers both workspaces.
 ```bash
 npm install          # installs all workspaces (deps hoist to the root)
 
-npm run pipeline     # apps/pipeline: ingest + view (image → VLM → SQLite → out/view.html)
-npm run enrich       # apps/pipeline: SLICE-02 Stage-4 enrichment overlay (topics · names · events)
+npm run server       # apps/pipeline: the ingestion service on :5170 (Postgres; see apps/pipeline/README.md)
 npm run dev          # apps/discovery: dev server at http://localhost:5180  (+ /staff)
 npm run build        # apps/discovery: production static build → apps/discovery/dist
 ```
 
-A full pilot run is `npm run pipeline && npm run enrich && npm run dev`, then flip the
-SPA's **REAL DATA** toggle. `npm run enrich` defaults to the `fixture` provider (the session
-model's Stage-4 pass, no API key needed); set `ENRICH_PROVIDER=anthropic|gemini|openai`
-(+ the matching key in `apps/pipeline/.env`) for a live enrichment pass.
+Pages are ingested **box-first** from the staff workbench (`/staff`): a detector draws boxes, a
+curator corrects and groups them, and each group is transcribed from full-resolution crops. The
+SPA's **REAL DATA** toggle reads the committed SLICE-01 export.
 
-Other root scripts: `npm run ingest`, `npm run view`, `npm run probe` (pipeline),
+Other root scripts: `npm run view`, `npm run enrich` (the SLICE-01 SQLite prototype),
 `npm run export-real`, `npm run preview` (discovery). Each delegates to the right workspace;
 you can also `cd` into a workspace and run its own scripts.
 
@@ -159,8 +157,8 @@ A floating call button in the reader opens a chat about **the issue you are read
   resolved before any real production release (public full-text + AI-derived output). See
   `build/BUILD-SPEC.md`. A public commit of this repo *is* a public release — fine today
   because everything committed is PD.
-- **Two data layers.** SLICE-01's SQLite/static-JSON prototype still backs `npm run pipeline`;
-  the live per-page service (SLICE-08 onward) runs on **Postgres + pgvector** and is what `/staff`
+- **Two data layers.** SLICE-01's SQLite/static-JSON prototype backs the committed exports (its
+  whole-page ingest is retired); the live per-page service (SLICE-08 onward) runs on **Postgres + pgvector** and is what `/staff`
   reads and writes. `migrations/pg/` is applied in filename order on every boot — each file is
   idempotent, there is no applied-migrations ledger.
 - **Design intent** lives vault-side under `build/` (read-only; changes proposed back via

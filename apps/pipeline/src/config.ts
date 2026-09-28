@@ -1,5 +1,5 @@
-// SLICE-01 config — one place for the knobs. See BUILD-SPEC / SLICE-01 brief.
-// The VLM is a CONFIG SWAP, not a hardcode (SLICE-01 §"paved road", CN vlmExtract rule).
+// Pipeline config — one place for the knobs. Models are a CONFIG SWAP, not a
+// hardcode (SLICE-01 §"paved road").
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -58,56 +58,26 @@ export const PAGES = [
   { pageRecord: 7621, pageNumber: 4, file: "p16014coll5_7621_full.jpg" },
 ] as const;
 
-// --- VLM provider selection (the config swap) -------------------------------
-// "fixture"   → replay a structured transcription produced by the session VLM
-//               (how Dry Run 01 was run: "Claude as the VLM"). No key needed.
-// "gemini"    → real Gemini vision call (SLICE-01 §engine choice production default:
-//               Gemini-Flash-class — strong OCR, cheap, fast). Needs GEMINI_API_KEY.
-// "anthropic" → real Claude vision call. Needs ANTHROPIC_API_KEY.
-// "openai"    → real GPT vision call. Needs OPENAI_API_KEY.
-// Swapping is a one-line config change. Re-verify current models/pricing before spend.
+// --- VLM provider (SLICE-01 SQLite run) ------------------------------------
+// The whole-page VLM adapter this chose between (vlmExtract.ts) is retired with
+// page-first ingestion; the value survives only as part of the SLICE-01 run id
+// that `npm run view` reads its SQLite rows by.
 export type VlmProvider = "fixture" | "gemini" | "anthropic" | "openai";
 export const VLM_PROVIDER = (process.env.VLM_PROVIDER ?? "fixture") as VlmProvider;
 
-const DEFAULT_MODEL: Record<VlmProvider, string> = {
-  fixture: "session-vlm:claude/dry-run",
-  gemini: "gemini-2.5-flash",
-  anthropic: "claude-sonnet-5",
-  openai: "gpt-4o",
-};
-export const VLM_MODEL = process.env.VLM_MODEL ?? DEFAULT_MODEL[VLM_PROVIDER];
-
-// Long-edge px to downscale page images to before sending to a live VLM.
-export const VLM_MAX_EDGE = Number(process.env.VLM_MAX_EDGE ?? 2200);
-
-// --- Region location: OCR anchoring (SLICE-09 fix) --------------------------
-// Where a content object SITS on the page is not a VLM question. The VLM gives us
-// the text; Tesseract gives us word coordinates; ocrAnchor.ts matches one to the
-// other. Off → keep whatever region_bbox the VLM estimated (and its inaccuracy).
-export const OCR_ENABLED = (process.env.OCR_ENABLED ?? "1") !== "0";
+// --- OCR (Tesseract) --------------------------------------------------------
+// Box-first's `tesseract` detector and its coverage check both read the page's
+// words through ocr.ts. (Page-first's OCR anchoring — matching a whole-page
+// transcript to those words, with its OCR_MIN_* knobs — is retired.)
 export const TESSERACT_BIN = process.env.TESSERACT_BIN ?? "tesseract";
 export const OCR_LANG = process.env.OCR_LANG ?? "eng";
 // Long-edge px to OCR at, resampled from the full-res master. This knob decides
-// whether the whole thing works: on the 1600px display JPEG mean word confidence
-// is ~43 and matching fails; resampled to ~4100 from the 5332px master it is ~88
-// and matching succeeds. Costs ~25s/page on an M-series Mac.
+// whether OCR is worth reading: on the 1600px display JPEG mean word confidence
+// is ~43; resampled to ~4100 from the 5332px master it is ~88. Costs ~25s/page
+// on an M-series Mac.
 export const OCR_MAX_EDGE = Number(process.env.OCR_MAX_EDGE ?? 4100);
-// Drop OCR words below this confidence before anchoring (0-100).
+// Drop OCR words below this confidence (0-100).
 export const OCR_WORD_CONF = Number(process.env.OCR_WORD_CONF ?? 40);
-// A match must be this many CONSECUTIVE tokens to count as an anchor — stops
-// common words from anchoring to the wrong column. 2 is safe because the monotone
-// alignment (ocrAnchor §C2) already rejects off-chain matches; measured on
-// Brooklyn News p1, 2 locates 54/55 objects at 0.84 mean coverage vs 49/55 at 0.71.
-export const OCR_MIN_RUN = Number(process.env.OCR_MIN_RUN ?? 2);
-// Matched-token coverage below this → store null. An honest "no region located"
-// beats a confidently drawn wrong box.
-export const OCR_MIN_COVERAGE = Number(process.env.OCR_MIN_COVERAGE ?? 0.35);
-// An object can occupy several rects (a story jumping columns). Discard any rect
-// smaller than this share of the object's LARGEST rect — measured over 254 located
-// objects, nearly every extra rect was a crumb from a wandering chain, not a real
-// column jump. 0.20 cut multi-rect objects from 5.1% to 2.0% and removed 9 of the
-// 15 extra rects; the survivors are the ones worth defending.
-export const OCR_MIN_RECT_SHARE = Number(process.env.OCR_MIN_RECT_SHARE ?? 0.20);
 
 export const DB_PATH = resolve(ROOT, "data", "slice01.sqlite");
 
