@@ -20,6 +20,12 @@
 //                                            → the curator's corrections; returns the proposal
 //   POST /api/boxfirst/group {collection, record, detector}
 //                                            → re-run the grouper over the current boxes
+//   POST /api/boxfirst/coverage {collection, record, detector}
+//                                            → { gaps: printed text outside every grouped box }
+//   GET  /api/boxfirst/transcribe?collection=&pointer=&issueId=&record=&detector=[&force=1]
+//                                            → SSE; a `gaps` event (and nothing written) while
+//                                              coverage gaps remain unless force=1, else
+//                                              `result` = the ingested page, as /api/page
 //
 // Rights gate + idempotency live in ingestPage(); this file is transport + seeding.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -36,6 +42,7 @@ import { resolveIssuePages } from "./lib/issuePages.ts";
 import { suggestTitle } from "./lib/suggestTitle.ts";
 import { proposeBoxes, getProposals, saveProposal, regroup, listDetectors, BoxFirstRefused } from "./lib/boxFirst.ts";
 import { DetectorUnavailable } from "./lib/detect.ts";
+import { checkCoverage, transcribeProposal, CoverageGaps } from "./lib/boxTranscribe.ts";
 import type { DetectorId } from "./config.ts";
 
 const ORIGIN = process.env.CORS_ORIGIN ?? "*";
@@ -410,6 +417,41 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       const b = JSON.parse(await readBody(req));
       return json(res, 200, await regroup(b.collection ?? "p16014coll5", Number(b.record), b.detector));
     } catch (e) { return json(res, e instanceof BoxFirstRefused ? 409 : 502, { error: (e as Error).message }); }
+  }
+
+  if (url.pathname === "/api/boxfirst/coverage" && req.method === "POST") {
+    try {
+      const b = JSON.parse(await readBody(req));
+      return json(res, 200, await checkCoverage(b.collection ?? "p16014coll5", Number(b.record), b.detector));
+    } catch (e) { return json(res, e instanceof BoxFirstRefused ? 409 : 500, { error: (e as Error).message }); }
+  }
+
+  if (url.pathname === "/api/boxfirst/transcribe") {
+    const record = Number(q.get("record"));
+    if (!record) return json(res, 400, { error: "record required" });
+    const collection = q.get("collection") ?? "p16014coll5";
+    sseOpen(res);
+    const ka = setInterval(() => res.write(": keepalive\n\n"), 15000);
+    try {
+      await transcribeProposal({
+        collection, pageRecord: record,
+        issuePointer: q.get("pointer") ? Number(q.get("pointer")) : null,
+        issueId: q.get("issueId") ?? `issue_${record}`,
+        detector: (q.get("detector") ?? "") as DetectorId,
+        force: q.get("force") === "1",
+      }, (e) => sse(res, "progress", e));
+      sse(res, "result", await getPageObjects(collection, record));
+    } catch (e) {
+      const m = (e as Error).message;
+      if (e instanceof CoverageGaps) sse(res, "gaps", { message: m, ...e.coverage });
+      else if (e instanceof RightsBlocked) sse(res, "error", { rights: true, message: m });
+      else sse(res, "error", { message: m, refused: e instanceof BoxFirstRefused });
+      if (!(e instanceof CoverageGaps)) console.error(`[boxfirst] transcribe ${record} failed:`, m);
+    } finally {
+      clearInterval(ka);
+      res.end();
+    }
+    return;
   }
 
   if (url.pathname === "/api/ingest") {

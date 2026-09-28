@@ -57,7 +57,7 @@ function structuredPayload(cls: string, text: string): Record<string, unknown> {
 }
 
 // Bounded-concurrency map so a page's per-object enrichment calls run in parallel.
-async function pMap<T, R>(items: T[], limit: number, fn: (t: T, i: number) => Promise<R>): Promise<R[]> {
+export async function pMap<T, R>(items: T[], limit: number, fn: (t: T, i: number) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
   async function worker() {
@@ -71,7 +71,7 @@ async function pMap<T, R>(items: T[], limit: number, fn: (t: T, i: number) => Pr
   return out;
 }
 
-interface AssembledRow {
+export interface AssembledRow {
   issue_id: string; page_record: number; seq: number; object_class: string;
   role: string | null; text: string; region_bbox: string | null;
   is_publication_content: number; occurrences: number; transcription_confidence: number | null;
@@ -146,35 +146,9 @@ export async function ingestPage(args: IngestArgs, onProgress: Progress = () => 
     onProgress({ phase: "locate", message: "Locating regions against OCR…", pct: 58 });
     applyOcrRegions(tmp, rows, onProgress);
 
-    // 4) tiered enrichment (parallel, bounded)
-    onProgress({ phase: "enrich", message: `Enriching ${rows.length} objects…`, pct: 62 });
-    const enriched = await pMap(rows, 5, async (o): Promise<Enriched> => {
-      if (CAPTURE_ONLY.has(o.object_class)) return { tier: "capture_only" };
-      if (o.object_class === "article") {
-        return { tier: "heavy", heavy: await enrichObject(eargs(o)) };
-      }
-      if (o.object_class === "advertisement") {
-        const r = await enrichObjectOptional(eargs(o));
-        if (r && (r.enrichment as any).is_event_bearing) return { tier: "heavy", heavy: r };
-        return { tier: "light", light: deterministicLight(o.text) };
-      }
-      if (o.object_class === "coupon") return { tier: "light", light: deterministicLight(o.text) };
-      if (STRUCTURED.has(o.object_class)) return { tier: "structured" };
-      return { tier: "capture_only" };
-    });
-
-    // 5) persist — raw + overlay, atomically
-    onProgress({ phase: "persist", message: "Saving to Postgres…", pct: 92 });
-    const count = await tx(async (c) => {
-      // fresh page: clear any prior rows for this page (idempotent re-ingest)
-      await c.query("DELETE FROM content_objects WHERE page_record=$1 AND issue_id=$2", [pageRecord, issueId]);
-      for (let i = 0; i < rows.length; i++) await persistObject(c, rows[i], enriched[i], issueId);
-      await c.query(
-        `UPDATE page_ingests SET status='done', object_count=$1, vlm_model=$2, enrich_model=$3, finished_at=now()
-         WHERE collection=$4 AND page_record=$5`,
-        [rows.length, vlm.model, "claude-sonnet-5", collection, pageRecord],
-      );
-      return rows.length;
+    // 4-5) tiered enrichment, then persist raw + overlay atomically
+    const count = await enrichAndPersist({
+      collection, pageRecord, issueId, rows, vlmModel: vlm.model, onProgress,
     });
 
     onProgress({ phase: "done", message: `Ingested ${count} objects.`, pct: 100 });
@@ -186,6 +160,49 @@ export async function ingestPage(args: IngestArgs, onProgress: Progress = () => 
   } finally {
     await unlink(tmp).catch(() => {});
   }
+}
+
+// ── enrich + persist: the half of ingestion every mode shares ────────────────
+// Page-first (above) and box-first (boxFirst.ts) differ in where a page's WORDS
+// and GEOMETRY come from; from assembled rows on, they are the same pipeline:
+// tiered enrichment, then one transaction that replaces the page's objects and
+// marks it done. `extra` runs inside that transaction, for a mode's own
+// bookkeeping (box-first records its detector and marks its proposal used).
+export async function enrichAndPersist(args: {
+  collection: string; pageRecord: number; issueId: string; rows: AssembledRow[];
+  vlmModel: string; onProgress: Progress;
+  extra?: (c: PoolClient, count: number) => Promise<void>;
+}): Promise<number> {
+  const { collection, pageRecord, issueId, rows, vlmModel, onProgress } = args;
+  onProgress({ phase: "enrich", message: `Enriching ${rows.length} objects…`, pct: 62 });
+  const enriched = await pMap(rows, 5, async (o): Promise<Enriched> => {
+    if (CAPTURE_ONLY.has(o.object_class)) return { tier: "capture_only" };
+    if (o.object_class === "article") {
+      return { tier: "heavy", heavy: await enrichObject(eargs(o)) };
+    }
+    if (o.object_class === "advertisement") {
+      const r = await enrichObjectOptional(eargs(o));
+      if (r && (r.enrichment as any).is_event_bearing) return { tier: "heavy", heavy: r };
+      return { tier: "light", light: deterministicLight(o.text) };
+    }
+    if (o.object_class === "coupon") return { tier: "light", light: deterministicLight(o.text) };
+    if (STRUCTURED.has(o.object_class)) return { tier: "structured" };
+    return { tier: "capture_only" };
+  });
+
+  onProgress({ phase: "persist", message: "Saving to Postgres…", pct: 92 });
+  return tx(async (c) => {
+    // fresh page: clear any prior rows for this page (idempotent re-ingest)
+    await c.query("DELETE FROM content_objects WHERE page_record=$1 AND issue_id=$2", [pageRecord, issueId]);
+    for (let i = 0; i < rows.length; i++) await persistObject(c, rows[i], enriched[i], issueId);
+    await c.query(
+      `UPDATE page_ingests SET status='done', object_count=$1, vlm_model=$2, enrich_model=$3, finished_at=now()
+       WHERE collection=$4 AND page_record=$5`,
+      [rows.length, vlmModel, "claude-sonnet-5", collection, pageRecord],
+    );
+    if (args.extra) await args.extra(c, rows.length);
+    return rows.length;
+  });
 }
 
 // Overwrite each row's region_bbox with an OCR-anchored Region. Mutates `rows`.

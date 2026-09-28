@@ -100,7 +100,7 @@ export function cropUrl(
 
 // A JPEG's real dimensions, straight from its SOF marker. Used to verify the
 // server honoured the region rather than quietly handing back the whole page.
-function jpegSize(buf: Buffer): { w: number; h: number } | null {
+export function jpegSize(buf: Buffer): { w: number; h: number } | null {
   if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) return null;
   let i = 2;
   while (i + 9 < buf.length) {

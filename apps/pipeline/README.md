@@ -142,7 +142,7 @@ region located" beats a confidently drawn wrong box.
 Curators correct regions in the workbench (`POST /api/region`). Those are stamped `source:'human'`
 and `relocate` leaves them alone unless `--force`.
 
-## Box-first ingestion — layout detectors (SLICE-14, in progress)
+## Box-first ingestion (SLICE-14)
 
 The alternative to page-first ingestion, chosen by a curator per page: detect boxes → group →
 curator review → transcribe each box from its own full-res crop. Three detectors are offered so
@@ -177,6 +177,21 @@ the curator-corrected boxes, the grouping, and an edit count. Box-first is refus
 ingested, and a page under review has `page_ingests.status = 'review'`. Endpoints: `/api/boxfirst/*`
 (see the header of `src/server.ts`).
 
+**Review** happens in the staff workbench: an un-ingested page offers box-first beside page-first;
+the curator corrects boxes and groups (autosaved; every correction counted per detector).
+
+**Coverage** (`src/lib/boxTranscribe.ts`). Text outside every grouped box would never be read, so
+transcription is refused while the page has *gaps*: runs of ≥ `COVERAGE_MIN_WORDS` Tesseract-read
+words whose centres lie in no grouped box. The curator boxes them (click a gap) or transcribes anyway.
+On the first real pages it caught a whole column of classifieds, a photo caption, and ad price panels.
+
+**Transcription** reads each box from its own crop of the archival master (IIIF pixel region, padded
+by `BOXFIRST_PAD`). A box taller than the model's image ceiling goes as overlapping vertical slices in
+one request, so a full column stays at native resolution (page-first sees it at ~200px wide). Texts
+join per group in the curator's order, then the page runs through `enrichAndPersist` — the same
+enrichment and persistence page-first uses. `BOXFIRST_EFFORT` defaults to `low`: on a two-slice legal
+notice, `low` and `medium` took the same ~22s and differed by 4 words in ~900.
+
 ## Implementation notes (not intent — see `_FROM-BUILD` for intent changes)
 
 - The SLICE-01 brief recommended a Next.js scaffold to mirror CN. For this slice's throwaway view
@@ -199,6 +214,7 @@ src/relocate.ts        re-derive regions for already-ingested pages (no VLM spen
 src/lib/detect.ts      box-first detector adapter (tesseract | american-stories | pp-doclayout)
 src/lib/group.ts       box-first grouper: numbered-box overview → content objects
 src/lib/boxFirst.ts    box-first proposals: detect → group → draft, curator saves, regroup
+src/lib/boxTranscribe.ts  box-first coverage check + per-box transcription → enrichAndPersist
 src/detect.ts          run detectors on a page, write numbered-box overlays
 detect/                the Python half: detect.py (ONNX detectors + overlay), fetch-models.sh
 src/view.ts            "look at it" — console + out/view.html

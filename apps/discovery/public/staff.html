@@ -775,6 +775,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bf-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
 .bf-pick select{font-family:var(--sans);font-size:13px;padding:8px 10px;border:1px solid var(--hair-2);border-radius:2px}
 .pmap.review{border-style:dashed;border-color:var(--warn)}
+/* coverage gaps: printed text no grouped box contains. Hatched red so they read
+   as "missing", never as another box; click one to box it. */
+.bf-gap{position:absolute;border:1.5px dashed var(--danger);z-index:4;cursor:copy;
+  background:repeating-linear-gradient(45deg,rgba(196,70,47,.22) 0 4px,transparent 4px 8px)}
+.bf-gap:hover{background:repeating-linear-gradient(45deg,rgba(196,70,47,.38) 0 4px,transparent 4px 8px)}
+.bf-gaprow{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--hair);font-family:var(--sans);font-size:12px}
+.bf-gaprow .w{flex:none;font-family:var(--mono);font-size:10.5px;color:var(--danger);min-width:52px}
+.bf-gaprow .s{flex:1;min-width:0;color:var(--secondary);font-style:italic}
+.bf-gaprow button{flex:none}
 </style>
 </head>
 <body>
@@ -1700,6 +1709,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     var hist = [], queue = [], saving = false, saveMsg = '', hoverMsg = '';
     var busy = null, busyMsg = '';
     var zoom = 1, panned = false, drawArmed = false;
+    // Coverage gaps from the last check, and the edit `version` they were checked
+    // at — a correction after the check may have closed (or opened) one.
+    var gaps = null, gapsVersion = -1, version = 0, gapsForced = false;
+    var txMsg = '';   // the transcribe block's own status line (coverage + transcription)
     var page = null, wrap = null, img = null, layer = null;
 
     mount();
@@ -1763,7 +1776,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     function commit(op, extra, before){
       hist.push(before); if(hist.length>200) hist.shift();
       var o={ op:op }; for(var k in (extra||{})) o[k]=extra[k];
-      queue.push(o); P.edits++;
+      queue.push(o); P.edits++; version++;
       renumber(); flush(); paintAll();
     }
     function undo(){
@@ -1771,7 +1784,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var s=JSON.parse(hist.pop()); P.boxes=s.boxes; P.groups=s.groups;
       if(selBox!=null && !boxById(selBox)) selBox=null;
       if(selGi>=P.groups.length) selGi=-1;
-      queue.push({ op:'undo' }); P.edits=Math.max(0,P.edits-1);
+      queue.push({ op:'undo' }); P.edits=Math.max(0,P.edits-1); version++;
       flush(); paintAll();
     }
     function flush(){
@@ -1878,6 +1891,22 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         });
         layer.appendChild(el);
       });
+      (gaps||[]).forEach(function(g, i){
+        var el=document.createElement('div'), r=g.rect;
+        el.className='bf-gap';
+        el.style.left=(r[0]*100)+'%'; el.style.top=(r[1]*100)+'%'; el.style.width=(r[2]*100)+'%'; el.style.height=(r[3]*100)+'%';
+        el.dataset.gap=i;
+        el.title=g.words+' words outside every box — click to make it a box';
+        layer.appendChild(el);
+      });
+    }
+
+    // A gap becomes a box: into the selected group, or a group of its own.
+    function boxGap(i){
+      var g=gaps && gaps[i]; if(!g) return;
+      gaps.splice(i,1);
+      addBox(g.rect);
+      gapsVersion=version;   // this correction is the gap's own fix, not a stale check
     }
 
     function pctAt(ev){
@@ -1888,6 +1917,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     function wireLayer(){
       layer.addEventListener('mousedown', function(ev){
         if(ev.button!==0 || ev.metaKey || drawArmed || !P) return;  // ⌘-drag pans; drawing owns the wrap
+        if(busy==='transcribe'){ ev.preventDefault(); return; }
+        var gp=ev.target.closest('.bf-gap');
+        if(gp){ ev.preventDefault(); ev.stopPropagation(); boxGap(+gp.dataset.gap); return; }
         var el=ev.target.closest('.bf-bx');
         if(!el){ if(selBox!=null || selGi>=0){ selBox=null; selGi=-1; paintAll(); } return; }
         ev.preventDefault(); ev.stopPropagation();
@@ -1995,7 +2027,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       document.onkeydown=function(ev){
         var t=ev.target, tag=t && t.tagName;
         if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || (t && t.isContentEditable)) return;
-        if(!P) return;
+        if(!P || busy==='transcribe') return;
         if((ev.metaKey||ev.ctrlKey) && (ev.key==='z' || ev.key==='Z')){ ev.preventDefault(); undo(); return; }
         if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
         var k=ev.key;
@@ -2068,11 +2100,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
 
       h+='<div class="blk">'+detailHtml()+'</div>';
 
-      var n=P ? P.groups.length : 0;
-      h+='<div class="blk"><div class="lab">Transcribe</div>'+
-        '<button class="bf-btn pri" disabled title="SLICE-14 step 4 — not built yet">Transcribe '+n+' group'+(n===1?'':'s')+'</button>'+
-        '<div class="bf-note">Reads every box from its own full-resolution crop and joins them per group, in the order above. '+
-        'Boxes in no group are not transcribed. <b>Not built yet</b> — this is the next step.</div></div>';
+      h+='<div class="blk">'+transcribeHtml()+'</div>';
 
       h+='<div class="blk"><div class="lab">Keys</div><div class="bf-keys">'+
         'click a box to select it · drag it to move · drag a corner to resize<br>'+
@@ -2083,8 +2111,38 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       bindPanel(el);
     }
 
+    // Transcription is gated on coverage: text outside every grouped box would
+    // never be read, and nothing after this step could notice. The check runs as
+    // part of TRANSCRIBE; CHECK COVERAGE runs it alone while correcting.
+    function transcribeHtml(){
+      var n=P ? P.groups.length : 0, nb=P ? P.groups.reduce(function(s,g){ return s+g.boxes.length; },0) : 0;
+      var h='<div class="lab">Transcribe</div>';
+      if(busy==='transcribe') return h+'<div class="bf-note">'+esc(txMsg)+'</div>';
+      h+='<div class="bf-acts" style="margin-top:0">'+
+        '<button class="bf-btn pri" data-a="transcribe"'+(P && n && !busy?'':' disabled')+'>Transcribe '+n+' group'+(n===1?'':'s')+'</button>'+
+        '<button class="bf-btn" data-a="coverage"'+(P && !busy?'':' disabled')+' title="Find printed text that no grouped box contains (runs OCR, ~25s the first time)">Check coverage</button></div>'+
+        '<div class="bf-note">Reads each of the '+nb+' grouped boxes from its own full-resolution crop and joins them per group, in the order above, '+
+        'then enriches and saves the page. Boxes in no group are not read.</div>'+
+        (txMsg ? '<div class="bf-note warn">'+esc(txMsg)+'</div>' : '');
+      if(gaps){
+        var stale = gapsVersion!==version;
+        if(!gaps.length) h+='<div class="bf-note" style="color:var(--ok)">✓ No printed text outside the grouped boxes'+(stale?' (as of your last check — you have changed boxes since)':'')+'.</div>';
+        else {
+          h+='<div class="bf-note warn">'+gaps.length+' stretch'+(gaps.length===1?'':'es')+' of printed text lie outside every grouped box'+
+            (stale?' (as of your last check)':'')+'. Click one on the page to box it, or put its box in a group.</div>'+
+            gaps.map(function(g,i){
+              return '<div class="bf-gaprow"><span class="w">'+g.words+' words</span><span class="s">'+esc(g.sample)+'…</span>'+
+                '<button class="bf-btn" data-gap="'+i+'">Box it</button></div>';
+            }).join('');
+          if(gapsForced) h+='<div class="bf-acts"><button class="bf-btn danger" data-a="force" title="Transcribe without these — their text will not be in the page">Transcribe anyway</button></div>';
+        }
+      }
+      return h;
+    }
+
     function detailHtml(){
       if(!P) return '<div class="lab">Selection</div><div class="bf-note">Run a detector to get boxes for this page.</div>';
+      if(busy==='transcribe') return '<div class="lab">Selection</div><div class="bf-note">Corrections are paused while the page is transcribed.</div>';
       if(selGi>=0){
         var g=P.groups[selGi], opts=BF_CLASSES.map(function(c){
           return '<option value="'+c+'"'+(c===g.object_class?' selected':'')+'>'+esc(BF_CLASS_LABEL[c])+'</option>'; }).join('');
@@ -2139,7 +2197,11 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         else if(a==='delbox') deleteBox(selBox);
         else if(a==='regroup') regroup();
         else if(a==='rerun') runDetector(P.detector, true);
+        else if(a==='coverage') checkCoverage();
+        else if(a==='transcribe') transcribe(false);
+        else if(a==='force') transcribe(true);
       }; });
+      el.querySelectorAll('[data-gap]').forEach(function(b){ b.onclick=function(){ boxGap(+b.dataset.gap); }; });
       var cls=document.getElementById('bf-class'); if(cls) cls.onchange=function(){ setClass(cls.value); };
       var role=document.getElementById('bf-role');
       if(role){ role.onchange=function(){ setRole(role.value.trim()); };
@@ -2168,6 +2230,44 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
       .then(function(j){ busy=null; busyMsg=''; return load(j.detector); })
       .catch(function(e){ busy=null; busyMsg='regroup failed — '+e.message; paintPanel(); });
+    }
+
+    // ── coverage + transcription ─────────────────────────────────────────────
+    function checkCoverage(){
+      if(!idle()) return;
+      busy='coverage'; txMsg='checking coverage — reading the page with OCR…'; paintPanel();
+      fetch(API+'/api/boxfirst/coverage', { method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ collection:ctx.collection, record:ctx.record, detector:P.detector }) })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+      .then(function(j){ busy=null; txMsg=''; gaps=j.gaps; gapsVersion=version; gapsForced=false; paintAll(); })
+      .catch(function(e){ busy=null; txMsg='coverage check failed — '+e.message; paintPanel(); });
+    }
+
+    function transcribe(force){
+      if(!idle()) return;
+      var nb=P.groups.reduce(function(s,g){ return s+g.boxes.length; },0);
+      if(!confirm((force ? 'Transcribe WITHOUT the uncovered text?\n\nIt will not be in this page’s objects.\n\n' : '')+
+          'Read '+nb+' boxes in '+P.groups.length+' groups, then enrich and save the page?\n\n'+
+          'This calls the model once per box (a few minutes). The page then leaves box-first review.')) return;
+      busy='transcribe'; txMsg='starting…'; armDraw(false); paintAll();
+      var got=null, err=null, gapEv=null;
+      if(ctx.runActivity) ctx.runActivity(true);
+      streamSSE(API+'/api/boxfirst/transcribe?collection='+enc(ctx.collection)+'&pointer='+ctx.pointer+'&issueId='+enc(ctx.issueId)+
+          '&record='+ctx.record+'&detector='+enc(P.detector)+(force?'&force=1':''),
+        function(ev, d){
+          if(ev==='progress'){ txMsg=d.message; paintPanel(); }
+          else if(ev==='result') got=d;
+          else if(ev==='gaps') gapEv=d;
+          else if(ev==='error') err=d;
+        })
+      .then(function(){
+        if(ctx.runActivity) ctx.runActivity(false);
+        busy=null;
+        if(got){ txMsg='done — opening the ingested page…'; paintPanel(); location.reload(); return; }   // reopen it as an ingested page
+        if(gapEv){ gaps=gapEv.gaps; gapsVersion=version; gapsForced=true; txMsg=''; paintAll(); return; }
+        txMsg='transcription failed — '+(err ? err.message : 'the stream ended without a result')+'. Your corrections are kept; try again.';
+        paintAll();
+      }, function(e){ if(ctx.runActivity) ctx.runActivity(false); busy=null; txMsg='transcription failed — '+e.message; paintAll(); });
     }
 
     // ── the toolbar ──────────────────────────────────────────────────────────
@@ -3646,6 +3746,14 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
             (reg.continuedIn ? ' · <b>continues in '+reg.continuedIn+' more column'+(reg.continuedIn>1?'s':'')+
               '</b> — this box is only the first' : '')+
             (reg.ocrConf!=null ? ' · page OCR conf '+reg.ocrConf : '');
+        }
+        // box-first (SLICE-14): a detector drew it and a curator reviewed it before
+        // the text was read from it — the box IS where the words came from.
+        else if(reg && /^detector:/.test(reg.source||'')){
+          var dn={ 'tesseract':'Tesseract blocks', 'american-stories':'American Stories', 'pp-doclayout':'PP-DocLayoutV3' }[reg.source.slice(9)] || reg.source.slice(9);
+          rn.className='region-note';
+          rn.innerHTML='<b>▦</b> box-first region — drawn by '+esc(dn)+', reviewed before transcription; the text was read from this box'+
+            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b> — only the largest is highlighted' : '');
         }
         else if(reg){ rn.className='region-note'; rn.innerHTML='<b>◈</b> region highlighted — approximate (VLM-estimated, not OCR-anchored)'; }
         else if(o.bbox===null){ rn.className='region-note none'; rn.innerHTML='<b>—</b> no region located for this object'; }
