@@ -375,6 +375,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bx:hover{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 0 3px var(--bxc,var(--c-article))}
 .bx.sel{opacity:0}                    /* the selected one is drawn by .bbox-hl instead */
 .bx.human{border-style:dashed;border-width:1.5px}
+/* ⧉ every-box view (SLICE-14): a box-first object's other boxes. View-only — the
+   primary (largest) box is still the one that gets corrected. On the selected
+   object they take the same amber as its glow, so its whole extent reads as one. */
+.bx.extra{border-style:dotted;cursor:default}
+.bx.sel.extra{opacity:1;background:rgba(241,196,0,.15);border:1.5px solid rgba(241,196,0,.85);border-radius:3px}
 /* ── filled regions (SLICE-09k) ──────────────────────────────────────────────
    Outlines answer "where are the edges"; a fill answers "how much of the page is
    this", which is the question you are actually asking when checking whether a
@@ -918,6 +923,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <button class="tbtn on" id="pm-toggle" title="Hide page thumbnails">◧</button>
               <button class="tbtn on" id="sl-toggle" title="Hide the section list">◨</button>
               <button class="tbtn" id="bx-fill" title="Fill every visible region (F)">▣</button>
+              <button class="tbtn" id="bx-all" title="Show every box of box-first objects" hidden>⧉</button>
               <span class="tsep"></span>
               <div class="zoomctl">
                 <button id="zm-out" title="Zoom out (⌘ + scroll down)">−</button>
@@ -1315,7 +1321,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // read correctly — they just show their primary rect.
     // `continuedIn` is a COUNT, not geometry: column runs the anchor found and
     // deliberately did not store. It is what stops a partial box reading as whole.
-    return { primary:rects[0], all:[rects[0]],
+    return { primary:rects[0], all:[rects[0]], every:rects, detector:bb.detector||null,
              continuedIn:(bb.continuedIn!=null ? bb.continuedIn : rects.length-1),
              source:bb.source||'ocr-anchor', coverage:bb.coverage, ocrConf:bb.ocrConf };
   }
@@ -2546,6 +2552,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(fb) fb.onclick = toggleFill;
       paintFill();
 
+      var ab=document.getElementById('bx-all');
+      if(ab) ab.onclick = toggleAllBoxesView;
+      paintAllBtn();
+
       // find-in-page. Property assignment for the same idempotency reason as the
       // rest of this block; `search` fires on the native clear (×) too.
       var fi=document.getElementById('bx-find');
@@ -2696,6 +2706,28 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     var fillBoxes = false;
     try { fillBoxes = localStorage.getItem('dl:fillboxes') === '1'; } catch(e){}
 
+    // ── every-box view (SLICE-14) ───────────────────────────────────────────
+    // The map draws ONE box per object — the rule from anchoring, whose extra
+    // rects were mostly noise. A box-first object's rects are not noise: a curator
+    // checked each one and its text was read from them. This view draws them all,
+    // for box-first objects only. A view preference, stored like the fill toggle.
+    var allBoxes = false;
+    try { allBoxes = localStorage.getItem('dl:allboxes') === '1'; } catch(e){}
+    function isBoxFirst(o){ return !!(o && (o.classification || /^detector:/.test((o.bbox && o.bbox.source) || ''))); }
+    function paintAllBtn(){
+      var b = document.getElementById('bx-all'); if(!b) return;
+      b.hidden = !wl.some(isBoxFirst);
+      b.classList.toggle('on', allBoxes);
+      b.title = allBoxes ? 'Show only the largest box of each object' : 'Show every box of box-first objects';
+    }
+    function toggleAllBoxesView(){
+      allBoxes = !allBoxes;
+      try { localStorage.setItem('dl:allboxes', allBoxes ? '1' : '0'); } catch(e){}
+      paintAllBtn();
+      frameDirty = true;                       // the set of drawn boxes changes
+      if(currentObj) renderDetail(currentObj);
+    }
+
     function paintFill(){
       var wrap = wrapEl();
       if(wrap) wrap.classList.toggle('fill', fillBoxes);
@@ -2839,9 +2871,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       wl.forEach(function(o){
         if(o.page !== sel.page) return;
         var reg = regionOf(o.bbox); if(!reg) return;
-        reg.all.forEach(function(p, ri){
+        var rects = (allBoxes && isBoxFirst(o) && reg.every) ? reg.every : reg.all;
+        rects.forEach(function(p, ri){
           var b = document.createElement('div');
-          b.className = 'bx' + (o.id===sel.id ? ' sel' : '') + (reg.source==='human' ? ' human' : '');
+          b.className = 'bx' + (o.id===sel.id ? ' sel' : '') + (reg.source==='human' ? ' human' : '') + (ri ? ' extra' : '');
           b.style.cssText = 'left:'+p.x+'%;top:'+p.y+'%;width:'+p.w+'%;height:'+p.h+'%';
           b.style.setProperty('--bxc', colorVar(o.color));
           b.dataset.oid = o.id; b.dataset.ri = ri;
@@ -2863,6 +2896,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           b.addEventListener('dblclick', function(ev){
             ev.preventDefault(); ev.stopPropagation();
             clearTimeout(clickTimer);
+            if(ri) return;               // the every-box view is for looking; the primary is the one corrected
             startEdit(o, ri, b, wrap);
           });
           layer.appendChild(b);
@@ -3753,7 +3787,15 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       // region note — honest about approximation, and honest when there is no box
       var rn=document.getElementById('rv-region');
       if(rn){
-        if(reg && reg.source==='human'){
+        // box-first with some boxes a curator drew or moved: the region is still
+        // mostly the detector's, so "not the machine's" would overstate it
+        if(reg && reg.source==='human' && reg.detector){
+          var hn={ 'tesseract':'Tesseract blocks', 'american-stories':'American Stories', 'pp-doclayout':'PP-DocLayoutV3' }[reg.detector] || reg.detector;
+          rn.className='region-note';
+          rn.innerHTML='<b>▦</b> box-first region — drawn by '+esc(hn)+', with boxes a curator added or moved; the text was read from these boxes'+
+            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b> — '+(allBoxes ? 'all shown' : 'only the largest is highlighted; ⧉ in the toolbar shows them all') : '');
+        }
+        else if(reg && reg.source==='human'){
           rn.className='region-note';
           rn.innerHTML='<b>✎</b> region corrected by hand'+
             ' — this one is not the machine’s';
@@ -3772,7 +3814,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           var dn={ 'tesseract':'Tesseract blocks', 'american-stories':'American Stories', 'pp-doclayout':'PP-DocLayoutV3' }[reg.source.slice(9)] || reg.source.slice(9);
           rn.className='region-note';
           rn.innerHTML='<b>▦</b> box-first region — drawn by '+esc(dn)+', reviewed before transcription; the text was read from this box'+
-            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b> — only the largest is highlighted' : '');
+            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b> — '+(allBoxes ? 'all shown' : 'only the largest is highlighted; ⧉ in the toolbar shows them all') : '');
         }
         else if(reg){ rn.className='region-note'; rn.innerHTML='<b>◈</b> region highlighted — approximate (VLM-estimated, not OCR-anchored)'; }
         else if(o.bbox===null){ rn.className='region-note none'; rn.innerHTML='<b>—</b> no region located for this object'; }
