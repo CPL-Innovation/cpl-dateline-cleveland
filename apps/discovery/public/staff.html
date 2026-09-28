@@ -381,6 +381,23 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
    object they take the same amber as its glow, so its whole extent reads as one. */
 .bx.extra{border-style:dotted;cursor:default}
 .bx.sel.extra{opacity:1;background:rgba(241,196,0,.15);border:1.5px solid rgba(241,196,0,.85);border-radius:3px}
+/* ◐ colour-by-object view: box-first review's look, kept after transcription.
+   One colour per OBJECT (the review's palette, so an object keeps the colour its
+   group had), every box drawn and tinted, and the object's number on the box it
+   starts reading from. It trades the class colour-coding for "which boxes are one
+   object"; the class view is the toggle's other state. The selected object keeps
+   its amber glow on top. */
+.pagewrap.objcol .bx{opacity:.95;border-width:1.5px;border-style:solid}
+.pagewrap.objcol .bx::before{content:"";position:absolute;inset:0;background:var(--bxc);opacity:.12;pointer-events:none}
+.pagewrap.objcol .bx:hover::before{opacity:.24}
+.pagewrap.objcol .bx.human{border-style:dashed}
+.pagewrap.objcol .bx.sel{opacity:0}
+.pagewrap.objcol .bx.sel.extra{opacity:1}
+.bx .bx-n{display:none}
+.pagewrap.objcol .bx .bx-n{display:block;position:absolute;right:-9px;top:-9px;min-width:18px;height:18px;border-radius:9px;
+  padding:0 4px;font-family:var(--sans);font-weight:700;font-size:10px;line-height:18px;text-align:center;color:#fff;
+  background:var(--bxc);box-shadow:0 0 0 1.5px #fff;pointer-events:none;z-index:3}
+.pagewrap.finding.objcol .bx:not(.match){opacity:.12}
 /* ── filled regions (SLICE-09k) ──────────────────────────────────────────────
    Outlines answer "where are the edges"; a fill answers "how much of the page is
    this", which is the question you are actually asking when checking whether a
@@ -926,6 +943,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <button class="tbtn on" id="sl-toggle" title="Hide the section list">◨</button>
               <button class="tbtn" id="bx-fill" title="Fill every visible region (F)">▣</button>
               <button class="tbtn" id="bx-all" title="Show every box of objects that have several" hidden>⧉</button>
+              <button class="tbtn" id="bx-obj" title="Colour each object's boxes and number them, as in box-first review">◐</button>
               <span class="tsep"></span>
               <div class="zoomctl">
                 <button id="zm-out" title="Zoom out (⌘ + scroll down)">−</button>
@@ -1323,7 +1341,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // read correctly — they just show their primary rect.
     // `continuedIn` is a COUNT, not geometry: column runs the anchor found and
     // deliberately did not store. It is what stops a partial box reading as whole.
-    return { primary:rects[0], all:[rects[0]], every:rects, detector:bb.detector||null,
+    // `order` (when stored) is the reading order as indices into rects; the box an
+    // object starts reading from is every[order[0]], not necessarily the largest.
+    var order=(Array.isArray(bb.order) && bb.order.length===rects.length) ? bb.order : null;
+    return { primary:rects[0], all:[rects[0]], every:rects, order:order, detector:bb.detector||null,
              continuedIn:(bb.continuedIn!=null ? bb.continuedIn : rects.length-1),
              source:bb.source||'ocr-anchor', coverage:bb.coverage, ocrConf:bb.ocrConf };
   }
@@ -2543,6 +2564,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(ab) ab.onclick = toggleAllBoxesView;
       paintAllBtn();
 
+      var ob=document.getElementById('bx-obj');
+      if(ob) ob.onclick = toggleObjColors;
+      paintObjBtn();
+
       // find-in-page. Property assignment for the same idempotency reason as the
       // rest of this block; `search` fires on the native clear (×) too.
       var fi=document.getElementById('bx-find');
@@ -2715,6 +2740,27 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(currentObj) renderDetail(currentObj);
     }
 
+    // ── colour-by-object view ───────────────────────────────────────────────
+    // Box-first review colours and numbers each group; this keeps that view after
+    // transcription (see .objcol). It draws every box, so ⧉ is moot while it is on.
+    // Stored once, like the fill toggle.
+    var objColors = false;
+    try { objColors = localStorage.getItem('dl:objcolors') === '1'; } catch(e){}
+    function paintObjBtn(){
+      var wrap = wrapEl(); if(wrap) wrap.classList.toggle('objcol', objColors);
+      var b = document.getElementById('bx-obj'); if(!b) return;
+      b.classList.toggle('on', objColors);
+      b.title = objColors ? 'Colour boxes by object class' : 'Colour each object\u2019s boxes and number them, as in box-first review';
+      var ab = document.getElementById('bx-all'); if(ab) ab.disabled = objColors;
+    }
+    function toggleObjColors(){
+      objColors = !objColors;
+      try { localStorage.setItem('dl:objcolors', objColors ? '1' : '0'); } catch(e){}
+      frameDirty = true;                       // colours, badges and the set of boxes change
+      paintObjBtn();
+      if(currentObj) renderDetail(currentObj);
+    }
+
     function paintFill(){
       var wrap = wrapEl();
       if(wrap) wrap.classList.toggle('fill', fillBoxes);
@@ -2855,15 +2901,20 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     function renderBoxLayer(wrap, sel){
       var layer = document.createElement('div');
       layer.className = 'bxlayer on';
-      wl.forEach(function(o){
-        if(o.page !== sel.page) return;
+      // colour-by-object: number objects in page reading order (seq), the order the
+      // review numbered their groups in
+      var onPage = wl.filter(function(o){ return o.page === sel.page; })
+                     .sort(function(a,b){ return a.seq - b.seq; });
+      onPage.forEach(function(o, n){
         var reg = regionOf(o.bbox); if(!reg) return;
-        var rects = (allBoxes && reg.every) ? reg.every : reg.all;
+        var rects = ((allBoxes || objColors) && reg.every) ? reg.every : reg.all;
+        var first = (objColors && reg.order) ? reg.order[0] : 0;   // the box it starts reading from
         rects.forEach(function(p, ri){
           var b = document.createElement('div');
           b.className = 'bx' + (o.id===sel.id ? ' sel' : '') + (reg.source==='human' ? ' human' : '') + (ri ? ' extra' : '');
           b.style.cssText = 'left:'+p.x+'%;top:'+p.y+'%;width:'+p.w+'%;height:'+p.h+'%';
-          b.style.setProperty('--bxc', colorVar(o.color));
+          b.style.setProperty('--bxc', objColors ? bfColor(n) : colorVar(o.color));
+          if(ri === first) b.innerHTML = '<span class="bx-n">'+(n+1)+'</span>';
           b.dataset.oid = o.id; b.dataset.ri = ri;
           b.title = ''; // the hover card replaces the native tooltip
           b.addEventListener('mouseenter', function(){ if(!editing) showTip(b, o, wrap); });
@@ -3750,6 +3801,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           paintSel(wrap, o);
           paintBoxVis();               // a rebuilt frame loses the eye state — re-apply it
           paintFill();                 // …and the fill class, for the same reason
+          paintObjBtn();               // …and colour-by-object
           paintFind();                 // …and any active find highlight
           var cta=document.getElementById('rv-iiif');
           if(cta && href){ cta.href=href; cta.target='_blank'; cta.rel='noreferrer';
