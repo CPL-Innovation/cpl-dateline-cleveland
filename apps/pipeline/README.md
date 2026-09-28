@@ -196,6 +196,13 @@ The page then runs through `enrichAndPersist` — the same enrichment and persis
 `BOXFIRST_EFFORT` defaults to `low`: on a two-slice legal notice, `low` and `medium` took the same
 ~22s and differed by 4 words in ~900.
 
+**Classification.** Page-first decides an object's class while reading its text; box-first's grouper
+decides it from the page *layout*, at an overview resolution where body text is illegible. So the
+group read also returns `object_class` and `role`, judged from the words. Precedence: a class the
+curator set by hand stands; otherwise the transcriber's; the grouper's is only a proposal. How each
+class was reached — and whether grouper and transcriber agreed — is kept in
+`content_objects.classification` (migration 009) and shown in the workbench credit line.
+
 ## Implementation notes (not intent — see `_FROM-BUILD` for intent changes)
 
 - The SLICE-01 brief recommended a Next.js scaffold to mirror CN. For this slice's throwaway view

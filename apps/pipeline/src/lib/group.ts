@@ -26,6 +26,11 @@ export interface BoxGroup {
   // Set when the grouper did not account for a box and it was given a group of
   // its own so nothing is silently lost. The curator should look at these first.
   unplaced?: true;
+  // Set when a curator chose the class / role by hand. A hand-set class outranks
+  // the transcriber's reading of the text; an unset one is only the grouper's
+  // layout guess, which transcription replaces (see boxTranscribe.ts).
+  classBy?: "curator";
+  roleBy?: "curator";
 }
 
 export interface Grouping {
@@ -183,7 +188,7 @@ function fallback(boxes: DetectedBox[], t0: number, note: string): Grouping {
 //     region is worse than showing the curator one extra group
 export function normalizeGroups(
   boxes: Array<Pick<DetectedBox, "id" | "label">>,
-  groups: Array<{ boxes: number[]; object_class: string; role?: string | null; unplaced?: boolean }>,
+  groups: Array<{ boxes: number[]; object_class: string; role?: string | null; unplaced?: boolean; classBy?: string; roleBy?: string }>,
   discard: number[] = [],
   placeAll = true,
 ): { groups: BoxGroup[]; discarded: number[] } {
@@ -198,6 +203,8 @@ export function normalizeGroups(
       ? (g.object_class as ObjectClass) : classForLabel(known.get(ids[0])!.label);
     const grp: BoxGroup = { id: out.length + 1, boxes: ids, object_class: cls, role: g.role ? String(g.role) : null };
     if (g.unplaced) grp.unplaced = true;
+    if (g.classBy === "curator") grp.classBy = "curator";
+    if (g.roleBy === "curator") grp.roleBy = "curator";
     out.push(grp);
   }
   const discarded = [...new Set((discard ?? []).map(Number))].filter((id) => known.has(id) && !seen.has(id));

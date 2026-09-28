@@ -19,7 +19,7 @@ import { query } from "./pg.ts";
 import { pageOcr, type PageOcr } from "./ocrAnchor.ts";
 import { pageSize, jpegSize } from "./reextract.ts";
 import { explodePage } from "./explode.ts";
-import { SYSTEM_PROMPT, type VlmBlock } from "./vlm-prompt.ts";
+import { SYSTEM_PROMPT, OBJECT_CLASSES, type ObjectClass, type VlmBlock } from "./vlm-prompt.ts";
 import { assertIngestable, enrichAndPersist, pMap, type AssembledRow, type Progress } from "./ingestPage.ts";
 import { getProposal, pageImage, BoxFirstRefused, type Proposal, type ProposalBox } from "./boxFirst.ts";
 import type { Rect } from "./detect.ts";
@@ -117,10 +117,16 @@ export async function checkCoverage(collection: string, pageRecord: number, dete
 }
 
 // ── reading one box ──────────────────────────────────────────────────────────
-const TEXT_SCHEMA = {
+// The read returns what the object IS as well as what it says — page-first's
+// judgement, made the same way: from the words, not only the layout.
+const READ_SCHEMA = {
   type: "object",
-  properties: { text: { type: "string", description: "The verbatim transcription of the region." } },
-  required: ["text"],
+  properties: {
+    text: { type: "string", description: "The verbatim transcription of the regions, as one text." },
+    object_class: { type: "string", enum: [...OBJECT_CLASSES] },
+    role: { type: "string", description: "headline+body for a story with its headline; otherwise a short role, or empty." },
+  },
+  required: ["text", "object_class", "role"],
   additionalProperties: false,
 } as const;
 
@@ -137,8 +143,11 @@ function buildPrompt(a: { cls: string; role: string | null; slices: number[]; ch
   const n = a.slices.length, sliced = a.slices.some((k) => k > 1);
   const lines = [
     n > 1
-      ? `These images are ${n} regions of a historical newspaper page, cropped from the archival scan and labelled in READING ORDER. Together they are ONE content object classified as ${what}.`
-      : `This is one region of a historical newspaper page, cropped from the archival scan. It is one content object classified as ${what}.`,
+      ? `These images are ${n} regions of a historical newspaper page, cropped from the archival scan and labelled in READING ORDER. Together they are ONE content object.`
+      : `This is one region of a historical newspaper page, cropped from the archival scan. It is one content object.`,
+    // Said plainly so the proposal informs the read without deciding it: the
+    // layout step never saw the words, and class is the transcriber's call too.
+    `A layout step proposed it is ${what}, judging from a low-resolution view of the whole page without reading the text.`,
   ];
   if (sliced) lines.push(`A tall region is delivered as consecutive vertical slices, top to bottom; adjacent slices overlap by a few lines — transcribe those lines ONCE.`);
   if (a.chunk) lines.push(`This is part ${a.chunk[0]} of ${a.chunk[1]} of the object's regions; transcribe only these.`);
@@ -163,6 +172,12 @@ function buildPrompt(a: { cls: string; role: string | null; slices: number[]; ch
     `- Do not summarize, correct the paper's own errors, or modernize spelling or punctuation.`,
     `- Handwriting is not publication content; do not fold pencil/pen marginalia into the text.`,
     `- If the regions hold no printed words at all (a picture with no text), return an empty string.`,
+    ``,
+    `Then classify the object from what you read, and give its role.`,
+    `- object_class is one of [${OBJECT_CLASSES.join(", ")}]. The list is FIXED.`,
+    `- Classify by what the object IS: a display ad is "advertisement" (not "article"); a repeated column-divider ad bar is "filler_slug"; a bucket of many micro-entries is "classified_section"; the publication statement/officers block and the nameplate are "masthead"; a formal notice of sale, election or resolution is "legal_notice"; a picture's own caption is "caption".`,
+    `- Keep the proposed class when the text bears it out; change it when the text shows it is something else.`,
+    `- role: "headline+body" for a story with its headline; otherwise a short free-text role, or "".`,
   );
   return lines.join("\n");
 }
@@ -212,7 +227,7 @@ async function fetchCrop(s: { url: string; w: number; h: number }, page: { w: nu
 export async function readGroup(
   iiif: string, page: { w: number; h: number }, boxes: ProposalBox[],
   ctx: { cls: string; role: string | null; chunk?: [number, number] },
-): Promise<{ text: string; images: number; pixels: number }> {
+): Promise<{ text: string; object_class: ObjectClass | null; role: string | null; images: number; pixels: number }> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY is not set — box-first transcription needs it");
   const crops = await Promise.all(boxes.map(async (b) =>
@@ -236,7 +251,7 @@ export async function readGroup(
       model: BOXFIRST_MODEL,
       max_tokens: 16000,
       system: SYSTEM_PROMPT,
-      output_config: { effort: BOXFIRST_EFFORT, format: { type: "json_schema", schema: TEXT_SCHEMA } },
+      output_config: { effort: BOXFIRST_EFFORT, format: { type: "json_schema", schema: READ_SCHEMA } },
       messages: [{ role: "user", content }],
     }),
   }, { label: `Anthropic boxes ${ids} (${BOXFIRST_MODEL})` });
@@ -248,11 +263,16 @@ export async function readGroup(
   if (j.stop_reason === "max_tokens") throw new Error(`boxes ${ids}: ran out of output tokens mid-transcription`);
   if (j.stop_reason === "refusal") throw new Error(`boxes ${ids}: the model declined (${j.stop_details?.category ?? "no category"})`);
   const raw = j.content.filter((c) => c.type === "text").map((c) => c.text ?? "").join("");
-  let text: string;
-  try { text = String((JSON.parse(raw) as { text?: unknown }).text ?? ""); }
+  let out: { text?: unknown; object_class?: unknown; role?: unknown };
+  try { out = JSON.parse(raw); }
   catch { throw new Error(`boxes ${ids}: the model did not return a usable transcription`); }
+  const cls = (OBJECT_CLASSES as readonly string[]).includes(String(out.object_class)) ? (out.object_class as ObjectClass) : null;
   const flat = crops.flat();
-  return { text: text.replace(/[ \t]+$/gm, "").trim(), images: flat.length, pixels: flat.reduce((s, im) => s + im.pixels, 0) };
+  return {
+    text: String(out.text ?? "").replace(/[ \t]+$/gm, "").trim(),
+    object_class: cls, role: out.role ? String(out.role).trim() || null : null,
+    images: flat.length, pixels: flat.reduce((s, im) => s + im.pixels, 0),
+  };
 }
 
 // A group's boxes, split into consecutive chunks of at most BOXFIRST_MAX_IMAGES
@@ -326,6 +346,7 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
   onProgress({ phase: "transcribe", message: `Reading ${p.groups.length} groups (${nBoxes} boxes)…`, pct: 8 });
   let done = 0;
   const texts: string[][] = p.groups.map(() => []);
+  const read: Array<{ object_class: ObjectClass | null; role: string | null }> = p.groups.map(() => ({ object_class: null, role: null }));
   const t0 = performance.now();
   await pMap(jobs, BOXFIRST_CONCURRENCY, async (j) => {
     const g = p.groups[j.gi];
@@ -333,6 +354,7 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
       cls: g.object_class, role: g.role, chunk: j.of > 1 ? [j.ci + 1, j.of] : undefined,
     });
     texts[j.gi][j.ci] = r.text;
+    if (j.ci === 0) read[j.gi] = { object_class: r.object_class, role: r.role };
     done++;
     onProgress({
       phase: "transcribe", pct: 8 + Math.round((done / jobs.length) * 50),
@@ -345,12 +367,33 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
   // rect of the object — a person checked them, so they are not the anchoring
   // noise that made page-first keep only one. Largest first: the workbench and
   // re-extraction treat rects[0] as the primary.
+  // WHAT each object is. A curator's explicit class stands; otherwise the
+  // transcriber's, the only judgement made from the words at full resolution —
+  // the grouper's was a layout guess from an overview. Every disagreement is
+  // recorded on the object (migration 009), never silently resolved.
+  const classification = p.groups.map((g, gi) => {
+    const t = read[gi].object_class;
+    const byCurator = g.classBy === "curator" || !t;
+    return {
+      final: byCurator ? g.object_class : t!,
+      role: g.roleBy === "curator" ? g.role : (read[gi].role ?? g.role),
+      record: {
+        by: g.classBy === "curator" ? "curator" : t ? "transcriber" : "grouper",
+        // a hand-set class replaced the grouper's in the proposal, so it is unknown
+        grouper: g.classBy === "curator" ? null : g.object_class,
+        transcriber: t,
+        ...(g.classBy === "curator" ? { curator: g.object_class } : {}),
+        agreed: !t || t === g.object_class,
+      },
+    };
+  });
+
   const blocks: VlmBlock[] = p.groups.map((g, gi) => {
     const boxes = g.boxes.map((id) => byId.get(id)!).filter(Boolean);
     const rects = boxes.map((b) => b.rect).sort((a, b) => b[2] * b[3] - a[2] * a[3]);
     return {
-      object_class: g.object_class,
-      role: g.role,
+      object_class: classification[gi].final,
+      role: classification[gi].role,
       text: texts[gi].filter(Boolean).join("\n"),
       region_bbox: {
         rects, source: boxes.some((b) => b.source === "human") ? "human" : `detector:${detector}`,
@@ -368,6 +411,16 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
   return enrichAndPersist({
     collection, pageRecord, issueId, rows, vlmModel: BOXFIRST_MODEL, onProgress,
     extra: async (c) => {
+      // explodePage keeps block order and only drops a repeated filler_slug, so
+      // each row is matched to its block by walking both lists in step.
+      let b = 0;
+      for (const row of rows) {
+        while (b < blocks.length && !(blocks[b].text === row.text && blocks[b].object_class === row.object_class)) b++;
+        if (b >= blocks.length) break;
+        await c.query("UPDATE content_objects SET classification=$1 WHERE page_record=$2 AND issue_id=$3 AND seq=$4",
+          [JSON.stringify(classification[b].record), pageRecord, issueId, row.seq]);
+        b++;
+      }
       await c.query(
         `UPDATE page_ingests SET mode='box-first', detector=$3, grouping_model=$4, run_id=$5
          WHERE collection=$1 AND page_record=$2`,

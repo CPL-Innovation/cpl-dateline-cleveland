@@ -691,7 +691,7 @@ export async function getPageObjects(collection: string, pageRecord: number) {
             is_publication_content, enrichment_tier,
             article_type, is_advertorial, summary, context_hint, event_type, curation_status, payload, region_bbox,
             review_note, review_note_at, reviewed_at, display_title, display_title_at, display_title_model,
-            is_published, published_at, text_reread_model, text_reread_at, summary_model, summary_at
+            is_published, published_at, text_reread_model, text_reread_at, summary_model, summary_at, classification
      FROM content_objects WHERE page_record=$1 ORDER BY seq`, [pageRecord]);
   const topics = await query<any>(
     `SELECT ot.object_id, t.name, ot.confidence, ot.rank FROM object_topics ot
@@ -730,6 +730,9 @@ export async function getPageObjects(collection: string, pageRecord: number) {
       // transcription. The superseded read is not kept.
       rereadModel: o.text_reread_model ?? null, rereadAt: o.text_reread_at ?? null,
       bbox: o.region_bbox ?? null, // normalized [x,y,w,h] 0-1, or null (SLICE-09)
+      // box-first only: who decided the class, and whether the grouper and the
+      // transcriber agreed (migration 009). NULL for page-first objects.
+      classification: o.classification ?? null,
       topics: tByObj.get(o.id) ?? [], entities: eByObj.get(o.id) ?? [],
     })),
   };

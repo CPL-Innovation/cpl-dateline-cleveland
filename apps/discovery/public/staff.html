@@ -1320,6 +1320,19 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
              source:bb.source||'ocr-anchor', coverage:bb.coverage, ocrConf:bb.ocrConf };
   }
 
+  // Box-first objects record who decided what they ARE (SLICE-14, migration 009):
+  // a curator's hand-set class, else the transcriber's reading of the words — and
+  // whether the grouper's layout guess agreed. A disagreement is the thing to check.
+  function classLine(c){
+    if(!c) return '';
+    var L=function(x){ return esc(String(x||'—').replace(/_/g,' ')); };
+    if(c.by==='curator') return '<br>class set by a curator'+
+      (c.transcriber && c.transcriber!==c.curator ? ' · <b style="color:var(--warn)">the transcriber read it as '+L(c.transcriber)+'</b>' : '');
+    if(c.by==='transcriber') return '<br>class from the transcriber’s reading'+
+      (c.agreed ? ' · the layout step agreed' : ' · <b style="color:var(--warn)">the layout step proposed '+L(c.grouper)+'</b>');
+    return '<br>class from the layout step only — the transcriber did not classify it';
+  }
+
   // Hover-card body. Jungu's spec: the headline, then the FIRST ~100 characters and
   // the LAST 50 — you need both ends to judge whether a box covers the whole story
   // or stops short of it.
@@ -1601,6 +1614,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         // "from the first line" for a while.
         displayTitleModel:o.displayTitleModel||null,
         summaryModel:o.summaryModel||null, summaryAt:o.summaryAt||null,
+        classification:o.classification||null,   // box-first: who decided the class (SLICE-14)
         page:pageNum, seq:o.seq, role:o.role, tier:o.tier, status:o.status||'unreviewed',
         isAdvertorial:o.isAdvertorial, articleType:o.articleType, summary:o.summary, contextHint:null, eventType:o.eventType,
         // transcript = what to show (the human overlay when there is one);
@@ -1813,8 +1827,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // ── corrections ──────────────────────────────────────────────────────────
     function selectBox(id){ selBox=id; selGi=(id==null?-1:groupOf(id)); paintAll(); }
     function selectGroup(i){ selGi=i; selBox=null; paintAll(); }
-    function setClass(cls){ var b=snapshot(); P.groups[selGi].object_class=cls; commit('class',{group:selGi+1, to:cls},b); }
-    function setRole(role){ var g=P.groups[selGi]; if((g.role||'')===role) return; var b=snapshot(); g.role=role||null; commit('role',{group:selGi+1},b); }
+    // A class or role chosen here is marked as the curator's: at transcription it
+    // outranks the transcriber's reading, where the grouper's guess does not.
+    function setClass(cls){ var b=snapshot(), g=P.groups[selGi]; g.object_class=cls; g.classBy='curator'; commit('class',{group:selGi+1, to:cls},b); }
+    function setRole(role){ var g=P.groups[selGi]; if((g.role||'')===role) return; var b=snapshot(); g.role=role||null; g.roleBy='curator'; commit('role',{group:selGi+1},b); }
     function reorderBox(k, dir){
       var b=snapshot(), a=P.groups[selGi].boxes, t=a[k]; a[k]=a[k+dir]; a[k+dir]=t;
       commit('reorder',{group:selGi+1, box:t},b);
@@ -2153,6 +2169,9 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           (g.unplaced ? '<div class="bf-note warn" style="margin:0 0 10px">The grouper did not place this box. It was given a group of its own so nothing is lost — check where it belongs.</div>' : '')+
           '<div class="bf-field"><label>Type</label><select id="bf-class">'+opts+'</select></div>'+
           '<div class="bf-field"><label>Role</label><input id="bf-role" value="'+esc(g.role||'')+'" placeholder="e.g. headline+body" spellcheck="false"></div>'+
+          '<div class="bf-note" style="margin:-3px 0 10px">'+(g.classBy==='curator'
+            ? 'Type set by you — it stands at transcription.'
+            : 'Type proposed from the page layout. The transcriber re-judges it from the text unless you set it here.')+'</div>'+
           '<div class="bf-note" style="margin:0 0 6px">Boxes, in reading order</div>'+
           g.boxes.map(function(id,k){
             var b=boxById(id)||{label:'?'};
@@ -3762,7 +3781,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       paintEditbar(); // correction affordances follow the selection
       html('rv-credit', 'SOURCE: BROOKLYN NEWS · '+esc((d.issue&&d.issue.label)||'')+
         ' · P.'+o.page+' · SEQ '+o.seq+'<br>'+
-        'transcribed by '+esc((vlm.provider||'')+'/'+engine)+
+        'transcribed by '+esc((vlm.provider||'')+'/'+engine)+classLine(o.classification)+
         (o.iiifId ? '<br>IIIF: '+esc(o.iiifId) : ' · region_bbox: null'));
       // transcription — headline + body, the edit affordance, and (under a
       // correction) the machine's immutable original
