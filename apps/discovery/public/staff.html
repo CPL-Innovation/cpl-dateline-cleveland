@@ -375,13 +375,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bx:hover{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 0 3px var(--bxc,var(--c-article))}
 .bx.sel{opacity:0}                    /* the selected one is drawn by .bbox-hl instead */
 .bx.human{border-style:dashed;border-width:1.5px}
-/* ⧉ every-box view (SLICE-14): an object's boxes beyond its largest — a story's
-   other column runs, or a box-first object's other boxes. Dotted so the primary
-   still reads as the primary; each can be corrected like it. On the selected
-   object they take the same amber as its glow, so its whole extent reads as one. */
+/* An object's boxes beyond its largest — a story's other column runs, or a
+   box-first object's other boxes (SLICE-14). Every one is drawn. In type colours
+   they are dotted, so the primary still reads as the primary; each can be
+   corrected like it. On the selected object they take the same amber as its glow,
+   so its whole extent reads as one. */
 .bx.extra{border-style:dotted;cursor:default}
 .bx.sel.extra{opacity:1;background:rgba(241,196,0,.15);border:1.5px solid rgba(241,196,0,.85);border-radius:3px}
-/* ◐ colour-by-object view: box-first review's look, kept after transcription.
+/* ◐ colour by object: box-first review's look, kept after transcription.
    One colour per OBJECT (the review's palette, so an object keeps the colour its
    group had), every box drawn and tinted, and the object's number on the box it
    starts reading from. It trades the class colour-coding for "which boxes are one
@@ -942,7 +943,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <button class="tbtn on" id="pm-toggle" title="Hide page thumbnails">◧</button>
               <button class="tbtn on" id="sl-toggle" title="Hide the section list">◨</button>
               <button class="tbtn" id="bx-fill" title="Fill every visible region (F)">▣</button>
-              <button class="tbtn" id="bx-all" title="Show every box of objects that have several" hidden>⧉</button>
               <button class="tbtn" id="bx-obj" title="Colour each object's boxes and number them, as in box-first review">◐</button>
               <span class="tsep"></span>
               <div class="zoomctl">
@@ -1323,24 +1323,23 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
   // (measured). So the DATA keeps every rect: it is true, and a IIIF region crop
   // or a patron-side highlight will need it.
   //
-  // The REVIEW TOOL does not. Its job is "guide my eye to this thing", and two
-  // glows make a reviewer ask which one to trust. So we draw the PRIMARY rect
-  // (largest — every writer stores it first) and say in words that there are more.
-  // Honest data, single target for the eye.
+  // The map draws them all (SLICE-14). The selection glow still goes on the
+  // PRIMARY rect (largest — every writer stores it first), with the object's other
+  // boxes in the same amber, so the eye has one strong target.
   function regionOf(bb){
     if(!bb) return null;
     if(Array.isArray(bb)){
       var one=bboxPct(bb);
-      return one ? { primary:one, extra:0, source:'vlm', coverage:null, ocrConf:null } : null;
+      return one ? { primary:one, all:[one], every:[one], extra:0, source:'vlm', coverage:null, ocrConf:null } : null;
     }
     if(!Array.isArray(bb.rects)) return null;
     var rects=bb.rects.map(bboxPct).filter(Boolean);
     if(!rects.length) return null;
-    // ONE box per object now. `all` is kept as a one-element array so the region
-    // map keeps its shape, and rows stored before the single-box rule are still
-    // read correctly — they just show their primary rect.
-    // `continuedIn` is a COUNT, not geometry: column runs the anchor found and
-    // deliberately did not store. It is what stops a partial box reading as whole.
+    // `every` is every rect; `all` is just the primary, for callers that want one.
+    // `continuedIn` is a COUNT: rects beyond the primary. On rows stored under
+    // SLICE-09's one-box rule it can exceed what `every` holds — column runs the
+    // anchor found and did not store — which is what stops a partial box reading
+    // as whole.
     // `order` (when stored) is the reading order as indices into rects; the box an
     // object starts reading from is every[order[0]], not necessarily the largest.
     var order=(Array.isArray(bb.order) && bb.order.length===rects.length) ? bb.order : null;
@@ -2560,10 +2559,6 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(fb) fb.onclick = toggleFill;
       paintFill();
 
-      var ab=document.getElementById('bx-all');
-      if(ab) ab.onclick = toggleAllBoxesView;
-      paintAllBtn();
-
       var ob=document.getElementById('bx-obj');
       if(ob) ob.onclick = toggleObjColors;
       paintObjBtn();
@@ -2718,31 +2713,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     var fillBoxes = false;
     try { fillBoxes = localStorage.getItem('dl:fillboxes') === '1'; } catch(e){}
 
-    // ── every-box view (SLICE-14) ───────────────────────────────────────────
-    // An object can occupy several boxes — a story that jumps columns, or a
-    // box-first object made of several boxes. By default the map draws each
-    // object's largest box only, so every object is one target for the eye; this
-    // view draws them all. A view preference, stored like the fill toggle.
-    var allBoxes = false;
-    try { allBoxes = localStorage.getItem('dl:allboxes') === '1'; } catch(e){}
-    function multiBox(o){ var r = o && regionOf(o.bbox); return !!(r && r.every && r.every.length > 1); }
-    function paintAllBtn(){
-      var b = document.getElementById('bx-all'); if(!b) return;
-      b.hidden = !wl.some(multiBox);
-      b.classList.toggle('on', allBoxes);
-      b.title = allBoxes ? 'Show only the largest box of each object' : 'Show every box of objects that have several';
-    }
-    function toggleAllBoxesView(){
-      allBoxes = !allBoxes;
-      try { localStorage.setItem('dl:allboxes', allBoxes ? '1' : '0'); } catch(e){}
-      paintAllBtn();
-      frameDirty = true;                       // the set of drawn boxes changes
-      if(currentObj) renderDetail(currentObj);
-    }
-
-    // ── colour-by-object view ───────────────────────────────────────────────
-    // Box-first review colours and numbers each group; this keeps that view after
-    // transcription (see .objcol). It draws every box, so ⧉ is moot while it is on.
+    // ── colour: by type, or by object ───────────────────────────────────────
+    // The map always draws every box of every object. ◐ switches what the colour
+    // says: the object's TYPE (the default — what is this?), or the OBJECT itself,
+    // numbered, as box-first review draws its groups (which boxes are one object?).
     // Stored once, like the fill toggle.
     var objColors = false;
     try { objColors = localStorage.getItem('dl:objcolors') === '1'; } catch(e){}
@@ -2750,13 +2724,12 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var wrap = wrapEl(); if(wrap) wrap.classList.toggle('objcol', objColors);
       var b = document.getElementById('bx-obj'); if(!b) return;
       b.classList.toggle('on', objColors);
-      b.title = objColors ? 'Colour boxes by object class' : 'Colour each object\u2019s boxes and number them, as in box-first review';
-      var ab = document.getElementById('bx-all'); if(ab) ab.disabled = objColors;
+      b.title = objColors ? 'Colour boxes by type' : 'Colour boxes by object, numbered in reading order, as in box-first review';
     }
     function toggleObjColors(){
       objColors = !objColors;
       try { localStorage.setItem('dl:objcolors', objColors ? '1' : '0'); } catch(e){}
-      frameDirty = true;                       // colours, badges and the set of boxes change
+      frameDirty = true;                       // colours and badges change
       paintObjBtn();
       if(currentObj) renderDetail(currentObj);
     }
@@ -2907,7 +2880,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
                      .sort(function(a,b){ return a.seq - b.seq; });
       onPage.forEach(function(o, n){
         var reg = regionOf(o.bbox); if(!reg) return;
-        var rects = ((allBoxes || objColors) && reg.every) ? reg.every : reg.all;
+        var rects = reg.every || reg.all;
         var first = (objColors && reg.order) ? reg.order[0] : 0;   // the box it starts reading from
         rects.forEach(function(p, ri){
           var b = document.createElement('div');
@@ -3823,20 +3796,20 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           var hn={ 'tesseract':'Tesseract blocks', 'american-stories':'American Stories', 'pp-doclayout':'PP-DocLayoutV3' }[reg.detector] || reg.detector;
           rn.className='region-note';
           rn.innerHTML='<b>▦</b> box-first region — drawn by '+esc(hn)+', with boxes a curator added or moved; the text was read from these boxes'+
-            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b> — '+(allBoxes ? 'all shown' : 'only the largest is highlighted; ⧉ in the toolbar shows them all') : '');
+            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b>' : '');
         }
         else if(reg && reg.source==='human'){
           rn.className='region-note';
           rn.innerHTML='<b>✎</b> region corrected by hand'+
             ' — this one is not the machine’s'+
-            (reg.every && reg.every.length>1 ? ' · <b>'+reg.every.length+' boxes</b> — '+(allBoxes ? 'all shown' : '⧉ in the toolbar shows them') : '');
+            (reg.every && reg.every.length>1 ? ' · <b>'+reg.every.length+' boxes</b>' : '');
         }
         else if(reg && reg.source==='ocr-anchor'){
           rn.className='region-note';
           rn.innerHTML='<b>◈</b> region located by OCR word match (page-first anchoring, a retired method) — '+
             Math.round((reg.coverage||0)*100)+'% of the transcript matched'+
             (reg.continuedIn ? ' · <b>continues in '+reg.continuedIn+' more column'+(reg.continuedIn>1?'s':'')+'</b> — '+
-              (reg.every && reg.every.length>1 ? (allBoxes ? 'all shown' : '⧉ in the toolbar shows them') : 'this box is only the first') : '')+
+              (reg.every && reg.every.length>1 ? 'all shown' : 'this box is only the first') : '')+
             (reg.ocrConf!=null ? ' · page OCR conf '+reg.ocrConf : '');
         }
         // box-first (SLICE-14): a detector drew it and a curator reviewed it before
@@ -3845,7 +3818,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           var dn={ 'tesseract':'Tesseract blocks', 'american-stories':'American Stories', 'pp-doclayout':'PP-DocLayoutV3' }[reg.source.slice(9)] || reg.source.slice(9);
           rn.className='region-note';
           rn.innerHTML='<b>▦</b> box-first region — drawn by '+esc(dn)+', reviewed before transcription; the text was read from this box'+
-            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b> — '+(allBoxes ? 'all shown' : 'only the largest is highlighted; ⧉ in the toolbar shows them all') : '');
+            (reg.continuedIn ? ' · <b>'+(reg.continuedIn+1)+' boxes</b>' : '');
         }
         else if(reg && reg.source==='imported'){ rn.className='region-note'; rn.innerHTML='<b>⬆</b> region supplied with the imported JSON'; }
         else if(reg){ rn.className='region-note'; rn.innerHTML='<b>◈</b> page-first region (retired method) — approximate, estimated by the VLM, not OCR-anchored'; }
