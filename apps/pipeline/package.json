@@ -2,7 +2,7 @@
   "name": "@dateline/pipeline",
   "version": "0.1.0",
   "private": true,
-  "description": "Dateline Cleveland enrichment pipeline — SLICE-01: Brooklyn News image → VLM → structured content-objects → SQLite → viewable. Zero-dependency Node (built-in node:sqlite + TypeScript type-stripping, no build step).",
+  "description": "Dateline Cleveland enrichment pipeline \u2014 SLICE-01: Brooklyn News image \u2192 VLM \u2192 structured content-objects \u2192 SQLite \u2192 viewable. Zero-dependency Node (built-in node:sqlite + TypeScript type-stripping, no build step).",
   "type": "module",
   "engines": {
     "node": ">=22.5.0"
@@ -18,7 +18,9 @@
     "slice01": "npm run ingest && npm run view",
     "slice02": "npm run ingest && npm run enrich",
     "probe": "node --env-file-if-exists=.env --experimental-strip-types src/probe.ts",
-    "relocate": "node --env-file-if-exists=.env --experimental-strip-types src/relocate.ts"
+    "relocate": "node --env-file-if-exists=.env --experimental-strip-types src/relocate.ts",
+    "detect": "node --env-file-if-exists=.env --experimental-strip-types src/detect.ts",
+    "detect:models": "sh detect/fetch-models.sh"
   },
   "dependencies": {
     "pg": "^8.22.0"

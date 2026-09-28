@@ -142,6 +142,27 @@ region located" beats a confidently drawn wrong box.
 Curators correct regions in the workbench (`POST /api/region`). Those are stamped `source:'human'`
 and `relocate` leaves them alone unless `--force`.
 
+## Box-first ingestion — layout detectors (SLICE-14, in progress)
+
+The alternative to page-first ingestion, chosen by a curator per page: detect boxes → group →
+curator review → transcribe each box from its own full-res crop. Three detectors are offered so
+curators can learn which one needs the fewest corrections on these papers:
+
+| id | what | licence |
+|---|---|---|
+| `tesseract` | Tesseract's own layout blocks, snapped to the column grid (~25s/page) | Apache-2.0 |
+| `american-stories` | YOLOv8 trained on Chronicling America (Dell et al. 2023): article, headline, ad, masthead… (~1s) | **none published — evaluation only, never commit** |
+| `pp-doclayout` | PP-DocLayoutV3: general layout, paragraph-level boxes + predicted reading order (~1s) | Apache-2.0 |
+
+The two ONNX models run in `detect/detect.py` (Python via `uv`, onnxruntime on CPU); Node shells
+out to it like it does to `tesseract`, so the server itself stays dependency-free.
+
+```bash
+npm run detect:models          # fetch weights into models/ (gitignored) + uv sync
+npm run detect -- 7618         # every detector on one page → out/detect/7618/<detector>.jpg|json
+npm run detect -- 7618 --detector pp-doclayout
+```
+
 ## Implementation notes (not intent — see `_FROM-BUILD` for intent changes)
 
 - The SLICE-01 brief recommended a Next.js scaffold to mirror CN. For this slice's throwaway view
@@ -161,6 +182,9 @@ src/lib/explode.ts     ordered blocks -> rows (filler collapse, handwriting flag
 src/lib/ocrAnchor.ts   transcript x OCR words -> measured region rects (Stage 2b "locate")
 src/ingest.ts          the run command
 src/relocate.ts        re-derive regions for already-ingested pages (no VLM spend)
+src/lib/detect.ts      box-first detector adapter (tesseract | american-stories | pp-doclayout)
+src/detect.ts          run detectors on a page, write numbered-box overlays
+detect/                the Python half: detect.py (ONNX detectors + overlay), fetch-models.sh
 src/view.ts            "look at it" — console + out/view.html
 fixtures/              session-VLM structured transcriptions (one JSON per page)
 inbox/                 source page images (live providers + probe only; see inbox/README.md)

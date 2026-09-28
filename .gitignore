@@ -33,3 +33,9 @@ apps/pipeline/scratch/
 # This is the commit-allowlist rule (BUILD-SPEC divergence #5) as an operational
 # constraint for the first time. See build/SLICE-03-scene.md §RIGHTS GATE.
 apps/pipeline/scene-eval/
+
+# SLICE-14 box-first detectors — model weights are fetched, never committed
+# (American Stories' carry no licence), and the uv env is rebuilt by `uv sync`.
+apps/pipeline/models/
+apps/pipeline/detect/.venv/
+__pycache__/

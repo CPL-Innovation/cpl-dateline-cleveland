@@ -180,3 +180,29 @@ export const CHAT_MODEL = process.env.CHAT_MODEL ?? "claude-sonnet-5";
 // the same number, but the server is the one that enforces it).
 export const CHAT_MAX_CORPUS_CHARS = Number(process.env.CHAT_MAX_CORPUS_CHARS ?? 160_000);
 export const CHAT_MAX_TURNS = Number(process.env.CHAT_MAX_TURNS ?? 20);
+
+// ── box-first ingestion: layout detectors (SLICE-14) ─────────────────────────
+// The alternative to page-first ingestion: detect boxes, a curator reviews and
+// groups them, then each box is transcribed from its own full-res crop. Which
+// detector draws the boxes is the curator's choice per page — the point is to
+// learn which one needs the fewest corrections on these papers.
+//
+//   tesseract         Tesseract's own layout blocks, snapped to the column grid.
+//                     Local, free, already installed — the baseline.
+//   american-stories  YOLOv8 from the American Stories project (Dell et al. 2023),
+//                     trained on Chronicling America. Newspaper classes (article,
+//                     headline, ad, masthead…). Upstream weights carry NO licence:
+//                     evaluation use only, never commit them.
+//   pp-doclayout      PP-DocLayoutV3 (PaddlePaddle, Apache-2.0). General document
+//                     layout, paragraph-level boxes, and a predicted reading order.
+//
+// The two ONNX models run in detect/detect.py via `uv run`; weights live in
+// models/ (gitignored). Fetch them with `npm run detect:models`.
+export type DetectorId = "tesseract" | "american-stories" | "pp-doclayout";
+export const DETECTOR_IDS: DetectorId[] = ["tesseract", "american-stories", "pp-doclayout"];
+export const DETECT_DIR = resolve(ROOT, "detect");
+export const MODELS_DIR = resolve(ROOT, "models");
+export const UV_BIN = process.env.UV_BIN ?? "uv";
+// Tesseract blocks smaller than this share of the page are specks, rules and
+// stray marks, not layout.
+export const TESS_MIN_BLOCK_AREA = Number(process.env.TESS_MIN_BLOCK_AREA ?? 0.0004);

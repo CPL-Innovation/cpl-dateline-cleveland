@@ -55,6 +55,15 @@ export interface PageOcr {
   columns: Array<{ left: number; right: number }>;
   /** token → indices into `words`, for anchor lookup. */
   index: Map<string, number[]>;
+  /** Tesseract's own layout blocks (TSV level 2), pixels, with the words each
+   *  holds. Unused by anchoring; they are the `tesseract` box-first detector. */
+  blocks: OcrBlock[];
+}
+
+export interface OcrBlock {
+  x: number; y: number; w: number; h: number; // pixels
+  words: number; // every recognised word in the block, any confidence
+  conf: number; // mean word confidence (0-100), 0 when the block holds no words
 }
 
 export class OcrUnavailable extends Error {}
@@ -108,6 +117,7 @@ export function pageOcr(imagePath: string): PageOcr {
   let width = 0, height = 0;
   const words: Word[] = [];
   const lineBoxes: Array<{ left: number; right: number }> = [];
+  const blocks = new Map<string, OcrBlock & { confSum: number }>();
   let confSum = 0, confN = 0;
 
   for (let i = 1; i < lines.length; i++) {
@@ -116,11 +126,15 @@ export function pageOcr(imagePath: string): PageOcr {
     const level = +f[0];
     const left = +f[6], top = +f[7], w = +f[8], h = +f[9], conf = +f[10];
     if (level === 1) { width = w; height = h; continue; }
+    // level 2 = a layout BLOCK — kept whole for the box-first tesseract detector.
+    if (level === 2) { blocks.set(`${f[1]}:${f[2]}`, { x: left, y: top, w, h, words: 0, conf: 0, confSum: 0 }); continue; }
     // level 4 = a text LINE. Its left edge is what reveals the column grid.
     if (level === 4) { if (w > 0) lineBoxes.push({ left, right: left + w }); continue; }
     if (level !== 5) continue;
     const t = norm(f[11] ?? "");
     if (!t) continue;
+    const blk = blocks.get(`${f[1]}:${f[2]}`);
+    if (blk) { blk.words++; blk.confSum += conf; }
     confSum += conf; confN++;
     if (conf < OCR_WORD_CONF) continue;
     words.push({ t, x: left, y: top, w, h, line: (+f[2] << 16) | (+f[3] << 8) | +f[4] });
@@ -137,6 +151,7 @@ export function pageOcr(imagePath: string): PageOcr {
     width, height, words, index,
     meanConf: confN ? confSum / confN : 0,
     columns: columnGrid(lineBoxes, width),
+    blocks: [...blocks.values()].map(({ confSum: s, ...b }) => ({ ...b, conf: b.words ? s / b.words : 0 })),
   };
 }
 
