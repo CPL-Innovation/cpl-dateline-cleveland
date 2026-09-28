@@ -185,12 +185,16 @@ transcription is refused while the page has *gaps*: runs of ≥ `COVERAGE_MIN_WO
 words whose centres lie in no grouped box. The curator boxes them (click a gap) or transcribes anyway.
 On the first real pages it caught a whole column of classifieds, a photo caption, and ad price panels.
 
-**Transcription** reads each box from its own crop of the archival master (IIIF pixel region, padded
-by `BOXFIRST_PAD`). A box taller than the model's image ceiling goes as overlapping vertical slices in
-one request, so a full column stays at native resolution (page-first sees it at ~200px wide). Texts
-join per group in the curator's order, then the page runs through `enrichAndPersist` — the same
-enrichment and persistence page-first uses. `BOXFIRST_EFFORT` defaults to `low`: on a two-slice legal
-notice, `low` and `medium` took the same ~22s and differed by 4 words in ~900.
+**Transcription** reads each GROUP in one call: every box's crop of the archival master (IIIF pixel
+region, padded by `BOXFIRST_PAD`), labelled in the curator's reading order, transcribed as one
+continuous text. A box taller than the model's image ceiling goes as overlapping vertical slices, so a
+full column stays at native resolution (page-first sees it at ~200px wide). Reading a group together
+is not a nicety: read box-by-box as "part 2 of 2", a legal notice whose headline box sat inside the
+top of its body box lost its whole first slice — ~460 words, with no error — and line-break hyphens
+came back unjoined, unlike page-first. A group over `BOXFIRST_MAX_IMAGES` images is read in chunks.
+The page then runs through `enrichAndPersist` — the same enrichment and persistence page-first uses.
+`BOXFIRST_EFFORT` defaults to `low`: on a two-slice legal notice, `low` and `medium` took the same
+~22s and differed by 4 words in ~900.
 
 ## Implementation notes (not intent — see `_FROM-BUILD` for intent changes)
 

@@ -219,7 +219,7 @@ export const GROUPING_EFFORT = process.env.GROUPING_EFFORT ?? "medium";
 // Long edge of the overview the grouper sees. Box numbers must stay legible on a
 // 200-box page; Claude downsamples anything above ~2576px, so this sits under it.
 export const GROUPING_MAX_EDGE = Number(process.env.GROUPING_MAX_EDGE ?? 2400);
-// Box-first transcription: every box read from its own crop of the archival scan.
+// Box-first transcription: each group read in one call, every box from its own crop.
 // Same model tier as page ingestion and single-object re-extraction.
 export const BOXFIRST_MODEL = process.env.BOXFIRST_MODEL ?? REEXTRACT_MODEL;
 export const BOXFIRST_EFFORT = process.env.BOXFIRST_EFFORT ?? "low";
@@ -229,3 +229,6 @@ export const BOXFIRST_CONCURRENCY = Number(process.env.BOXFIRST_CONCURRENCY ?? 4
 export const BOXFIRST_PAD = Number(process.env.BOXFIRST_PAD ?? 0.003);
 // Coverage check: a run of uncovered OCR text this many words or more is a gap.
 export const COVERAGE_MIN_WORDS = Number(process.env.COVERAGE_MIN_WORDS ?? 5);
+// Box-first reads one group per call; a group needing more images than this
+// (a tall box counts once per slice) is read in consecutive chunks.
+export const BOXFIRST_MAX_IMAGES = Number(process.env.BOXFIRST_MAX_IMAGES ?? 20);

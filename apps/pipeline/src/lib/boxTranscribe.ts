@@ -1,6 +1,6 @@
 // boxTranscribe — the last step of box-first ingestion (SLICE-14).
 //
-//   coverage check → read every box from its own crop → join per group →
+//   coverage check → read each group's boxes, each from its own crop, in one call →
 //   the shared enrich + persist path page-first uses
 //
 // Box-first's promise is resolution: page-first sends the WHOLE page to the VLM
@@ -25,7 +25,7 @@ import { getProposal, pageImage, BoxFirstRefused, type Proposal, type ProposalBo
 import type { Rect } from "./detect.ts";
 import {
   iiifId, BOXFIRST_MODEL, BOXFIRST_EFFORT, BOXFIRST_CONCURRENCY, BOXFIRST_PAD, COVERAGE_MIN_WORDS,
-  REEXTRACT_MAX_EDGE, type DetectorId,
+  REEXTRACT_MAX_EDGE, BOXFIRST_MAX_IMAGES, type DetectorId,
 } from "../config.ts";
 
 // ── coverage ─────────────────────────────────────────────────────────────────
@@ -127,30 +127,42 @@ const TEXT_SCHEMA = {
 // The rules are lifted from the page-ingestion contract (vlm-prompt.ts) and the
 // single-object re-read (reextract.ts), so a box-first object's text has the same
 // shape and the same honesty markers as one ingested page-first.
-function buildPrompt(a: { cls: string; role: string | null; part: number; parts: number; slices: number }): string {
+//
+// One call reads ONE GROUP: every box of the object, in the curator's reading
+// order. Reading a story's boxes together is what lets the model carry a
+// sentence — or a word hyphenated at the foot of a column — across the break
+// between two boxes, and read a line that two boxes both clip exactly once.
+function buildPrompt(a: { cls: string; role: string | null; slices: number[]; chunk?: [number, number] }): string {
   const what = `"${a.cls}"${a.role ? ` (role: ${a.role})` : ""}`;
+  const n = a.slices.length, sliced = a.slices.some((k) => k > 1);
   const lines = [
-    a.slices > 1
-      ? `These images are one region of a historical newspaper page, cropped from the archival scan and delivered as ${a.slices} consecutive vertical slices, top to bottom. Adjacent slices overlap by a few lines — transcribe the overlapping lines ONCE.`
-      : `This image is one region of a historical newspaper page, cropped from the archival scan.`,
-    a.parts > 1
-      ? `It is part ${a.part} of ${a.parts} of one content object classified as ${what}. Transcribe only this part.`
-      : `It is one content object classified as ${what}.`,
+    n > 1
+      ? `These images are ${n} regions of a historical newspaper page, cropped from the archival scan and labelled in READING ORDER. Together they are ONE content object classified as ${what}.`
+      : `This is one region of a historical newspaper page, cropped from the archival scan. It is one content object classified as ${what}.`,
+  ];
+  if (sliced) lines.push(`A tall region is delivered as consecutive vertical slices, top to bottom; adjacent slices overlap by a few lines — transcribe those lines ONCE.`);
+  if (a.chunk) lines.push(`This is part ${a.chunk[0]} of ${a.chunk[1]} of the object's regions; transcribe only these.`);
+  lines.push(
     ``,
-    `Transcribe it.`,
+    n > 1 ? `Transcribe them as ONE continuous text.` : `Transcribe it.`,
     ``,
     `RULES (follow exactly):`,
     `- TRANSCRIBE ONLY WHAT IS PRINTED AND VISIBLE. Mark unreadable text [illegible] and physical damage [loss].`,
-    `  NEVER invent text to bridge a gap, and never continue a sentence past the edge of the region.`,
-    `- READING ORDER: read DOWN each column inside the region, then move to the next column. NEVER read across columns.`,
-    `- The crop has a thin margin. A sliver of a neighbouring column, or a line cut in half at the very edge, belongs`,
-    `  to a neighbouring region — leave it out.`,
-  ];
-  if (a.part === 1) lines.push(`- If the region begins with a headline, put the headline on the first line, then any subhead/deck, then the body.`);
+    `  NEVER invent text to bridge a gap, and never continue a sentence past the edge of the last region.`,
+    `- READING ORDER: read the regions in the order given. Inside a region, read DOWN each column, then move to the next column. NEVER read across columns.`,
+  );
+  if (n > 1) lines.push(
+    `- The regions are one text. A sentence, or a word hyphenated at the end of one region, continues at the start of the next — join it exactly as you would across a line break inside a column.`,
+    `- Neighbouring regions can overlap at their edges. A line that appears in two regions is transcribed ONCE.`,
+  );
+  lines.push(
+    `- Each crop has a thin margin. A sliver of a column that is NOT part of this object, at a crop's outer edge, belongs to a neighbouring object — leave it out.`,
+  );
+  if (!a.chunk || a.chunk[0] === 1) lines.push(`- If the object begins with a headline, put the headline on the first line, then any subhead/deck, then the body.`);
   lines.push(
     `- Do not summarize, correct the paper's own errors, or modernize spelling or punctuation.`,
     `- Handwriting is not publication content; do not fold pencil/pen marginalia into the text.`,
-    `- If the region holds no printed words at all (a picture with no text), return an empty string.`,
+    `- If the regions hold no printed words at all (a picture with no text), return an empty string.`,
   );
   return lines.join("\n");
 }
@@ -182,34 +194,41 @@ function sliceUrls(iiif: string, rect: number[], page: { w: number; h: number },
   return { slices: out, w, h };
 }
 
-export async function readBox(
-  iiif: string, page: { w: number; h: number }, box: ProposalBox,
-  ctx: { cls: string; role: string | null; part: number; parts: number },
-): Promise<{ text: string; slices: number; pixels: number }> {
+// One crop, with the whole-page guard. ContentDM answers a request it cannot
+// honour with a valid JPEG of the WHOLE page; transcribing that would put the
+// entire page's text into one object.
+async function fetchCrop(s: { url: string; w: number; h: number }, page: { w: number; h: number }, boxId: number) {
+  const res = await fetchRetry(s.url, {}, { label: `IIIF crop #${boxId}` });
+  if (!res.ok) throw new Error(`could not fetch box #${boxId} from ContentDM (HTTP ${res.status})`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  const got = jpegSize(buf);
+  if (got && got.w >= page.w * 0.98 && got.h >= page.h * 0.98 && (s.w < page.w * 0.9 || s.h < page.h * 0.9)) {
+    throw new Error(`ContentDM returned the whole page instead of box #${boxId} — refusing to transcribe it`);
+  }
+  return { buf, pixels: got ? got.w * got.h : 0 };
+}
+
+// Read one group — or one chunk of a very large group — in a single call.
+export async function readGroup(
+  iiif: string, page: { w: number; h: number }, boxes: ProposalBox[],
+  ctx: { cls: string; role: string | null; chunk?: [number, number] },
+): Promise<{ text: string; images: number; pixels: number }> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY is not set — box-first transcription needs it");
-  const { slices } = sliceUrls(iiif, box.rect, page);
-
-  const images = await Promise.all(slices.map(async (s) => {
-    const res = await fetchRetry(s.url, {}, { label: `IIIF crop #${box.id}` });
-    if (!res.ok) throw new Error(`could not fetch box #${box.id} from ContentDM (HTTP ${res.status})`);
-    const buf = Buffer.from(await res.arrayBuffer());
-    // ContentDM answers a request it cannot honour with a valid JPEG of the WHOLE
-    // page. Transcribing that would put the entire page's text in one object.
-    const got = jpegSize(buf);
-    if (got && got.w >= page.w * 0.98 && got.h >= page.h * 0.98 && (s.w < page.w * 0.9 || s.h < page.h * 0.9)) {
-      throw new Error(`ContentDM returned the whole page instead of box #${box.id} — refusing to transcribe it`);
-    }
-    return { buf, pixels: got ? got.w * got.h : 0 };
-  }));
+  const crops = await Promise.all(boxes.map(async (b) =>
+    Promise.all(sliceUrls(iiif, b.rect, page).slices.map((s) => fetchCrop(s, page, b.id)))));
 
   const content: any[] = [];
-  images.forEach((im, i) => {
-    if (images.length > 1) content.push({ type: "text", text: `Slice ${i + 1} of ${images.length}:` });
-    content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: im.buf.toString("base64") } });
+  crops.forEach((slices, i) => {
+    if (crops.length > 1) content.push({ type: "text", text: `Region ${i + 1} of ${crops.length}:` });
+    slices.forEach((im, j) => {
+      if (slices.length > 1) content.push({ type: "text", text: `${crops.length > 1 ? `Region ${i + 1}, s` : "S"}lice ${j + 1} of ${slices.length}:` });
+      content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: im.buf.toString("base64") } });
+    });
   });
-  content.push({ type: "text", text: buildPrompt({ ...ctx, slices: images.length }) });
+  content.push({ type: "text", text: buildPrompt({ cls: ctx.cls, role: ctx.role, slices: crops.map((c) => c.length), chunk: ctx.chunk }) });
 
+  const ids = boxes.map((b) => `#${b.id}`).join(" ");
   const res = await fetchRetry("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
@@ -220,23 +239,34 @@ export async function readBox(
       output_config: { effort: BOXFIRST_EFFORT, format: { type: "json_schema", schema: TEXT_SCHEMA } },
       messages: [{ role: "user", content }],
     }),
-  }, { label: `Anthropic box #${box.id} (${BOXFIRST_MODEL})` });
-  if (!res.ok) throw new Error(`Anthropic API ${res.status} on box #${box.id}: ${(await res.text()).slice(0, 300)}`);
+  }, { label: `Anthropic boxes ${ids} (${BOXFIRST_MODEL})` });
+  if (!res.ok) throw new Error(`Anthropic API ${res.status} on boxes ${ids}: ${(await res.text()).slice(0, 300)}`);
   const j = (await res.json()) as {
     content: Array<{ type: string; text?: string }>; stop_reason?: string;
     stop_details?: { category?: string | null; explanation?: string } | null;
   };
-  if (j.stop_reason === "max_tokens") throw new Error(`box #${box.id}: ran out of output tokens mid-transcription`);
-  if (j.stop_reason === "refusal") throw new Error(`box #${box.id}: the model declined (${j.stop_details?.category ?? "no category"})`);
+  if (j.stop_reason === "max_tokens") throw new Error(`boxes ${ids}: ran out of output tokens mid-transcription`);
+  if (j.stop_reason === "refusal") throw new Error(`boxes ${ids}: the model declined (${j.stop_details?.category ?? "no category"})`);
   const raw = j.content.filter((c) => c.type === "text").map((c) => c.text ?? "").join("");
   let text: string;
   try { text = String((JSON.parse(raw) as { text?: unknown }).text ?? ""); }
-  catch { throw new Error(`box #${box.id}: the model did not return a usable transcription`); }
-  return {
-    text: text.replace(/[ \t]+$/gm, "").trim(),
-    slices: images.length,
-    pixels: images.reduce((s, im) => s + im.pixels, 0),
-  };
+  catch { throw new Error(`boxes ${ids}: the model did not return a usable transcription`); }
+  const flat = crops.flat();
+  return { text: text.replace(/[ \t]+$/gm, "").trim(), images: flat.length, pixels: flat.reduce((s, im) => s + im.pixels, 0) };
+}
+
+// A group's boxes, split into consecutive chunks of at most BOXFIRST_MAX_IMAGES
+// images (a tall box counts once per slice). Nearly every group is one chunk;
+// the cap keeps a sprawling multi-panel ad from becoming one enormous request.
+export function chunkGroup(iiif: string, page: { w: number; h: number }, boxes: ProposalBox[]): ProposalBox[][] {
+  const out: ProposalBox[][] = [[]];
+  let n = 0;
+  for (const b of boxes) {
+    const k = sliceUrls(iiif, b.rect, page).slices.length;
+    if (n + k > BOXFIRST_MAX_IMAGES && out[out.length - 1].length) { out.push([]); n = 0; }
+    out[out.length - 1].push(b); n += k;
+  }
+  return out;
 }
 
 // ── transcribe a proposal into content objects ───────────────────────────────
@@ -286,24 +316,30 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
   const iiif = iiifId(pageRecord);
   const page = await pageSize(iiif);
   const byId = new Map(p.boxes.map((b) => [b.id, b]));
-  const jobs = p.groups.flatMap((g, gi) => g.boxes.map((id, k) => ({ gi, k, box: byId.get(id)!, parts: g.boxes.length })))
-    .filter((j) => j.box);
+  const groupBoxes = p.groups.map((g) => g.boxes.map((id) => byId.get(id)!).filter(Boolean));
+  const jobs = groupBoxes.flatMap((boxes, gi) => {
+    const chunks = chunkGroup(iiif, page, boxes);
+    return chunks.map((c, ci) => ({ gi, ci, boxes: c, of: chunks.length }));
+  });
+  const nBoxes = groupBoxes.reduce((s, b) => s + b.length, 0);
 
-  onProgress({ phase: "transcribe", message: `Reading ${jobs.length} boxes in ${p.groups.length} groups…`, pct: 8 });
+  onProgress({ phase: "transcribe", message: `Reading ${p.groups.length} groups (${nBoxes} boxes)…`, pct: 8 });
   let done = 0;
-  const texts: string[][] = p.groups.map((g) => new Array(g.boxes.length).fill(""));
+  const texts: string[][] = p.groups.map(() => []);
   const t0 = performance.now();
   await pMap(jobs, BOXFIRST_CONCURRENCY, async (j) => {
     const g = p.groups[j.gi];
-    const r = await readBox(iiif, page, j.box, { cls: g.object_class, role: g.role, part: j.k + 1, parts: j.parts });
-    texts[j.gi][j.k] = r.text;
+    const r = await readGroup(iiif, page, j.boxes, {
+      cls: g.object_class, role: g.role, chunk: j.of > 1 ? [j.ci + 1, j.of] : undefined,
+    });
+    texts[j.gi][j.ci] = r.text;
     done++;
     onProgress({
       phase: "transcribe", pct: 8 + Math.round((done / jobs.length) * 50),
-      message: `Read ${done}/${jobs.length} boxes (group ${j.gi + 1}, #${j.box.id}${r.slices > 1 ? `, ${r.slices} slices` : ""}).`,
+      message: `Read ${done}/${jobs.length} groups (group ${j.gi + 1}: ${j.boxes.length} box${j.boxes.length === 1 ? "" : "es"}, ${r.images} image${r.images === 1 ? "" : "s"}).`,
     });
   });
-  console.log(`[boxfirst] ${pageRecord}: read ${jobs.length} boxes in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
+  console.log(`[boxfirst] ${pageRecord}: read ${p.groups.length} groups (${nBoxes} boxes, ${jobs.length} calls) in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
 
   // One block per group, in the curator's page order; the region keeps EVERY
   // rect of the object — a person checked them, so they are not the anchoring
