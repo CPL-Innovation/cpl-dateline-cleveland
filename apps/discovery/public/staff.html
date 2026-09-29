@@ -749,6 +749,25 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bf-bx.sel .bx-h{border-color:var(--g)}
 .pagewrap.drawing .bf-bx{pointer-events:none}
 .bf-ghost{position:absolute;border:1.5px dashed var(--warn);background:rgba(241,196,0,.14);pointer-events:none;z-index:8}
+/* Reading order, made visible and editable on the page (SLICE-14).
+   Labels are READING POSITIONS — group 7's boxes read 7.1, 7.2… — and renumber
+   as the order changes; the detector's #id stays underneath (hover) because the
+   edit log, coverage and the per-detector counts refer to boxes by it. */
+.bf-bx .bf-n{pointer-events:auto;cursor:grab}
+.bf-bx.loose .bf-n{opacity:.8}
+.bf-bx .bf-g{pointer-events:auto;cursor:grab}
+.bf-path{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2}
+.bf-marq{position:absolute;border:1px dashed var(--brand);background:rgba(0,87,183,.08);pointer-events:none;z-index:8}
+.bf-bx.msel{opacity:1 !important;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--brand);z-index:4}
+.bf-bx.droptgt{opacity:1 !important;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent);z-index:6}
+.pagewrap.seq .bf-bx{cursor:copy}
+.pagewrap.seq .bf-bx .bf-n,.pagewrap.seq .bf-bx .bf-g{cursor:copy}
+.bf-chip{position:fixed;z-index:2000;pointer-events:none;padding:2px 7px;border-radius:9px;background:var(--g,#505A69);color:#fff;
+  font-family:var(--sans);font-weight:700;font-size:11px;box-shadow:0 0 0 1.5px #fff,0 4px 12px rgba(0,0,0,.25)}
+.bf-row[draggable="true"]{cursor:grab}
+.bf-row.dropb{box-shadow:inset 0 2px 0 var(--brand)}
+.bf-row.dropa{box-shadow:inset 0 -2px 0 var(--brand)}
+.bf-row.dragging{opacity:.4}
 /* the group list */
 .bf-row{display:flex;align-items:center;gap:7px;min-height:24px;padding:2px 6px 2px 0;cursor:pointer;
   border-left:2px solid transparent;font-family:var(--sans);font-size:11.5px;color:var(--body)}
@@ -1939,6 +1958,12 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // a transcription asked for but not yet confirmed ({force}), and one under way:
     // when it started, how far (pct), and which groups have been read
     var txConfirm = null, txStart = 0, txPct = 0, txRead = {}, txDone = 0, txTimer = null;
+    // Reading-order tools. seqOn: the sequence tool (O) — seqCur is the group being
+    // built by clicks, seqPrev the one finished just before it (the next goes after
+    // it). multi: boxes picked by dragging across the page, for G / J.
+    var seqOn = false, seqCur = null, seqPrev = null, multi = [];
+    var showPath = false;
+    try { showPath = localStorage.getItem('dl:bfpath') === '1'; } catch(e){}
     var page = null, wrap = null, img = null, layer = null;
 
     mount();
@@ -1995,6 +2020,21 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       return gi;
     }
     function renumber(){ P.groups.forEach(function(g,i){ g.id=i+1; }); }
+    // A box's READING POSITION: "7" for a one-box group, "7.2" for the second box
+    // group 7 reads; a box in no group has none, so it shows its detector #id.
+    function posLabel(id){
+      var gi=groupOf(id); if(gi<0) return '#'+id;
+      var g=P.groups[gi]; return g.boxes.length>1 ? (gi+1)+'.'+(g.boxes.indexOf(id)+1) : String(gi+1);
+    }
+    // Geometric reading order for boxes picked together (G / J): column bands by
+    // left edge, left to right, each top to bottom — the rule the detectors number by.
+    function geoOrder(ids){
+      var bs=ids.map(boxById).filter(Boolean).sort(function(a,b){ return a.rect[0]-b.rect[0]; });
+      var bands=[], left=-1;
+      bs.forEach(function(b){ if(!bands.length || b.rect[0]-left>0.02){ bands.push([b]); left=b.rect[0]; } else bands[bands.length-1].push(b); });
+      return bands.reduce(function(out,band){ return out.concat(band.sort(function(a,b){ return a.rect[1]-b.rect[1]; })); }, [])
+                  .map(function(b){ return b.id; });
+    }
     function classForLabel(label){ return BF_LABEL_CLASS[label] || 'article'; }
 
     // Every correction goes through here: remember the state before it (undo),
@@ -2010,6 +2050,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var s=JSON.parse(hist.pop()); P.boxes=s.boxes; P.groups=s.groups;
       if(selBox!=null && !boxById(selBox)) selBox=null;
       if(selGi>=P.groups.length) selGi=-1;
+      seqCur=null; seqPrev=null; multi=[];     // they pointed into the state just replaced
       queue.push({ op:'undo' }); P.edits=Math.max(0,P.edits-1); version++;
       flush(); paintAll();
     }
@@ -2096,12 +2137,109 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       selBox=id; commit('add',{box:id},b);
     }
 
+    // ── sequence tool (O): click boxes in the order they are read ───────────
+    // The first click starts a group (taking that box's type and role with it);
+    // each next click moves that box to the END of it, out of whatever group it
+    // was in — so one pass fixes grouping and order together. Enter, or a click
+    // on empty page, ends the group; the next click starts the next one, placed
+    // right after it. A group rebuilt from its own first box keeps its place.
+    function armSeq(on){
+      seqOn=on; seqCur=null; seqPrev=null;
+      if(on){ if(drawArmed) armDraw(false); multi=[]; selBox=null; }
+      if(wrap) wrap.classList.toggle('seq', on);
+      setSave(on ? 'ORDER — click boxes in the order they are read · Enter ends a group · Esc stops' : '');
+      paintAll();
+    }
+    function seqClick(id){
+      if(seqCur && P.groups.indexOf(seqCur)<0) seqCur=null;
+      if(seqPrev && P.groups.indexOf(seqPrev)<0) seqPrev=null;
+      var before=snapshot(), bx=boxById(id);
+      if(!seqCur){
+        var gi=groupOf(id), old=gi>=0 ? P.groups[gi] : null;
+        if(old && old.boxes.length===1){
+          seqCur=old;                                      // already a group of just this box
+          if(seqPrev){ P.groups.splice(gi,1); P.groups.splice(P.groups.indexOf(seqPrev)+1,0,old); }
+        } else {
+          var ng={ id:0, boxes:[], object_class: old ? old.object_class : classForLabel(bx.label), role: old ? old.role : null };
+          if(old && old.classBy) ng.classBy=old.classBy;
+          if(old && old.roleBy) ng.roleBy=old.roleBy;
+          // placed BEFORE taking the box out, so an emptied old group can't shift it
+          var pos = seqPrev ? P.groups.indexOf(seqPrev)+1 : (gi>=0 ? gi : P.groups.length);
+          P.groups.splice(pos,0,ng);
+          takeOut(id); delete bx.discarded; ng.boxes.push(id); seqCur=ng;
+        }
+      } else {
+        if(seqCur.boxes.indexOf(id)>=0){ setSave(posLabel(id)+' is already read in this group'); return; }
+        takeOut(id); delete bx.discarded; seqCur.boxes.push(id); delete seqCur.unplaced;
+      }
+      selGi=P.groups.indexOf(seqCur); selBox=null;
+      commit('sequence',{ box:id, group:selGi+1 }, before);
+      setSave('ORDER — group '+(selGi+1)+': '+seqCur.boxes.length+' box'+(seqCur.boxes.length===1?'':'es')+' · click the next box it reads, or Enter to end the group');
+    }
+    function seqEnd(){
+      if(!seqCur) return;
+      seqPrev=seqCur; seqCur=null;
+      setSave('ORDER — group '+(P.groups.indexOf(seqPrev)+1)+' done · click the first box of the next group, or Esc to stop');
+      paintAll();
+    }
+
+    // ── boxes picked by dragging across the page (G / J) ─────────────────────
+    function groupMulti(){
+      if(!multi.length) return;
+      var before=snapshot(), ids=geoOrder(multi);
+      var gis=ids.map(groupOf).filter(function(g){ return g>=0; });
+      var pos=gis.length ? Math.min.apply(null, gis) : P.groups.length;
+      var first=P.groups[gis.length ? pos : -1];
+      var ng={ id:0, boxes:[], object_class: first ? first.object_class : classForLabel(boxById(ids[0]).label), role:null };
+      P.groups.splice(pos,0,ng);                          // placed first — see seqClick
+      ids.forEach(function(id){ takeOut(id); delete boxById(id).discarded; });
+      ng.boxes=ids; multi=[]; selGi=P.groups.indexOf(ng); selBox=null;
+      commit('group',{ boxes:ids, group:selGi+1 }, before);
+    }
+    function joinMulti(){
+      if(!multi.length) return;
+      if(selGi<0){ setSave('select the group to add them to (in the list), then press J'); return; }
+      var dst=P.groups[selGi], ids=geoOrder(multi).filter(function(id){ return dst.boxes.indexOf(id)<0; });
+      if(!ids.length){ multi=[]; paintAll(); return; }
+      var before=snapshot();
+      ids.forEach(function(id){ takeOut(id); delete boxById(id).discarded; dst.boxes.push(id); });
+      delete dst.unplaced; multi=[]; selGi=P.groups.indexOf(dst);
+      commit('assign',{ boxes:ids, group:selGi+1 }, before);
+    }
+
+    // ── drag a box's label onto another box: it joins that group, right after it
+    function joinAfter(id, target){
+      if(id===target) return;
+      var before=snapshot(), bx=boxById(id), tgi=groupOf(target);
+      if(tgi<0){
+        // onto a box in no group: the two become a group, target first
+        var gi=groupOf(id), ng={ id:0, boxes:[], object_class: gi>=0 ? P.groups[gi].object_class : classForLabel(boxById(target).label), role:null };
+        P.groups.splice(gi>=0 ? gi : P.groups.length, 0, ng);
+        takeOut(id); delete bx.discarded; delete boxById(target).discarded;
+        ng.boxes=[target, id]; selGi=P.groups.indexOf(ng);
+      } else {
+        var dst=P.groups[tgi];
+        takeOut(id); delete bx.discarded;
+        dst.boxes.splice(dst.boxes.indexOf(target)+1, 0, id); delete dst.unplaced;
+        selGi=P.groups.indexOf(dst);
+      }
+      selBox=null;
+      commit('join',{ box:id, after:target, group:selGi+1 }, before);
+    }
+    // ── the group list: drag a row to change where the group reads on the page
+    function moveGroupTo(from, to){
+      if(from===to || from<0 || to<0) return;
+      var before=snapshot(), g=P.groups.splice(from,1)[0];
+      P.groups.splice(to,0,g); selGi=to; selBox=null;
+      commit('order',{ group:to+1 }, before);
+    }
+
     // ── the page: boxes ──────────────────────────────────────────────────────
     function paintLayer(){
       if(!layer) return;
       layer.innerHTML='';
       var txing = busy==='transcribe';
-      layer.classList.toggle('focus', selGi>=0 && !txing);
+      layer.classList.toggle('focus', selGi>=0 && !txing && !multi.length);
       layer.classList.toggle('tx', txing);
       if(!P) return;
       var gi={}; P.groups.forEach(function(g,i){ g.boxes.forEach(function(id){ gi[id]=i; }); });
@@ -2110,18 +2248,22 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         var el=document.createElement('div');
         el.className='bf-bx'+(loose?' loose':'')+(b.discarded?' discarded':'')+(b.source==='human'?' human':'')+
           (!loose && i===selGi && !txing?' ing':'')+(b.id===selBox && !txing?' sel':'')+
-          (txing && !loose ? (txRead[i] ? ' txdone' : ' txwait') : '');
+          (txing && !loose ? (txRead[i] ? ' txdone' : ' txwait') : '')+(multi.indexOf(b.id)>=0 ? ' msel' : '');
         if(!loose) el.style.setProperty('--g', bfColor(i));
         el.style.left=(r[0]*100)+'%'; el.style.top=(r[1]*100)+'%'; el.style.width=(r[2]*100)+'%'; el.style.height=(r[3]*100)+'%';
-        // box number always; the GROUP's number on the first box it reads from, so
-        // the page shows the reading order of objects without opening the list
-        el.innerHTML='<span class="bf-n">#'+b.id+'</span>'+(!loose && P.groups[i].boxes[0]===b.id ? '<span class="bf-g">'+(txing && txRead[i] ? '✓' : (i+1))+'</span>' : '');
+        // The group's number on the box it starts reading from; on a group of
+        // several, each box's reading position (7.1, 7.2…); in no group, the
+        // detector's #id. Both labels are handles: drag one onto another box.
+        var multiBox = !loose && P.groups[i].boxes.length>1;
+        el.innerHTML=(loose || multiBox ? '<span class="bf-n">'+esc(posLabel(b.id))+'</span>' : '')+
+          (!loose && P.groups[i].boxes[0]===b.id ? '<span class="bf-g">'+(txing && txRead[i] ? '✓' : (i+1))+'</span>' : '');
         el.dataset.id=b.id;
         if(b.id===selBox) ['nw','ne','sw','se'].forEach(function(k){
           var hd=document.createElement('div'); hd.className='bx-h '+k; hd.dataset.k=k; el.appendChild(hd);
         });
         layer.appendChild(el);
       });
+      paintPath();
       (gaps||[]).forEach(function(g, i){
         var el=document.createElement('div'), r=g.rect;
         el.className='bf-gap';
@@ -2135,6 +2277,35 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         bn.innerHTML='<span class="bf-spin"></span>Transcribing — '+txDone+' / '+P.groups.length+' groups read · <span id="bf-txclock">'+elapsed()+'</span>';
         layer.appendChild(bn);
       }
+    }
+
+    // Arrows for the reading order: inside each group, from the foot of one box
+    // to the head of the next it reads; with ⤳ on, a faint dashed path from each
+    // group's last box to the next group's first, so the page's order is visible.
+    // Drawn in a viewBox with the page's own aspect, so arrowheads stay square.
+    function paintPath(){
+      var W=1000, H=W*((img && img.naturalWidth) ? img.naturalHeight/img.naturalWidth : 1.3);
+      var sx=function(v){ return (v*W).toFixed(1); }, sy=function(v){ return (v*H).toFixed(1); };
+      function arrow(a, b, color, dashed, op){
+        var x1=(a.rect[0]+a.rect[2]/2)*W, y1=(a.rect[1]+a.rect[3])*H, x2=(b.rect[0]+b.rect[2]/2)*W, y2=b.rect[1]*H;
+        var ang=Math.atan2(y2-y1, x2-x1), L=9, w=4.5;
+        var hx=x2-L*Math.cos(ang), hy=y2-L*Math.sin(ang);
+        var p1=(hx+w*Math.sin(ang)).toFixed(1)+','+(hy-w*Math.cos(ang)).toFixed(1), p2=(hx-w*Math.sin(ang)).toFixed(1)+','+(hy+w*Math.cos(ang)).toFixed(1);
+        return '<g opacity="'+op+'"><line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+hx.toFixed(1)+'" y2="'+hy.toFixed(1)+'" stroke="'+color+'" stroke-width="2" vector-effect="non-scaling-stroke"'+
+          (dashed?' stroke-dasharray="5 4"':'')+' stroke-linecap="round"/><polygon points="'+x2.toFixed(1)+','+y2.toFixed(1)+' '+p1+' '+p2+'" fill="'+color+'"/></g>';
+      }
+      var out='';
+      P.groups.forEach(function(g, i){
+        var bs=g.boxes.map(boxById).filter(Boolean);
+        for(var k=0;k+1<bs.length;k++) out+=arrow(bs[k], bs[k+1], bfColor(i), false, 0.9);
+        if(showPath && i+1<P.groups.length){
+          var nx=boxById(P.groups[i+1].boxes[0]); if(bs.length && nx) out+=arrow(bs[bs.length-1], nx, '#505A69', true, 0.55);
+        }
+      });
+      if(!out) return;
+      var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('class','bf-path'); svg.setAttribute('viewBox','0 0 '+W+' '+H.toFixed(1)); svg.setAttribute('preserveAspectRatio','none');
+      svg.innerHTML=out; layer.appendChild(svg);
     }
 
     // A gap becomes a box: into the selected group, or a group of its own.
@@ -2157,17 +2328,23 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         var gp=ev.target.closest('.bf-gap');
         if(gp){ ev.preventDefault(); ev.stopPropagation(); boxGap(+gp.dataset.gap); return; }
         var el=ev.target.closest('.bf-bx');
-        if(!el){ if(selBox!=null || selGi>=0){ selBox=null; selGi=-1; paintAll(); } return; }
+        if(!el){
+          if(seqOn){ seqEnd(); return; }                // a click on empty page ends the group
+          marquee(ev); return;
+        }
         ev.preventDefault(); ev.stopPropagation();
         var id=+el.dataset.id;
+        if(seqOn){ seqClick(id); return; }
+        if(ev.target.closest('.bf-n, .bf-g')){ labelDrag(ev, el, id); return; }
         if(ev.shiftKey){ assignToSelected(id); return; }
+        if(multi.length){ multi=[]; }
         if(id!==selBox){ selectBox(id); return; }
         drag(ev, el, id, ev.target.dataset ? ev.target.dataset.k : null);
       });
       layer.addEventListener('mouseover', function(ev){
         var el=ev.target.closest('.bf-bx'); if(!el || !P) return;
         var b=boxById(+el.dataset.id), gi=groupOf(b.id);
-        hoverMsg='#'+b.id+' · '+b.label+(b.conf!=null?' '+b.conf.toFixed(2):'')+
+        hoverMsg=(gi>=0 ? posLabel(b.id)+' · ' : '')+'detector box #'+b.id+' · '+b.label+(b.conf!=null?' '+b.conf.toFixed(2):'')+
           (gi>=0 ? ' · group '+(gi+1)+' '+(BF_CLASS_LABEL[P.groups[gi].object_class]||'') : ' · in no group')+
           (b.discarded?' · discarded by the grouper':'');
         paintBarMsg();
@@ -2192,6 +2369,62 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         }
         document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
       }, true);
+    }
+
+    // Drag across empty page: pick every box whose centre falls inside, for G / J.
+    // A click (no drag) clears the selection, as before.
+    function marquee(ev){
+      ev.preventDefault();
+      var start=pctAt(ev), r=null, ghost=document.createElement('div'); ghost.className='bf-marq'; wrap.appendChild(ghost);
+      function move(e2){
+        var p=pctAt(e2);
+        r=[Math.min(start.x,p.x),Math.min(start.y,p.y),Math.abs(p.x-start.x),Math.abs(p.y-start.y)];
+        ghost.style.left=(r[0]*100)+'%'; ghost.style.top=(r[1]*100)+'%'; ghost.style.width=(r[2]*100)+'%'; ghost.style.height=(r[3]*100)+'%';
+      }
+      function up(){
+        document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+        ghost.remove();
+        if(!r || (r[2]<0.004 && r[3]<0.004)){ multi=[]; selBox=null; selGi=-1; setSave(''); paintAll(); return; }
+        multi=P.boxes.filter(function(b){
+          var cx=b.rect[0]+b.rect[2]/2, cy=b.rect[1]+b.rect[3]/2;
+          return cx>=r[0] && cx<=r[0]+r[2] && cy>=r[1] && cy<=r[1]+r[3];
+        }).map(function(b){ return b.id; });
+        selBox=null;
+        setSave(multi.length ? multi.length+' box'+(multi.length===1?'':'es')+' picked — G: make them one group'+
+          (selGi>=0 ? ' · J: add them to group '+(selGi+1) : ' · J: add them to a group selected in the list')+' · Esc: clear' : 'no boxes in that area');
+        paintAll();
+      }
+      document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+    }
+
+    // Drag a box's label onto another box: it joins that box's group, read right
+    // after it. Without movement it is an ordinary click on the box.
+    function labelDrag(ev, el, id){
+      var sx=ev.clientX, sy=ev.clientY, moved=false, chip=null, tgt=null;
+      function over(e2){
+        var hit=document.elementFromPoint(e2.clientX, e2.clientY), b=hit && hit.closest && hit.closest('.bf-bx');
+        return b && +b.dataset.id!==id ? b : null;
+      }
+      function move(e2){
+        if(!moved && Math.abs(e2.clientX-sx)+Math.abs(e2.clientY-sy) < 5) return;
+        if(!moved){
+          moved=true; chip=document.createElement('div'); chip.className='bf-chip';
+          chip.style.setProperty('--g', getComputedStyle(el).getPropertyValue('--g') || '#505A69');
+          chip.textContent=posLabel(id)+' → join…'; document.body.appendChild(chip);
+        }
+        chip.style.left=(e2.clientX+12)+'px'; chip.style.top=(e2.clientY+10)+'px';
+        var t=over(e2);
+        if(t!==tgt){ if(tgt) tgt.classList.remove('droptgt'); tgt=t; if(tgt) tgt.classList.add('droptgt'); }
+        chip.textContent=posLabel(id)+(tgt ? ' → after '+posLabel(+tgt.dataset.id) : ' → drop on a box');
+      }
+      function up(){
+        document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+        if(chip) chip.remove();
+        if(tgt) tgt.classList.remove('droptgt');
+        if(!moved){ multi=[]; if(id!==selBox) selectBox(id); return; }
+        if(tgt) joinAfter(id, +tgt.dataset.id);
+      }
+      document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
     }
 
     // Move (drag the body) or resize (drag a corner) the SELECTED box. Saved on
@@ -2267,8 +2500,17 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         if((ev.metaKey||ev.ctrlKey) && (ev.key==='z' || ev.key==='Z')){ ev.preventDefault(); undo(); return; }
         if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
         var k=ev.key;
-        if(k==='Escape'){ if(drawArmed) armDraw(false); else { selBox=null; selGi=-1; paintAll(); } }
-        else if(k==='b' || k==='B') armDraw(!drawArmed);
+        if(k==='Escape'){
+          if(drawArmed) armDraw(false);
+          else if(seqOn) armSeq(false);
+          else if(multi.length){ multi=[]; setSave(''); paintAll(); }
+          else { selBox=null; selGi=-1; paintAll(); }
+        }
+        else if(k==='Enter'){ if(seqOn) seqEnd(); else return; }
+        else if(k==='o' || k==='O') armSeq(!seqOn);
+        else if(k==='g' || k==='G'){ if(multi.length) groupMulti(); else return; }
+        else if(k==='j' || k==='J'){ if(multi.length) joinMulti(); else return; }
+        else if(k==='b' || k==='B'){ if(seqOn) armSeq(false); armDraw(!drawArmed); }
         else if(k==='n' || k==='N') newGroupFrom(selBox);
         else if(k==='Backspace' || k==='Delete') deleteBox(selBox);
         else return;
@@ -2283,7 +2525,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       set('sl-count', P.groups.length+' groups');
       html('wl-prog', P.boxes.length+' boxes · <b>'+P.edits+'</b> correction'+(P.edits===1?'':'s'));
       var h=P.groups.map(function(g,i){
-        return '<div class="bf-row'+(i===selGi?' sel':'')+'" data-g="'+i+'" style="--g:'+bfColor(i)+'">'+
+        return '<div class="bf-row'+(i===selGi?' sel':'')+'" data-g="'+i+'" draggable="true" title="Drag to change where this group reads on the page" style="--g:'+bfColor(i)+'">'+
           '<span class="sw"></span><span class="o">'+(i+1)+'</span>'+
           '<span class="t" title="'+esc(g.role||'')+'">'+esc(BF_CLASS_LABEL[g.object_class]||g.object_class)+(g.role?' · '+esc(g.role):'')+'</span>'+
           (g.unplaced?'<span class="warn" title="The grouper did not place this box — check where it belongs">!</span>':'')+
@@ -2299,6 +2541,26 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       document.querySelectorAll('#wl-rows .bf-row').forEach(function(row){
         row.addEventListener('click', function(){
           if(row.dataset.g!=null) selectGroup(+row.dataset.g); else selectBox(+row.dataset.b);
+        });
+      });
+      // drag a group row above or below another to move it there in reading order
+      var dragFrom=-1;
+      document.querySelectorAll('#wl-rows .bf-row[data-g]').forEach(function(row){
+        var i=+row.dataset.g;
+        row.addEventListener('dragstart', function(e){ dragFrom=i; row.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', String(i)); });
+        row.addEventListener('dragend', function(){ dragFrom=-1; row.classList.remove('dragging'); });
+        row.addEventListener('dragover', function(e){
+          if(dragFrom<0) return; e.preventDefault();
+          var r=row.getBoundingClientRect(), after=e.clientY>r.top+r.height/2;
+          row.classList.toggle('dropa', after); row.classList.toggle('dropb', !after);
+        });
+        row.addEventListener('dragleave', function(){ row.classList.remove('dropa','dropb'); });
+        row.addEventListener('drop', function(e){
+          e.preventDefault(); row.classList.remove('dropa','dropb');
+          if(dragFrom<0) return;
+          var r=row.getBoundingClientRect(), after=e.clientY>r.top+r.height/2;
+          var to=i+(after?1:0); if(dragFrom<to) to--;
+          moveGroupTo(dragFrom, to);
         });
       });
       var s=document.querySelector('#wl-rows .bf-row.sel'); if(s) s.scrollIntoView({ block:'nearest' });
@@ -2409,7 +2671,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           '<div class="bf-note" style="margin:0 0 6px">Boxes, in reading order</div>'+
           g.boxes.map(function(id,k){
             var b=boxById(id)||{label:'?'};
-            return '<div class="bf-bxrow'+(id===selBox?' sel':'')+'" data-b="'+id+'"><span class="n">#'+id+'</span>'+
+            return '<div class="bf-bxrow'+(id===selBox?' sel':'')+'" data-b="'+id+'"><span class="n" title="detector box #'+id+'">'+esc(posLabel(id))+'</span>'+
               '<span class="l">'+esc(b.label)+(b.conf!=null?' · '+b.conf.toFixed(2):'')+(b.source==='human'?' · edited':'')+'</span>'+
               '<button data-up="'+k+'"'+(k?'':' disabled')+' title="Read earlier">↑</button>'+
               '<button data-dn="'+k+'"'+(k<g.boxes.length-1?'':' disabled')+' title="Read later">↓</button>'+
@@ -2419,7 +2681,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
             '<button class="bf-btn" data-a="gdn"'+(selGi<P.groups.length-1?'':' disabled')+'>↓ Later</button></div>'+
           '<div class="bf-acts">'+(others ? '<select id="bf-merge"><option value="">Merge into group…</option>'+others+'</select>' : '')+
             '<button class="bf-btn danger" data-a="dissolve" title="The boxes stay, in no group">Dissolve group</button></div>'+
-          '<div class="bf-note">Shift-click boxes on the page to add them to this group. Press <b>b</b> to draw a box into it.</div>';
+          '<div class="bf-note">Shift-click boxes on the page to add them to this group, or drag a box’s label onto one of its boxes. Press <b>b</b> to draw a box into it.</div>';
       }
       if(selBox!=null){
         var bx=boxById(selBox), groups=P.groups.map(function(o,i){
@@ -2432,7 +2694,12 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
             '<button class="bf-btn danger" data-a="delbox">Delete box</button></div>';
       }
       return '<div class="lab">Selection</div><div class="bf-note">Select a group in the list, or a box on the page. '+
-        'Check that every printed item on the page is inside some box — text outside every box will not be transcribed.</div>';
+        'Check that every printed item on the page is inside some box — text outside every box will not be transcribed.</div>'+
+        '<div class="bf-note" style="margin-top:10px;line-height:1.8"><b>Reading order</b><br>'+
+        '<b>o</b> · ⇢ ORDER — click boxes in the order they are read; Enter ends a group<br>'+
+        'drag across empty page to pick boxes · <b>g</b> make them one group · <b>j</b> add them to the selected group<br>'+
+        'drag a box’s label (7.2) onto another box — it joins that group, read right after it<br>'+
+        'drag a group in the list to move it earlier or later on the page · ⤳ PATH shows the order between groups</div>';
     }
 
     function bindPanel(el){
@@ -2546,9 +2813,20 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var bar=document.getElementById('rv-editbar'); if(!bar) return;
       bar.innerHTML=
         '<button data-a="draw"'+(drawArmed?' class="pri"':'')+(P?'':' disabled')+' title="Draw a box (b)">'+(drawArmed?'DRAWING… ⎋':'＋ BOX')+'</button>'+
+        '<button data-a="seq"'+(seqOn?' class="pri"':'')+(P?'':' disabled')+' title="Click boxes in the order they are read — builds groups and their order in one pass (o)">'+(seqOn?'ORDERING… ⎋':'⇢ ORDER')+'</button>'+
+        '<button data-a="path"'+(showPath?' class="pri"':'')+(P?'':' disabled')+' title="Show the reading path from each group to the next">⤳ PATH</button>'+
+        (multi.length ? '<button data-a="group" title="Make the picked boxes one group (g)">GROUP '+multi.length+'</button>'+
+                        '<button data-a="join"'+(selGi>=0?'':' disabled')+' title="Add the picked boxes to the selected group (j)">ADD TO '+(selGi>=0?selGi+1:'…')+'</button>' : '')+
         '<button data-a="undo"'+(hist.length?'':' disabled')+' title="Undo (⌘Z)">UNDO</button>'+
         '<span class="msg" id="bf-msg"></span>';
-      bar.querySelector('[data-a="draw"]').onclick=function(){ armDraw(!drawArmed); };
+      bar.querySelector('[data-a="draw"]').onclick=function(){ if(seqOn) armSeq(false); armDraw(!drawArmed); };
+      bar.querySelector('[data-a="seq"]').onclick=function(){ armSeq(!seqOn); };
+      bar.querySelector('[data-a="path"]').onclick=function(){
+        showPath=!showPath; try { localStorage.setItem('dl:bfpath', showPath?'1':'0'); } catch(e){}
+        paintLayer(); paintBar();
+      };
+      var bg=bar.querySelector('[data-a="group"]'); if(bg) bg.onclick=groupMulti;
+      var bj=bar.querySelector('[data-a="join"]'); if(bj) bj.onclick=joinMulti;
       bar.querySelector('[data-a="undo"]').onclick=undo;
       paintBarMsg();
     }
