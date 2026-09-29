@@ -23,7 +23,9 @@ export interface IngestArgs {
   pageRecord: number;
   pageNumber: number;
 }
-export type Progress = (e: { phase: string; message: string; pct?: number }) => void;
+// `group`/`done`/`total`: box-first transcription says which group just finished
+// reading, so the workbench can mark it on the page as it happens.
+export type Progress = (e: { phase: string; message: string; pct?: number; group?: number; done?: number; total?: number }) => void;
 
 export class RightsBlocked extends Error {}
 

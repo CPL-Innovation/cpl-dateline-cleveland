@@ -350,7 +350,9 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
   const nBoxes = groupBoxes.reduce((s, b) => s + b.length, 0);
 
   onProgress({ phase: "transcribe", message: `Reading ${p.groups.length} groups (${nBoxes} boxes)…`, pct: 8 });
-  let done = 0;
+  let done = 0, groupsDone = 0;
+  // chunks still to read per group — a group is read once its last chunk is
+  const pending = p.groups.map((_, gi) => jobs.filter((j) => j.gi === gi).length);
   const texts: string[][] = p.groups.map(() => []);
   const read: Array<{ object_class: ObjectClass | null; role: string | null }> = p.groups.map(() => ({ object_class: null, role: null }));
   const t0 = performance.now();
@@ -362,9 +364,12 @@ async function transcribeAndStore(p: Proposal, args: TranscribeArgs, onProgress:
     texts[j.gi][j.ci] = r.text;
     if (j.ci === 0) read[j.gi] = { object_class: r.object_class, role: r.role };
     done++;
+    const finished = --pending[j.gi] === 0;
+    if (finished) groupsDone++;
     onProgress({
       phase: "transcribe", pct: 8 + Math.round((done / jobs.length) * 50),
-      message: `Read ${done}/${jobs.length} groups (group ${j.gi + 1}: ${j.boxes.length} box${j.boxes.length === 1 ? "" : "es"}, ${r.images} image${r.images === 1 ? "" : "s"}).`,
+      message: `Read ${groupsDone}/${p.groups.length} groups (group ${j.gi + 1}: ${j.boxes.length} box${j.boxes.length === 1 ? "" : "es"}, ${r.images} image${r.images === 1 ? "" : "s"}).`,
+      ...(finished ? { group: j.gi } : {}), done: groupsDone, total: p.groups.length,
     });
   });
   console.log(`[boxfirst] ${pageRecord}: read ${p.groups.length} groups (${nBoxes} boxes, ${jobs.length} calls) in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
