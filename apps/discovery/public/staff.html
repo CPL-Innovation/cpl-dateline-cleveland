@@ -454,7 +454,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bx-tip .h{font-weight:700;display:block;margin-bottom:4px}
 .bx-tip .e{opacity:.55}
 /* lives in the page toolbar — flexes to fill, message truncates rather than wraps */
-.bx-editbar{display:flex;gap:8px;align-items:center;flex:1;min-width:0}
+.bx-editbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;flex:1 1 320px;min-width:0}
 .bx-editbar button{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;
   padding:5px 11px;border:1px solid var(--hair-2);background:#fff;cursor:pointer;border-radius:2px;flex:none}
 .bx-editbar button.pri{background:var(--navy,#12305c);color:#fff;border-color:var(--navy,#12305c)}
@@ -768,6 +768,21 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bf-row.dropb{box-shadow:inset 0 2px 0 var(--brand)}
 .bf-row.dropa{box-shadow:inset 0 -2px 0 var(--brand)}
 .bf-row.dragging{opacity:.4}
+/* ? TIPS: every box tool and shortcut in one popover, grouped by task */
+.bf-tips{position:fixed;z-index:1500;width:min(440px,calc(100vw - 32px));max-height:min(70vh,640px);overflow:auto;
+  background:var(--canvas);border:1px solid var(--hair-2);border-top:3px solid var(--brand);
+  box-shadow:0 14px 40px rgba(15,18,21,.22);padding:14px 16px 12px;font-family:var(--sans);font-size:12.5px;color:var(--body);line-height:1.45}
+.bf-tips .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.bf-tips .hd b{font-family:var(--serif);font-size:17px;color:var(--ink);font-weight:600}
+.bf-tips .hd button{border:0;background:none;font-size:16px;color:var(--tertiary);cursor:pointer;padding:2px 4px}
+.bf-tips .hd button:hover{color:var(--ink)}
+.bf-tips h4{margin:12px 0 5px;font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary)}
+.bf-tips .row{display:grid;grid-template-columns:128px 1fr;gap:10px;padding:4px 0;border-top:1px solid var(--hair)}
+.bf-tips .row:first-of-type{border-top:0}
+.bf-tips .k{font-family:var(--mono);font-size:10.5px;color:var(--ink)}
+.bf-tips kbd{display:inline-block;min-width:16px;padding:0 4px;border:1px solid var(--hair-2);border-bottom-width:2px;border-radius:3px;
+  background:var(--sunken);font-family:var(--mono);font-size:10px;line-height:15px;text-align:center;color:var(--ink)}
+.bf-tips .ft{margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--tertiary)}
 /* the group list */
 .bf-row{display:flex;align-items:center;gap:7px;min-height:24px;padding:2px 6px 2px 0;cursor:pointer;
   border-left:2px solid transparent;font-family:var(--sans);font-size:11.5px;color:var(--body)}
@@ -1962,7 +1977,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
     // built by clicks, seqPrev the one finished just before it (the next goes after
     // it). multi: boxes picked by dragging across the page, for G / J.
     var seqOn = false, seqCur = null, seqPrev = null, multi = [];
-    var showPath = false;
+    var showPath = false, tipsEl = null;
     try { showPath = localStorage.getItem('dl:bfpath') === '1'; } catch(e){}
     var page = null, wrap = null, img = null, layer = null;
 
@@ -2135,6 +2150,67 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       if(selGi>=0) P.groups[selGi].boxes.push(id);
       else { P.groups.push({ id:0, boxes:[id], object_class:'article', role:null }); selGi=P.groups.length-1; }
       selBox=id; commit('add',{box:id},b);
+    }
+
+    // ── ? TIPS ─────────────────────────────────────────────────────────────
+    // Every tool on this screen and its shortcut, in one place. A popover under
+    // the toolbar button, on the body so repainting the toolbar can't close it;
+    // ? toggles it, Esc or a click outside closes it.
+    // A function, not a var: this setup returns before its later lines run, so
+    // only hoisted function declarations are available down here.
+    function tipsData(){ return [
+      ['Select and adjust', [
+        ['click a box', 'select it — drag it to move, drag a corner to resize'],
+        ['click a group', 'in the list on the left: select that group'],
+        ['＋ BOX · <kbd>b</kbd>', 'draw a box — it joins the selected group, or becomes a new one'],
+        ['<kbd>⌫</kbd>', 'delete the selected box'],
+        ['<kbd>n</kbd>', 'make the selected box a group of its own'],
+        ['shift-click a box', 'add it to the selected group'],
+      ]],
+      ['Reading order', [
+        ['7.1 · 7.2 …', 'a box’s reading position: group 7, first box, second box. The round badge is the group’s number; hover a box for the detector’s #id'],
+        ['⇢ ORDER · <kbd>o</kbd>', 'click boxes in the order they are read. The first click starts a group, each next click adds a box to it (out of any other group). <kbd>Enter</kbd> or a click on empty page ends the group; the next click starts the next one, right after it'],
+        ['drag across empty page', 'pick several boxes — then <kbd>g</kbd> makes them one group, <kbd>j</kbd> adds them to the selected group (in column order)'],
+        ['drag a label', 'drag a box’s 7.2 or round badge onto another box — it joins that box’s group, read right after it'],
+        ['drag a group row', 'in the list: move the group earlier or later on the page'],
+        ['⤳ PATH', 'show the reading path from each group to the next'],
+      ]],
+      ['Page', [
+        ['<kbd>⌘</kbd> + scroll', 'zoom, centred on the pointer — or − ⌂ + in the toolbar'],
+        ['<kbd>⌘</kbd>-drag · middle-drag', 'pan'],
+        ['red dashed area', 'printed text outside every box, found by CHECK COVERAGE — click it to box it'],
+      ]],
+      ['Undo and saving', [
+        ['<kbd>⌘</kbd><kbd>Z</kbd> · UNDO', 'undo the last correction'],
+        ['<kbd>Esc</kbd>', 'leave a tool, clear picked boxes, or clear the selection'],
+        ['autosave', 'every correction is saved as you make it, and counted against this detector (the Fixes column)'],
+      ]],
+    ]; }
+    function closeTips(){
+      if(!tipsEl) return;
+      tipsEl.remove(); tipsEl=null;
+      document.removeEventListener('mousedown', tipsOutside, true);
+      var b=document.querySelector('#rv-editbar [data-a="tips"]'); if(b) b.classList.remove('pri');
+    }
+    function tipsOutside(ev){ if(tipsEl && !tipsEl.contains(ev.target) && !ev.target.closest('[data-a="tips"]')) closeTips(); }
+    function toggleTips(){
+      if(tipsEl){ closeTips(); return; }
+      tipsEl=document.createElement('div'); tipsEl.className='bf-tips'; tipsEl.setAttribute('role','dialog'); tipsEl.setAttribute('aria-label','Box tools and shortcuts');
+      tipsEl.innerHTML='<div class="hd"><b>Box tools &amp; shortcuts</b><button data-x title="Close (Esc)">✕</button></div>'+
+        tipsData().map(function(sec){
+          return '<h4>'+sec[0]+'</h4>'+sec[1].map(function(r){ return '<div class="row"><span class="k">'+r[0]+'</span><span>'+r[1]+'</span></div>'; }).join('');
+        }).join('')+
+        '<div class="ft">press <kbd>?</kbd> to open or close these tips</div>';
+      document.body.appendChild(tipsEl);
+      var b=document.querySelector('#rv-editbar [data-a="tips"]');
+      if(b){
+        b.classList.add('pri');
+        var r=b.getBoundingClientRect(), w=tipsEl.offsetWidth;
+        tipsEl.style.top=(r.bottom+8)+'px';
+        tipsEl.style.left=Math.max(16, Math.min(window.innerWidth-w-16, r.right-w))+'px';
+      } else { tipsEl.style.top='80px'; tipsEl.style.right='16px'; }
+      tipsEl.querySelector('[data-x]').onclick=closeTips;
+      document.addEventListener('mousedown', tipsOutside, true);
     }
 
     // ── sequence tool (O): click boxes in the order they are read ───────────
@@ -2500,8 +2576,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         if((ev.metaKey||ev.ctrlKey) && (ev.key==='z' || ev.key==='Z')){ ev.preventDefault(); undo(); return; }
         if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
         var k=ev.key;
+        if(k==='?'){ toggleTips(); ev.preventDefault(); return; }
         if(k==='Escape'){
-          if(drawArmed) armDraw(false);
+          if(tipsEl) closeTips();
+          else if(drawArmed) armDraw(false);
           else if(seqOn) armSeq(false);
           else if(multi.length){ multi=[]; setSave(''); paintAll(); }
           else { selBox=null; selGi=-1; paintAll(); }
@@ -2695,11 +2773,8 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       }
       return '<div class="lab">Selection</div><div class="bf-note">Select a group in the list, or a box on the page. '+
         'Check that every printed item on the page is inside some box — text outside every box will not be transcribed.</div>'+
-        '<div class="bf-note" style="margin-top:10px;line-height:1.8"><b>Reading order</b><br>'+
-        '<b>o</b> · ⇢ ORDER — click boxes in the order they are read; Enter ends a group<br>'+
-        'drag across empty page to pick boxes · <b>g</b> make them one group · <b>j</b> add them to the selected group<br>'+
-        'drag a box’s label (7.2) onto another box — it joins that group, read right after it<br>'+
-        'drag a group in the list to move it earlier or later on the page · ⤳ PATH shows the order between groups</div>';
+        '<div class="bf-note" style="margin-top:10px">To fix grouping and reading order: ⇢ ORDER (<b>o</b>) — click boxes in the order they are read. '+
+        '<b>? TIPS</b> in the toolbar lists every tool and shortcut.</div>';
     }
 
     function bindPanel(el){
@@ -2818,6 +2893,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
         (multi.length ? '<button data-a="group" title="Make the picked boxes one group (g)">GROUP '+multi.length+'</button>'+
                         '<button data-a="join"'+(selGi>=0?'':' disabled')+' title="Add the picked boxes to the selected group (j)">ADD TO '+(selGi>=0?selGi+1:'…')+'</button>' : '')+
         '<button data-a="undo"'+(hist.length?'':' disabled')+' title="Undo (⌘Z)">UNDO</button>'+
+        '<button data-a="tips"'+(tipsEl?' class="pri"':'')+' title="How the box tools and shortcuts work (?)">? TIPS</button>'+
         '<span class="msg" id="bf-msg"></span>';
       bar.querySelector('[data-a="draw"]').onclick=function(){ if(seqOn) armSeq(false); armDraw(!drawArmed); };
       bar.querySelector('[data-a="seq"]').onclick=function(){ armSeq(!seqOn); };
@@ -2828,6 +2904,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       var bg=bar.querySelector('[data-a="group"]'); if(bg) bg.onclick=groupMulti;
       var bj=bar.querySelector('[data-a="join"]'); if(bj) bj.onclick=joinMulti;
       bar.querySelector('[data-a="undo"]').onclick=undo;
+      bar.querySelector('[data-a="tips"]').onclick=toggleTips;
       paintBarMsg();
     }
     function paintBarMsg(){ var m=document.getElementById('bf-msg'); if(m) m.textContent=hoverMsg||saveMsg||'autosaves every correction'; }
