@@ -809,6 +809,37 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bf-gaprow .w{flex:none;font-family:var(--mono);font-size:10.5px;color:var(--danger);min-width:52px}
 .bf-gaprow .s{flex:1;min-width:0;color:var(--secondary);font-style:italic}
 .bf-gaprow button{flex:none}
+
+/* ── ⌫ clear page (modal) ────────────────────────────────────────────────────
+   Taking a page back is destructive, so the modal says exactly what goes and what
+   the page becomes before anything is deleted. Red rule on top = destructive. */
+.cm-back{position:fixed;inset:0;z-index:1000;background:rgba(15,18,21,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.cm{background:var(--canvas);width:min(580px,100%);max-height:calc(100vh - 32px);overflow:auto;border-top:3px solid var(--danger);
+  box-shadow:0 18px 50px rgba(15,18,21,.28);padding:20px 24px 18px;font-family:var(--sans);font-size:13px;color:var(--body);line-height:1.5}
+.cm h3{margin:0 0 2px;font-family:var(--serif);font-size:21px;font-weight:600;color:var(--ink)}
+.cm .sub{font-family:var(--mono);font-size:10.5px;color:var(--tertiary);margin-bottom:14px}
+.cm .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.cm .presets button{font-family:var(--sans);font-size:11.5px;font-weight:600;padding:6px 10px;border:1px solid var(--hair-2);background:#fff;color:var(--secondary);cursor:pointer;border-radius:2px}
+.cm .presets button:hover{border-color:var(--brand);color:var(--brand)}
+.cm .sec{border-top:1px solid var(--hair);padding:12px 0 4px;margin-top:10px}
+.cm .lab{font-weight:700;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary);margin-bottom:8px}
+.cm label.opt{display:flex;gap:9px;align-items:flex-start;padding:4px 0;cursor:pointer}
+.cm label.opt input{margin-top:3px;flex:none}
+.cm label.opt.off{color:var(--tertiary);cursor:not-allowed}
+.cm .det{padding:8px 0 6px;border-top:1px dashed var(--hair)}
+.cm .det:first-of-type{border-top:0}
+.cm .det .dh{display:flex;justify-content:space-between;gap:10px;font-weight:600;color:var(--ink)}
+.cm .det .dh .st{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--tertiary);text-transform:uppercase;letter-spacing:.08em}
+.cm .det .opts{display:flex;gap:18px;flex-wrap:wrap;padding-left:2px}
+.cm .note{font-family:var(--mono);font-size:10.5px;color:var(--tertiary);margin:2px 0 4px}
+.cm .warn{border-left:3px solid var(--danger);background:rgba(196,70,47,.06);padding:8px 10px;margin:8px 0;font-size:12.5px}
+.cm .warn.soft{border-color:var(--warn);background:rgba(197,138,0,.07)}
+.cm .result{background:var(--sunken);padding:10px 12px;margin-top:12px;font-size:12.5px}
+.cm .result b{color:var(--ink)}
+.cm .err{color:var(--danger);font-family:var(--mono);font-size:11px;margin-top:8px}
+.cm .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.vbtn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.vbtn.danger:hover{filter:brightness(.92)}
 </style>
 </head>
 <body>
@@ -944,6 +975,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <button class="tbtn on" id="sl-toggle" title="Hide the section list">◨</button>
               <button class="tbtn" id="bx-fill" title="Fill every visible region (F)">▣</button>
               <button class="tbtn" id="bx-obj" title="Colour each object's boxes and number them, as in box-first review">◐</button>
+              <button class="tbtn" id="pg-clear" title="Clear this page — its transcription, its boxes, or both…" hidden>⌫</button>
               <span class="tsep"></span>
               <div class="zoomctl">
                 <button id="zm-out" title="Zoom out (⌘ + scroll down)">−</button>
@@ -1474,6 +1506,10 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
             var e = allPages.find(function(p){ return Number(p.record) === record; });
             if (e) { e.status = pg.state.status; e.object_count = (pg.objects||[]).length; }
           }
+          // ⌫ is offered on any page that has something to take back
+          var clr = document.getElementById('pg-clear');
+          if (clr) { clr.hidden = !(pg.state && (pg.state.status === 'done' || pg.state.status === 'review' || pg.state.status === 'error'));
+                     clr.onclick = openClearModal; }
           if (pg.state && pg.state.status === 'done' && pg.objects.length) render(buildD(pg));
           // a page under box-first review (SLICE-14) reopens where the curator left it
           else if (pg.state && pg.state.status === 'review') openBoxFirst(pg);
@@ -1591,6 +1627,149 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           loadPage();
         })
         .catch(function(e){ progressBar(0, 'Import failed: '+e.message); });
+    }
+
+    // ── ⌫ clear page ──────────────────────────────────────────────────────
+    // One button, one modal. The service reports what the page holds (objects,
+    // the curator work on them, one box proposal per detector); the curator picks
+    // what goes; the modal says what the page will BE afterwards, and asks for an
+    // explicit acknowledgement when curator work would be deleted. What the page
+    // becomes is decided server-side from what is left (clearPage.ts).
+    function openClearModal(){
+      var back = document.createElement('div'); back.className = 'cm-back';
+      back.innerHTML = '<div class="cm" role="dialog" aria-modal="true" aria-label="Clear this page"><div class="note">reading the page…</div></div>';
+      document.body.appendChild(back);
+      var box = back.querySelector('.cm');
+      function close(){ document.removeEventListener('keydown', onKey); back.remove(); }
+      function onKey(ev){ if(ev.key === 'Escape'){ ev.preventDefault(); close(); } }
+      document.addEventListener('keydown', onKey);
+      back.addEventListener('mousedown', function(ev){ if(ev.target === back) close(); });
+
+      fetch(API + '/api/page/clear?collection=' + encodeURIComponent(collection) + '&record=' + record)
+        .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error || ('HTTP '+r.status)); return j; }); })
+        .then(function(plan){ draw(plan); })
+        .catch(function(e){ box.innerHTML = '<div class="err">could not read the page — '+esc(e.message)+'</div><div class="acts"><button class="vbtn" data-a="cancel">Close</button></div>';
+                            box.querySelector('[data-a="cancel"]').onclick = close; });
+
+      function draw(plan){
+        var sel = { transcription:false, boxes:{}, ack:false }, err = '';
+        plan.proposals.forEach(function(p){ sel.boxes[p.detector] = { detector:false, drawn:false }; });
+        var hasText = plan.objects > 0;
+        var n = function(k, one, many){ return k+' '+(k===1 ? one : (many || one+'s')); };
+        // The proposal a transcription was read from keeps its boxes while the
+        // transcription stays — the service refuses otherwise; so does the modal.
+        function locked(p){ return p.status === 'used' && hasText && !sel.transcription; }
+        function preset(which){
+          sel.transcription = hasText;
+          plan.proposals.forEach(function(p){ sel.boxes[p.detector] = { detector: which==='all' && p.detectorBoxes>0, drawn: which==='all' && p.drawn>0 }; });
+          paint();
+        }
+        function leftAfter(){
+          var textLeft = hasText && !sel.transcription;
+          var props = plan.proposals.filter(function(p){
+            var b = sel.boxes[p.detector];
+            return (b.detector ? 0 : p.detectorBoxes) + (b.drawn ? 0 : p.drawn) > 0;
+          });
+          return { textLeft:textLeft, props:props };
+        }
+        function anything(){
+          return (hasText && sel.transcription) || plan.proposals.some(function(p){ var b=sel.boxes[p.detector]; return b.detector || b.drawn; });
+        }
+        function resultHtml(){
+          if(!anything()) return 'Nothing selected yet.';
+          var a = leftAfter(), gone = [];
+          if(hasText && sel.transcription) gone.push(n(plan.objects, 'object')+' and their enrichment');
+          plan.proposals.forEach(function(p){
+            var b = sel.boxes[p.detector];
+            var none = (b.detector ? 0 : p.detectorBoxes) + (b.drawn ? 0 : p.drawn) === 0;
+            if((b.detector || b.drawn) && none) gone.push('all '+esc(p.label)+' boxes and groups');
+            else if(b.detector) gone.push(n(p.detectorBoxes, esc(p.label)+' detector box', esc(p.label)+' detector boxes'));
+            else if(b.drawn) gone.push(n(p.drawn, 'hand-drawn '+esc(p.label)+' box', 'hand-drawn '+esc(p.label)+' boxes'));
+          });
+          var becomes = a.textLeft ? 'stays <b>transcribed</b>'
+            : a.props.length ? 'goes back to <b>box-first review</b>, on the '+esc((a.props.filter(function(p){ return p.detector===plan.detector; })[0] || a.props[0]).label)+' boxes'
+            : 'becomes <b>un-ingested</b> — as if it had never been touched';
+          return 'Deletes '+gone.join('; ')+'.<br>The page '+becomes+'.';
+        }
+        function paint(){
+          var modeNote = plan.mode === 'page-first'
+            ? '<div class="warn soft">This page was read <b>page-first</b>, a retired method. Once cleared it can only come back box-first.</div>'
+            : plan.mode === 'import'
+            ? '<div class="warn soft">This page was <b>imported from JSON</b>. To get it back as it is, you would import the file again.</div>' : '';
+          var workHtml = (hasText && sel.transcription && plan.work.length)
+            ? '<div class="warn">Curator work on these objects will be deleted: <b>'+plan.work.map(function(w){ return w.n+' '+esc(w.label); }).join(', ')+'</b>'+
+              (plan.work.some(function(w){ return w.label==='published'; }) ? '. Published objects leave the patron app.' : '.')+
+              '<label class="opt" style="margin-top:6px"><input type="checkbox" data-k="ack"'+(sel.ack?' checked':'')+'> I understand this work will be lost</label></div>' : '';
+          var h = '<h3>Clear this page</h3>'+
+            '<div class="sub">'+esc(issueId)+' · P.'+pageNum+' · '+esc(plan.mode || 'not ingested')+' · '+esc(plan.status || '—')+'</div>';
+          // shortcuts for the two common cases
+          h += '<div class="presets">'+
+            (hasText && plan.proposals.length ? '<button data-p="text">Re-review: clear the transcription, keep the boxes</button>' : '')+
+            '<button data-p="all">Start over: clear everything</button></div>';
+          if(hasText){
+            h += '<div class="sec"><div class="lab">Transcription</div>'+
+              '<label class="opt"><input type="checkbox" data-k="transcription"'+(sel.transcription?' checked':'')+'> '+
+              '<span>Clear the transcription — '+n(plan.objects, 'object')+', with their topics, names, events and every correction</span></label>'+
+              modeNote + workHtml + '</div>';
+          }
+          if(plan.proposals.length){
+            h += '<div class="sec"><div class="lab">Boxes</div>';
+            plan.proposals.forEach(function(p){
+              var b = sel.boxes[p.detector], lk = locked(p);
+              var st = p.status === 'used' ? 'transcribed from these' : p.status === 'superseded' ? 'not used' : 'in review';
+              h += '<div class="det"><div class="dh"><span>'+esc(p.label)+'</span><span class="st">'+st+' · '+n(p.groups, 'group')+'</span></div>'+
+                '<div class="opts">'+
+                  '<label class="opt'+(lk||!p.detectorBoxes?' off':'')+'"><input type="checkbox" data-d="'+esc(p.detector)+'" data-w="detector"'+
+                    (b.detector?' checked':'')+(lk||!p.detectorBoxes?' disabled':'')+'> '+
+                    n(p.detectorBoxes, 'detector box', 'detector boxes')+(p.moved ? ' ('+p.moved+' moved by you)' : '')+'</label>'+
+                  '<label class="opt'+(lk||!p.drawn?' off':'')+'"><input type="checkbox" data-d="'+esc(p.detector)+'" data-w="drawn"'+
+                    (b.drawn?' checked':'')+(lk||!p.drawn?' disabled':'')+'> '+
+                    n(p.drawn, 'box you drew', 'boxes you drew')+'</label>'+
+                '</div>'+
+                (lk ? '<div class="note">The transcription was read from these boxes — clear it too to clear them.</div>'
+                    : '<div class="note">Groups keep their other boxes; a group left empty goes.</div>')+
+                '</div>';
+            });
+            h += '</div>';
+          } else if(!hasText){
+            h += '<div class="sec"><div class="note">Nothing on this page to clear.</div></div>';
+          } else {
+            h += '<div class="sec"><div class="lab">Boxes</div><div class="note">No detector boxes — this page was not ingested box-first. Its regions go with its transcription.</div></div>';
+          }
+          if(!hasText) h += modeNote;
+          h += '<div class="result">'+resultHtml()+'</div>'+(err ? '<div class="err">'+esc(err)+'</div>' : '');
+          var needAck = hasText && sel.transcription && plan.work.length && !sel.ack;
+          h += '<div class="acts"><button class="vbtn" data-a="cancel">Cancel</button>'+
+            '<button class="vbtn danger" data-a="go"'+(anything() && !needAck ? '' : ' disabled')+'>Clear</button></div>';
+          box.innerHTML = h;
+
+          box.querySelectorAll('[data-p]').forEach(function(bt){ bt.onclick = function(){ preset(bt.dataset.p); }; });
+          box.querySelectorAll('input[data-k]').forEach(function(inp){ inp.onchange = function(){
+            sel[inp.dataset.k] = inp.checked;
+            if(inp.dataset.k === 'transcription' && !inp.checked){
+              sel.ack = false;
+              plan.proposals.forEach(function(p){ if(locked(p)) sel.boxes[p.detector] = { detector:false, drawn:false }; });
+            }
+            paint();
+          }; });
+          box.querySelectorAll('input[data-d]').forEach(function(inp){ inp.onchange = function(){ sel.boxes[inp.dataset.d][inp.dataset.w] = inp.checked; paint(); }; });
+          box.querySelector('[data-a="cancel"]').onclick = close;
+          box.querySelector('[data-a="go"]').onclick = go;
+        }
+        function go(){
+          var btn = box.querySelector('[data-a="go"]'); btn.disabled = true; btn.textContent = 'Clearing…';
+          fetch(API + '/api/page/clear', { method:'POST', headers:{'content-type':'application/json'},
+            body: JSON.stringify({ collection:collection, record:record, transcription: hasText && sel.transcription,
+                                   boxes: sel.boxes, acknowledge: sel.ack }) })
+            .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error || ('HTTP '+r.status)); return j; }); })
+            // the page's whole screen changes with its state (transcribed / review /
+            // un-ingested), and box-first review holds its own copy of the boxes —
+            // reloading is the one way every part of it is guaranteed current
+            .then(function(){ location.reload(); })
+            .catch(function(e){ err = 'not cleared — '+e.message; paint(); });
+        }
+        paint();
+      }
     }
 
     function progressBar(pct, msg){

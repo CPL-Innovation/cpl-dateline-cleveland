@@ -28,11 +28,18 @@ npm run server                 # the ingestion service on :5170; applies migrati
 npm run detect:models          # fetch detector weights into models/ (gitignored) + uv sync
 npm run detect -- 7618         # every detector on one page → out/detect/7618/<detector>.jpg|json
 npm run detect -- 7618 --detector pp-doclayout
-npm run reset-page -- 7600 --dry   # clear an ingested page so it can go through box-first again
+npm run reset-page -- 7600 --dry   # take a page back to un-ingested (transcription + all boxes)
 ```
 
-`reset-page` refuses any page carrying curator work (hand-drawn regions, corrected text, reviews,
-notes, titles, publications, accepted re-reads or summaries) and says what is on it.
+**Clearing a page** (`src/lib/clearPage.ts`). The workbench's ⌫ *Clear page…* opens a modal that
+lists what the page holds and clears any part of it: the transcription (objects, their enrichment
+and every correction), and per detector, its boxes and/or the boxes a curator drew. What the page
+becomes follows from what is left: objects left → still transcribed; boxes left → back in box-first
+review; nothing → un-ingested. The proposal a transcription was read from keeps its boxes while the
+transcription stays, and clearing a transcription with curator work on it (corrected text, reviews,
+notes, titles, publications, accepted re-reads or summaries, regions corrected after
+transcription) needs an explicit acknowledgement. `reset-page` is the command-line version of
+"clear everything"; it refuses any page with curator work rather than asking.
 
 Endpoints are listed in the header of `src/server.ts`. The server does not hot-reload: restart it
 after changing anything under `src/`.

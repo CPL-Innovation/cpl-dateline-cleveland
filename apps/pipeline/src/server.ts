@@ -9,6 +9,10 @@
 //   POST /api/import?collection=&pointer=&issueId=&record=&page=  body: objects JSON
 //                                            → the page, stored as supplied (mode 'import')
 //
+//   GET  /api/page/clear?collection=&record= → what the page holds: objects, curator work, box proposals
+//   POST /api/page/clear {collection, record, transcription, boxes:{<detector>:{detector,drawn}}, acknowledge}
+//                                            → clears them; the page becomes done / review / un-ingested by what is left
+//
 // Ingestion is box-first (SLICE-14) — detect → group → curator review → transcribe.
 // Page-first (GET /api/ingest: one whole-page VLM read) is retired; its pages stay.
 //   GET  /api/boxfirst/detectors             → [{ id, label, note, available }]
@@ -34,6 +38,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { readFile } from "node:fs/promises";
 import { INGEST_PORT, CATALOG_JSON, iiifId } from "./config.ts";
 import { reextractObject } from "./lib/reextract.ts";
+import { pagePlan, clearPage, ClearRefused } from "./lib/clearPage.ts";
 import { resummarize, setObjectSummary } from "./lib/resummarize.ts";
 import { migrate, query, closePool, getPool } from "./lib/pg.ts";
 import { importPage, getPageObjects, setObjectRegion, setObjectText, setObjectReview, setObjectTitle, replaceObjectRawText, deleteObject, RightsBlocked } from "./lib/ingestPage.ts";
@@ -359,6 +364,27 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     } catch (e) {
       if (e instanceof RightsBlocked) return json(res, 403, { rights: true, error: (e as Error).message });
       return json(res, 400, { error: (e as Error).message });
+    }
+  }
+
+  // Take a page back: its transcription, its boxes, or both (clearPage.ts).
+  // GET → what the page holds and what clearing it would cost; POST → do it.
+  if (url.pathname === "/api/page/clear") {
+    const collection = q.get("collection") ?? "p16014coll5";
+    try {
+      if (req.method === "GET") {
+        const record = Number(q.get("record"));
+        if (!record) return json(res, 400, { error: "record required" });
+        return json(res, 200, await pagePlan(collection, record));
+      }
+      if (req.method === "POST") {
+        const body = JSON.parse(await readBody(req));
+        const record = Number(body.record);
+        if (!record) return json(res, 400, { error: "record required" });
+        return json(res, 200, await clearPage(body.collection ?? collection, record, body));
+      }
+    } catch (e) {
+      return json(res, e instanceof ClearRefused ? 409 : 400, { error: (e as Error).message });
     }
   }
 
