@@ -129,3 +129,35 @@ input {
 @media (prefers-reduced-motion: reduce) {
   .dc-region-glow { animation: none; }
 }
+
+/* Chrome that is nice to have and first to go when the window is narrow. */
+@media (max-width: 1240px) {
+  .dc-hide-narrow { display: none !important; }
+}
+
+/* ── the reading-room assistant's call button ─────────────────────────────────
+   When the panel closes it flies into this button (IssueChat), which then lands:
+   a springy pop, and a marigold ring that pulses out three times — so the patron
+   sees where the conversation went and that it can be brought back. */
+.dc-fab { transition: filter 0.15s ease; }
+.dc-fab:hover { filter: brightness(1.1); }
+@keyframes dc-fab-pop {
+  0%   { transform: scale(0.55); }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes dc-fab-ring {
+  from { box-shadow: 0 8px 24px rgba(0, 40, 90, 0.28), 0 0 0 0 rgba(241, 196, 0, 0.8); }
+  to   { box-shadow: 0 8px 24px rgba(0, 40, 90, 0.28), 0 0 0 20px rgba(241, 196, 0, 0); }
+}
+.dc-fab-land {
+  transform-origin: calc(100% - 28px) 50%;
+  animation: dc-fab-pop 0.25s cubic-bezier(0.3, 1.5, 0.5, 1) both, dc-fab-ring 0.55s ease-out 0.1s 3;
+}
+.dc-composer { transition: border-color 0.12s ease, box-shadow 0.12s ease; }
+.dc-composer:focus-within { border-color: var(--dc-navy) !important; box-shadow: inset 0 -2px 0 var(--dc-navy); }
+.dc-chat-chip { transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease; }
+.dc-chat-chip:hover { border-color: var(--dc-navy) !important; color: var(--dc-navy) !important; background: var(--dc-sunken) !important; }
+@media (prefers-reduced-motion: reduce) {
+  .dc-fab-land { animation: none; }
+}

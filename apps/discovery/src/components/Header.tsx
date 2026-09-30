@@ -14,7 +14,9 @@ interface Props {
 
 const disclaimer: Record<DatasetMode, string> = {
   mock: 'CONCEPT DEMO · MOCK DATA — HAND-AUTHORED FROM THE DRY-RUN MATERIAL & CLEVELAND SCENE, JUL 1970',
-  real: 'REAL DATA · PIPELINE OUTPUT — BROOKLYN NEWS, FEB 1 1924 · VLM-TRANSCRIBED, TYPED & ENRICHED (TOPICS · NAMES · EVENTS) · MACHINE-EXTRACTED, CURATOR-REVIEWABLE',
+  // It used to name one issue (Brooklyn News, Feb 1 1924) — true on the day it was
+  // written, and wrong from the second issue ingested on.
+  real: 'REAL DATA · PIPELINE OUTPUT — AI-TRANSCRIBED & ENRICHED FROM CPL SCANS · PUBLISHED BY A CURATOR, ITEM BY ITEM',
 };
 
 export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: Props) {
@@ -28,6 +30,8 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
           color: active ? C.navy : C.secondary,
           borderBottom: `3px solid ${active ? C.marigold : 'transparent'}`,
           paddingBottom: 4,
+          // "THIS WEEK, THEN" stacked itself three lines deep when the bar got tight.
+          whiteSpace: 'nowrap',
         }}
       >
         {label}
@@ -36,25 +40,42 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
   };
 
   const stub = (label: string) => (
-    <span style={{ color: C.secondary, paddingBottom: 4, borderBottom: '3px solid transparent' }}>{label}</span>
+    <span style={{ color: C.secondary, paddingBottom: 4, borderBottom: '3px solid transparent', whiteSpace: 'nowrap' }}>{label}</span>
   );
 
   return (
     <>
-      {/* Disclaimer / provenance strip */}
+      {/* Provenance strip — what data this is, and the two tools that aren't for
+          patrons: which dataset to show, and the way into the staff workbench.
+          They lived in the main bar, where they pushed the nav into wrapping. */}
       <div style={{ background: C.sunken, borderBottom: `1px solid ${C.hairLight}` }}>
         <div
           className="dc-shell"
           style={{
-            padding: '6px 32px',
+            padding: '4px 32px',
+            display: 'flex', alignItems: 'center', gap: 16,
             fontFamily: MONO,
             fontSize: 10,
             letterSpacing: '0.08em',
             color: C.tertiary,
-            textAlign: 'center',
           }}
         >
-          {disclaimer[mode]}
+          <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={disclaimer[mode]}>
+            {disclaimer[mode]}
+          </span>
+          <DatasetToggle mode={mode} onMode={onMode} />
+          <a
+            href={staffHref}
+            className="dc-underline-hover"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate('staff');
+            }}
+            style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', color: C.navy, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
+            title="Staff editorial workbench — the enrichment pipeline interface (/staff)"
+          >
+            STAFF WORKBENCH ↗
+          </a>
         </div>
       </div>
 
@@ -62,7 +83,7 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
       <div style={{ borderBottom: `1px solid ${C.hairLight}`, background: C.canvas }}>
         <div
           className="dc-shell"
-          style={{ padding: '16px 32px', display: 'flex', alignItems: 'center', gap: 40 }}
+          style={{ padding: '14px 32px', display: 'flex', alignItems: 'center', gap: 32 }}
         >
           <div
             className="dc-clickable"
@@ -72,7 +93,7 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
             <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 24, lineHeight: 1, color: C.navy }}>
               Dateline Cleveland
             </div>
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', color: C.tertiary }}>
+            <div className="dc-hide-narrow" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', color: C.tertiary }}>
               1892–1975
             </div>
           </div>
@@ -80,12 +101,12 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
           <div
             style={{
               display: 'flex',
-              gap: 28,
+              gap: 24,
               alignItems: 'center',
               fontFamily: SANS,
               fontSize: 12.5,
               fontWeight: 600,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.08em',
               marginTop: 2,
             }}
           >
@@ -100,7 +121,6 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
           <div style={{ flex: 1 }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-            <DatasetToggle mode={mode} onMode={onMode} />
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -128,7 +148,8 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
                   border: `1px solid ${page === 'search' ? C.navy : C.hairMed}`,
                   background: C.canvas,
                   color: C.body,
-                  width: 200,
+                  // gives way first when the bar is tight, so the nav never has to
+                  width: 'clamp(150px, 17vw, 240px)',
                   borderRadius: 0,
                   outline: 'none',
                 }}
@@ -174,28 +195,6 @@ export function Header({ page, mode, onNav, onMode, query, onQuery, onSearch }: 
                 ⌕
               </button>
             </form>
-            <a
-              href={staffHref}
-              className="dc-btn-ghost"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('staff');
-              }}
-              style={{
-                fontFamily: SANS,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                color: C.secondary,
-                textDecoration: 'none',
-                border: `1px solid ${C.hairMed}`,
-                padding: '7px 12px',
-                whiteSpace: 'nowrap',
-              }}
-              title="Staff editorial workbench — the enrichment pipeline interface (/staff)"
-            >
-              STAFF · WORKBENCH ↗
-            </a>
           </div>
         </div>
       </div>
@@ -211,10 +210,10 @@ function DatasetToggle({ mode, onMode }: { mode: DatasetMode; onMode: (m: Datase
         onClick={() => onMode(m)}
         style={{
           fontFamily: MONO,
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: active ? 700 : 500,
           letterSpacing: '0.1em',
-          padding: '6px 10px',
+          padding: '3px 8px',
           background: active ? C.navy : C.canvas,
           color: active ? C.canvas : C.secondary,
           border: 'none',

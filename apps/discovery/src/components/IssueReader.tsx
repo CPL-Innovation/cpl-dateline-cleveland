@@ -49,14 +49,21 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
   // beside it as a second column. Docking is a preference the patron keeps
   // between visits, but it only takes effect where two columns fit — below
   // that the same conversation simply floats.
-  const [chatOpen, setChatOpen] = useState(false);
+  // Open by default wherever it can sit BESIDE the page and has something to
+  // read — a feature nobody opens is a feature nobody knows about. A patron who
+  // closes it has said so; that sticks. On a narrow window it would float over
+  // the text, so there it starts folded into its (labelled) button instead.
+  const assistantLive = dataset.mode === 'real' && issue.pointer != null && issue.publishedCount > 0;
+  const [chatOpen, setChatOpenState] = useState(false);
+  const setChatOpen = (o: boolean) => { setChatOpenState(o); writeOpenPref(o); };
   const [dockPref, setDockPref] = useState(readDockPref);
   const wide = useMedia(`(min-width: ${DOCK_MIN_VIEWPORT}px)`);
   const docked = dockPref && wide;
   const [dockSlot, setDockSlot] = useState<HTMLElement | null>(null);
   const setDocked = (d: boolean) => { setDockPref(d); writeDockPref(d); };
-  // A new book starts with the assistant closed, as it always has.
-  useEffect(() => { setChatOpen(false); }, [issue.key]);
+  useEffect(() => {
+    setChatOpenState(assistantLive && readOpenPref() && window.matchMedia(`(min-width: ${DOCK_MIN_VIEWPORT}px)`).matches);
+  }, [issue.key, assistantLive]);
   const columnOpen = chatOpen && docked;
 
   // READ scrolls the document, so the docked column is FIXED to the window —
@@ -121,10 +128,25 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
       if (e.key === 'ArrowLeft' && prev) { e.preventDefault(); onPage(prev.page); }
       else if (e.key === 'ArrowRight' && next) { e.preventDefault(); onPage(next.page); }
       else if (e.key === 'Escape') onBack();
+      // V flips between the text and the scan — the comparison is the point, so
+      // it should cost one key, not a trip to the bar.
+      else if ((e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault(); onView(view === 'read' ? 'scan' : 'read');
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [prev, next, onPage, onBack]);
+  }, [prev, next, onPage, onBack, onView, view]);
+
+  // In READ the page's own masthead names the issue, so the bar doesn't repeat
+  // it — until the masthead scrolls away under the bar, when the bar takes over.
+  // SCAN has no masthead: there the bar always carries the name.
+  const [mastheadInView, setMastheadInView] = useState(true);
+  useEffect(() => { if (view !== 'read') setMastheadInView(true); }, [view]);
+
+  // A flight belongs to the trip into SCAN that asked for it. Back in READ it is
+  // spent — otherwise the next plain switch to SCAN would replay it.
+  useEffect(() => { if (view === 'read') setFlight(null); }, [view]);
 
   // Following a citation answers "where did that come from?" in the register the
   // reader is already in. In SCAN the book turns to the page and the scan flies
@@ -143,6 +165,13 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
     if (view !== 'read') onView('read');
     if (item.printedPage && item.printedPage !== pageNumber) onPage(item.printedPage);
     setCited(objectId);
+  };
+
+  // "See it on the page": the same flight a citation takes — into SCAN, onto the
+  // item's box, lit.
+  const seeOnPage = (objectId: string) => {
+    onView('scan');
+    setFlight((f) => ({ id: objectId, n: (f?.n ?? 0) + 1 }));
   };
 
   if (!page) return null;
@@ -170,6 +199,7 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
       onPage={onPage}
       prev={prev}
       next={next}
+      showTitle={view === 'scan' || !mastheadInView}
     />
   );
 
@@ -213,8 +243,6 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
             reading column re-centres in what is left. The bar stays full width —
             it belongs to the book, not to either column. */}
         <div style={{ marginRight: columnOpen ? DOCK_W : 0 }}>
-          <Filmstrip issue={issue} current={page.page} onPage={onPage} />
-
           {(
             <ReadView
               issue={issue}
@@ -226,6 +254,8 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
               prev={prev}
               next={next}
               cited={cited}
+              onSeeOnPage={seeOnPage}
+              onMasthead={setMastheadInView}
             />
           )}
         </div>
@@ -249,9 +279,18 @@ const DOCK_W = 440;
 // column would squeeze the page rather than sit beside it.
 const DOCK_MIN_VIEWPORT = 1200;
 const DOCK_KEY = 'dc-assistant-docked';
+const OPEN_KEY = 'dc-assistant-open';
 
+// Docked unless the patron has chosen to float it: beside the page is where an
+// assistant that opens by default belongs.
 function readDockPref(): boolean {
-  try { return localStorage.getItem(DOCK_KEY) === '1'; } catch { return false; }
+  try { return localStorage.getItem(DOCK_KEY) !== '0'; } catch { return true; }
+}
+function readOpenPref(): boolean {
+  try { return localStorage.getItem(OPEN_KEY) !== '0'; } catch { return true; }
+}
+function writeOpenPref(o: boolean) {
+  try { localStorage.setItem(OPEN_KEY, o ? '1' : '0'); } catch { /* a preference, not state */ }
 }
 function writeDockPref(d: boolean) {
   try { localStorage.setItem(DOCK_KEY, d ? '1' : '0'); } catch { /* a preference, not state */ }
@@ -272,38 +311,36 @@ function useMedia(query: string): boolean {
 /* ── chrome ────────────────────────────────────────────────────────────────── */
 
 function ReaderBar({
-  issue, page, view, onView, onBack, onPage, prev, next,
+  issue, page, view, onView, onBack, onPage, prev, next, showTitle,
 }: {
   issue: ShelfIssue; page: ShelfPage; view: ReaderView;
   onView: (v: ReaderView) => void; onBack: () => void; onPage: (n: number) => void;
-  prev?: ShelfPage; next?: ShelfPage;
+  prev?: ShelfPage; next?: ShelfPage; showTitle: boolean;
 }) {
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 20, background: C.canvas, borderBottom: `1px solid ${C.hairMed}` }}>
-      <div className="dc-shell" style={{ padding: '14px 32px 12px', display: 'flex', alignItems: 'center', gap: 24 }}>
-        <button className="dc-underline-hover" onClick={onBack} style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', color: C.navy, flexShrink: 0 }}>
-          ← BACK TO THE STACKS
+      <div className="dc-shell" style={{ padding: '10px 32px', minHeight: 58, display: 'flex', alignItems: 'center', gap: 20 }}>
+        <button className="dc-underline-hover" onClick={onBack} title="Back to the stacks (Esc)" style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', color: C.navy, flexShrink: 0, whiteSpace: 'nowrap' }}>
+          ← THE STACKS
         </button>
 
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 19, lineHeight: 1.2, color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {issue.serial} <span style={{ color: C.tertiary }}>·</span> {issue.dateLabel}
-          </div>
-          <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: C.tertiary, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {issue.title.toUpperCase()}
-          </div>
+        {/* The issue's name, when nothing else on screen is saying it. */}
+        <div
+          aria-hidden={!showTitle}
+          style={{
+            minWidth: 0, flex: 1, display: 'flex', alignItems: 'baseline', gap: 8,
+            opacity: showTitle ? 1 : 0, transform: showTitle ? 'none' : 'translateY(3px)',
+            transition: 'opacity 160ms ease, transform 160ms ease',
+            borderLeft: `1px solid ${C.hairLight}`, paddingLeft: 20,
+          }}
+        >
+          <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 17, lineHeight: 1.2, color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {issue.serial} <span style={{ color: C.tertiary, fontWeight: 400 }}>·</span> {issue.dateLabel}
+          </span>
         </div>
 
-        <ViewToggle view={view} onView={onView} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-          <PagerButton label="‹" title="Previous page (←)" onClick={() => prev && onPage(prev.page)} disabled={!prev} />
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: C.secondary, minWidth: 96, textAlign: 'center' }}>
-            PAGE {page.page} / {issue.pages.length}
-            {issue.pages.length !== issue.pageCount ? '*' : ''}
-          </div>
-          <PagerButton label="›" title="Next page (→)" onClick={() => next && onPage(next.page)} disabled={!next} />
-        </div>
+        <ViewSwitch view={view} page={page} onView={onView} />
+        <PagePicker issue={issue} page={page} onPage={onPage} prev={prev} next={next} />
       </div>
       {!issue.structureComplete && issue.pages.length !== issue.pageCount && (
         <div className="dc-shell" style={{ padding: '0 32px 8px', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: C.tertiary }}>
@@ -320,9 +357,10 @@ function PagerButton({ label, title, onClick, disabled }: { label: string; title
       onClick={onClick}
       disabled={disabled}
       title={title}
+      aria-label={title}
       className={disabled ? undefined : 'dc-btn-ghost'}
       style={{
-        fontFamily: MONO, fontSize: 15, lineHeight: 1, padding: '6px 12px',
+        fontFamily: MONO, fontSize: 15, lineHeight: 1, width: 32, height: 32,
         border: `1px solid ${disabled ? C.hairLight : C.hairMed}`,
         color: disabled ? C.hairMed : C.navy,
         cursor: disabled ? 'default' : 'pointer',
@@ -334,63 +372,139 @@ function PagerButton({ label, title, onClick, disabled }: { label: string; title
   );
 }
 
-function ViewToggle({ view, onView }: { view: ReaderView; onView: (v: ReaderView) => void }) {
-  const seg = (v: ReaderView, label: string, title: string) => {
+/**
+ * The two ways to see a page, named for what they ARE. "READ | SCAN" asked the
+ * patron to already know that the text was machine-read off a scan; this says
+ * so — and the scan side wears a thumbnail of the actual leaf, so the difference
+ * between the two is visible before anyone clicks.
+ */
+function ViewSwitch({ view, page, onView }: { view: ReaderView; page: ShelfPage; onView: (v: ReaderView) => void }) {
+  const opt = (v: ReaderView, icon: React.ReactNode, label: string, title: string) => {
     const active = view === v;
     return (
       <button
         onClick={() => onView(v)}
         title={title}
+        aria-pressed={active}
+        className={active ? undefined : 'dc-btn-ghost'}
         style={{
-          fontFamily: MONO, fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: '0.1em',
-          padding: '6px 12px', background: active ? C.navy : C.canvas, color: active ? C.canvas : C.secondary, border: 'none',
+          display: 'flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px 0 9px', border: 'none',
+          background: active ? C.navy : C.canvas, color: active ? C.canvas : C.secondary,
+          fontFamily: SANS, fontSize: 12.5, fontWeight: 600, letterSpacing: '0.01em', whiteSpace: 'nowrap',
         }}
       >
+        {icon}
         {label}
       </button>
     );
   };
+  const textIcon = (
+    <svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true">
+      <rect x="0.75" y="0.75" width="14.5" height="18.5" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M4 5.5h8M4 8.5h8M4 11.5h8M4 14.5h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+  const scanIcon = page.thumb ? (
+    <img src={page.thumb} alt="" style={{ width: 16, height: 20, objectFit: 'cover', objectPosition: 'top center', display: 'block', border: `1px solid ${view === 'scan' ? C.canvas : C.hairMed}`, filter: 'grayscale(1)' }} />
+  ) : (
+    <svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true">
+      <rect x="0.75" y="0.75" width="14.5" height="18.5" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M3.5 4h9v4h-9zM3.5 10.5h4v6h-4zM9 10.5h3.5M9 13h3.5M9 15.5h3.5" stroke="currentColor" strokeWidth="1.1" />
+    </svg>
+  );
   return (
-    <div style={{ display: 'flex', border: `1px solid ${C.hairMed}`, flexShrink: 0 }}>
-      {seg('read', 'READ', 'The extracted text, set as a reading column')}
+    <div role="group" aria-label="How to view this page" style={{ display: 'flex', border: `1px solid ${C.hairMed}`, flexShrink: 0 }}>
+      {opt('read', textIcon, 'Transcribed text', 'The page’s text, transcribed by AI and set for reading (V)')}
       <div style={{ width: 1, background: C.hairMed }} />
-      {seg('scan', 'SCAN', 'The archival page image, as printed')}
+      {opt('scan', scanIcon, 'Original scan', 'The archival photograph of the printed page (V)')}
     </div>
   );
 }
 
-function Filmstrip({ issue, current, onPage }: { issue: ShelfIssue; current: number; onPage: (n: number) => void }) {
+/**
+ * ‹ PAGE 1 OF 4 ▾ › — the arrows turn a leaf, the label opens every leaf of the
+ * issue as thumbnails. This replaces a full-width filmstrip band that spent a
+ * hundred pixels of every READ page on four postage stamps.
+ */
+function PagePicker({
+  issue, page, onPage, prev, next,
+}: { issue: ShelfIssue; page: ShelfPage; onPage: (n: number) => void; prev?: ShelfPage; next?: ShelfPage }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    // Capture + stop: the reader closes the whole book on Esc.
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } };
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey, true);
+    return () => { document.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onKey, true); };
+  }, [open]);
+  useEffect(() => { setOpen(false); }, [page.page]);
+  const partial = issue.pages.length !== issue.pageCount;
+  const perRow = Math.min(6, issue.pages.length);
+
   return (
-    <div style={{ borderBottom: `1px solid ${C.hairLight}`, background: C.sunken }}>
-      <div className="dc-shell" style={{ padding: '10px 32px', display: 'flex', gap: 10, overflowX: 'auto' }}>
-        {issue.pages.map((p) => {
-          const active = p.page === current;
-          return (
-            <button
-              key={p.page}
-              onClick={() => onPage(p.page)}
-              title={`Page ${p.page}${p.publishedCount ? ` — ${p.publishedCount} published objects` : p.ingested ? ' — read, nothing published yet' : ' — not read by the pipeline yet'}`}
-              style={{ flexShrink: 0, width: 50, textAlign: 'center', opacity: p.ingested || p.thumb ? 1 : 0.55 }}
-            >
-              <div
-                style={{
-                  height: 62, border: `1px solid ${active ? C.navy : C.hairMed}`, outline: active ? `2px solid ${C.navy}` : 'none',
-                  background: p.thumb ? C.canvas : `repeating-linear-gradient(45deg, ${C.sunken}, ${C.sunken} 6px, ${C.canvas} 6px, ${C.canvas} 12px)`,
-                  overflow: 'hidden',
-                }}
-              >
-                {p.thumb && (
-                  <img src={p.thumb} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
-                )}
-              </div>
-              <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.04em', color: active ? C.navy : C.tertiary, marginTop: 4, fontWeight: active ? 700 : 400 }}>
-                {p.page}
-                {p.publishedCount ? '•' : ''}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+    <div ref={box} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+      <PagerButton label="‹" title="Previous page (←)" onClick={() => prev && onPage(prev.page)} disabled={!prev} />
+      <button
+        className="dc-btn-ghost"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        title="Every page of this issue"
+        style={{
+          height: 32, padding: '0 10px', border: `1px solid ${open ? C.navy : C.hairMed}`, background: C.canvas,
+          fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', color: C.secondary, whiteSpace: 'nowrap',
+        }}
+      >
+        PAGE {page.page} OF {issue.pages.length}{partial ? '*' : ''} <span style={{ color: C.tertiary, marginLeft: 3 }}>▾</span>
+      </button>
+      <PagerButton label="›" title="Next page (→)" onClick={() => next && onPage(next.page)} disabled={!next} />
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Pages of this issue"
+          style={{
+            position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 30,
+            background: C.canvas, border: `1px solid ${C.hairMed}`, borderTop: `3px solid ${C.navy}`,
+            boxShadow: '0 14px 36px rgba(15,18,21,0.16)', padding: '12px 14px 12px',
+          }}
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${perRow}, 62px)`, gap: 12 }}>
+            {issue.pages.map((p) => {
+              const active = p.page === page.page;
+              return (
+                <button
+                  key={p.page}
+                  onClick={() => { onPage(p.page); setOpen(false); }}
+                  title={`Page ${p.page}${p.publishedCount ? ` — ${p.publishedCount} published items` : p.ingested ? ' — read, nothing published yet' : ' — not read by the pipeline yet'}`}
+                  style={{ textAlign: 'center', opacity: p.ingested || p.thumb ? 1 : 0.55 }}
+                >
+                  <div
+                    style={{
+                      height: 80, border: `1px solid ${active ? C.navy : C.hairMed}`, outline: active ? `2px solid ${C.navy}` : 'none',
+                      background: p.thumb ? C.canvas : `repeating-linear-gradient(45deg, ${C.sunken}, ${C.sunken} 6px, ${C.canvas} 6px, ${C.canvas} 12px)`,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {p.thumb && (
+                      <img src={p.thumb} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
+                    )}
+                  </div>
+                  <div style={{ fontFamily: MONO, fontSize: 9.5, color: active ? C.navy : C.tertiary, marginTop: 4, fontWeight: active ? 700 : 400 }}>
+                    {p.page}{p.publishedCount ? ' •' : ''}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.05em', color: C.tertiary, marginTop: 10, borderTop: `1px solid ${C.hairLight}`, paddingTop: 8, whiteSpace: 'nowrap' }}>
+            • HAS PUBLISHED TEXT TO READ
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -452,7 +566,13 @@ function ScanView({
   }, [flight]);
   // Hiding the boxes closes the slip with them — a slip with nothing highlighted
   // behind it is an orphan.
-  useEffect(() => { if (!regionsOn) { setSelected(null); setGlow(null); } }, [regionsOn]);
+  // Only on the way OFF: on mount the boxes start off, and clearing then would
+  // blow out the glow a flight lit a moment earlier in the same commit.
+  const regionsWere = useRef(regionsOn);
+  useEffect(() => {
+    if (regionsWere.current && !regionsOn) { setSelected(null); setGlow(null); }
+    regionsWere.current = regionsOn;
+  }, [regionsOn]);
   // The slip docks against the right edge, where the assistant's call button sits.
   useEffect(() => { onSlip(!!chosen); return () => onSlip(false); }, [chosen, onSlip]);
 
@@ -1080,13 +1200,27 @@ type Size = 'lg' | 'md' | 'sm';
 const sizeFor = (cols: number): Size => (cols === 1 ? 'lg' : cols === 2 ? 'md' : 'sm');
 
 function ReadView({
-  issue, page, items, onOpenObject, onView, onPage, prev, next, cited,
+  issue, page, items, onOpenObject, onView, onPage, prev, next, cited, onSeeOnPage, onMasthead,
 }: {
   issue: ShelfIssue; page: ShelfPage; items: IndexItem[];
   onOpenObject: (id: string) => void; onView: (v: ReaderView) => void;
   onPage: (n: number) => void; prev?: ShelfPage; next?: ShelfPage;
   cited?: string | null;
+  /** Into SCAN, onto this item's box. */
+  onSeeOnPage: (id: string) => void;
+  /** Whether the masthead is on screen — the reader bar names the issue when it isn't. */
+  onMasthead: (inView: boolean) => void;
 }) {
+  const masthead = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = masthead.current;
+    if (!el) return;
+    // The top margin is the sticky reader bar: "in view" means visible BELOW it.
+    const io = new IntersectionObserver(([e]) => onMasthead(e.isIntersecting), { rootMargin: '-64px 0px 0px 0px' });
+    io.observe(el);
+    return () => { io.disconnect(); onMasthead(true); };
+  }, [onMasthead]);
+
   const [prefs, setPrefsState] = useState(readPrefs);
   const setPrefs = (p: Partial<ReadPrefs>) =>
     setPrefsState((was) => { const now = { ...was, ...p }; writePrefs(now); return now; });
@@ -1171,29 +1305,26 @@ function ReadView({
       {/* The page's own masthead — this is a leaf of a paper, not a search result.
           Set in columns, the leaf widens to the whole frame, masthead and all. */}
       <div style={{ maxWidth: wide ? 'none' : 760, margin: '0 auto', paddingTop: 44 }}>
-        <div style={{ textAlign: 'center', borderBottom: `2px solid ${C.navy}`, paddingBottom: 14 }}>
+        {/* The folio carries what the reader bar's catalogue line used to: volume,
+            number, the day, the page — set the way the paper set its own. */}
+        <div ref={masthead} style={{ textAlign: 'center', borderBottom: `2px solid ${C.navy}`, paddingBottom: 14 }}>
           <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: wide ? 46 : 40, lineHeight: 1.05, color: C.ink }}>
             {issue.serial}
           </div>
           <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.16em', color: C.secondary, marginTop: 10 }}>
-            {issue.dateLabel.toUpperCase()} · PAGE {page.page} OF {issue.pageCount}
+            {folio(issue, page)}
           </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, padding: '10px 0 0' }}>
-          <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', color: C.tertiary }}>
-            {items.length} OF {page.objectCount || items.length} EXTRACTED OBJECTS PUBLISHED
-            {filtered ? ` · SHOWING ${shown.length}` : ''}
-            {' · '}{prefs.order === 'type' ? 'GROUPED BY TYPE' : 'SET IN PRINTED ORDER'}
-          </div>
-          <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', color: C.tertiary, border: `1px solid ${C.hairMed}`, padding: '2px 7px', flexShrink: 0 }}>
-            TRANSCRIBED BY AI — MAY CONTAIN ERRORS
-          </div>
-        </div>
+
+        {items.length > 0 && (
+          <SourceStrip page={page} published={items.length} onView={onView} />
+        )}
 
         {items.length > 0 && (
           <ReadControls
             prefs={prefs} cols={cols} maxCols={maxCols} onPrefs={setPrefs}
             types={types} hidden={hidden} onToggleType={toggleType} onAllTypes={() => setHidden(new Set())}
+            shown={filtered ? shown.length : null}
           />
         )}
 
@@ -1223,6 +1354,7 @@ function ReadView({
                     onToggleOpen={() => toggleOpen(it.id)}
                     cited={cited === it.id}
                     onOpen={() => onOpenObject(it.id)}
+                    onSeeOnPage={it.region?.rects?.length ? () => onSeeOnPage(it.id) : undefined}
                   />
                 ))}
               </div>
@@ -1242,6 +1374,56 @@ function ReadView({
 
 interface TypeFacet { type: string; label: string; color: string; count: number }
 
+const WEEKDAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+const MONTHS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+
+/** "VOL. 10 · NO. 5 · FRIDAY, FEBRUARY 1, 1924 · PAGE 1 OF 4". Volume and number
+ *  come from the catalogue title when it states them (the bracketed "[Numbered …]"
+ *  corrections are the cataloguer's, not the paper's); the date spells itself out
+ *  only when it is a real ISO date — otherwise the label stands as given. */
+function folio(issue: ShelfIssue, page: ShelfPage): string {
+  const vol = issue.title.match(/Volume\s+(\d+)/i)?.[1];
+  const no = issue.title.match(/Issue\s+(\d+)/i)?.[1];
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(issue.sortDate);
+  let date = issue.dateLabel.toUpperCase();
+  if (iso) {
+    const d = new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3]));
+    date = `${WEEKDAYS[d.getUTCDay()]}, ${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  }
+  return [vol && `VOL. ${vol}`, no && `NO. ${no}`, date, `PAGE ${page.page} OF ${issue.pageCount}`].filter(Boolean).join(' · ');
+}
+
+/**
+ * Where this text came from, said once and turned into an invitation. The AI
+ * disclaimer and the way to the scan were two separate bits of chrome; they are
+ * one thought — this was machine-read off a photograph, so here is the photograph.
+ */
+function SourceStrip({ page, published, onView }: { page: ShelfPage; published: number; onView: (v: ReaderView) => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 14, padding: '10px 12px', background: C.sunken, border: `1px solid ${C.hairLight}` }}>
+      <button
+        onClick={() => onView('scan')}
+        title="See the original scan (V)"
+        className="dc-btn-ghost"
+        style={{ flexShrink: 0, width: 34, height: 44, padding: 0, border: `1px solid ${C.hairMed}`, background: C.canvas, overflow: 'hidden' }}
+      >
+        {page.thumb && <img src={page.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />}
+      </button>
+      <div style={{ flex: 1, minWidth: 0, fontFamily: SERIF, fontSize: 14.5, lineHeight: 1.45, color: C.body }}>
+        You’re reading an <strong style={{ fontWeight: 700, color: C.ink }}>AI transcription</strong> of this page — it may contain errors.{' '}
+        <button className="dc-underline-hover" onClick={() => onView('scan')} style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', color: C.navy, whiteSpace: 'nowrap' }}>
+          Compare with the original scan →
+        </button>
+      </div>
+      <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: C.tertiary, textAlign: 'right', flexShrink: 0, lineHeight: 1.6 }}>
+        {published} OF {page.objectCount || published}
+        <br />
+        ITEMS PUBLISHED
+      </div>
+    </div>
+  );
+}
+
 /** THIS WEEK's section head: a swatch, the name set wide, a hairline to the edge. */
 function GroupHead({ facet, shown, first, size }: { facet: TypeFacet; shown: number; first: boolean; size: Size }) {
   return (
@@ -1258,17 +1440,19 @@ function GroupHead({ facet, shown, first, size }: { facet: TypeFacet; shown: num
 
 /** Layout, order, text and type — one strip, set like the page's own furniture. */
 function ReadControls({
-  prefs, cols, maxCols, onPrefs, types, hidden, onToggleType, onAllTypes,
+  prefs, cols, maxCols, onPrefs, types, hidden, onToggleType, onAllTypes, shown,
 }: {
   prefs: ReadPrefs; cols: Cols; maxCols: Cols; onPrefs: (p: Partial<ReadPrefs>) => void;
   types: TypeFacet[]; hidden: Set<string>; onToggleType: (t: string) => void; onAllTypes: () => void;
+  /** How many items survive the type filter; null when nothing is filtered. */
+  shown: number | null;
 }) {
   const label = (t: string) => (
     <span style={{ fontFamily: SANS, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.18em', color: C.tertiary }}>{t}</span>
   );
   const anyHidden = types.some((t) => hidden.has(t.type));
   return (
-    <div style={{ marginTop: 18, borderTop: `1px solid ${C.hairLight}`, borderBottom: `1px solid ${C.hairLight}`, padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ marginTop: 6, borderBottom: `1px solid ${C.hairLight}`, padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px 24px' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           {label('LAYOUT')}
@@ -1335,9 +1519,14 @@ function ReadControls({
             );
           })}
           {anyHidden && (
-            <button className="dc-underline-hover" onClick={onAllTypes} style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: C.navy, marginLeft: 4 }}>
-              SHOW ALL
-            </button>
+            <>
+              <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: C.tertiary, marginLeft: 4 }}>
+                SHOWING {shown}
+              </span>
+              <button className="dc-underline-hover" onClick={onAllTypes} style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: C.navy }}>
+                SHOW ALL
+              </button>
+            </>
           )}
         </div>
       )}
@@ -1429,10 +1618,12 @@ function excerpt(text: string, max = 260): string {
 }
 
 function ReadItem({
-  item, n, cited, onOpen, size = 'lg', first, density = 'full', open, onToggleOpen,
+  item, n, cited, onOpen, size = 'lg', first, density = 'full', open, onToggleOpen, onSeeOnPage,
 }: {
   item: IndexItem; n: number; cited?: boolean; onOpen: () => void;
   size?: Size; first?: boolean; density?: Density; open?: boolean; onToggleOpen?: () => void;
+  /** Present only when the item has been located on the leaf. */
+  onSeeOnPage?: () => void;
 }) {
   const color = TYPE_COLORS[item.type] || C.navy;
   const isAd = item.type === 'y-ad' || item.type === 'y-coupon';
@@ -1535,9 +1726,16 @@ function ReadItem({
             {item.credit}
           </div>
         )}
-        <button className="dc-underline-hover" onClick={onOpen} style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: C.navy, flexShrink: 0 }}>
-          {compact ? 'IN THE INDEX →' : 'SEE IN THE INDEX →'}
-        </button>
+        <span style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
+          {onSeeOnPage && (
+            <button className="dc-underline-hover" onClick={onSeeOnPage} title="Fly to this item on the original scan" style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: C.navy }}>
+              {compact ? 'ON THE PAGE ⤢' : 'SEE IT ON THE PAGE ⤢'}
+            </button>
+          )}
+          <button className="dc-underline-hover" onClick={onOpen} style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: C.navy }}>
+            {compact ? 'INDEX →' : 'IN THE INDEX →'}
+          </button>
+        </span>
       </div>
     </article>
   );
