@@ -6,8 +6,14 @@
 // that corpus — see apps/pipeline/src/lib/chat.ts), and its citations are the
 // point: every claim it makes is a chip that turns the reader to the item it came
 // from. The patron can always go check.
+//
+// Two shapes, one conversation: a popover over the page, or — on a wide enough
+// screen — a column docked beside it, so the patron can read and ask side by
+// side. The reader owns the column (it has to make room for it); this component
+// only renders into it, through a portal, so switching shapes never drops a turn.
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Dataset, IndexItem } from '../lib/types';
 import type { ShelfIssue } from '../lib/shelf';
 import { parseAnswer, streamChat, ChatRefusal, type ChatTurn } from '../lib/chat';
@@ -24,12 +30,22 @@ interface Props {
   /** Distance from the right edge. The scan room's transcription slip docks
    *  there; the call button steps aside rather than sitting on its buttons. */
   offsetRight?: number;
+  /** Open/closed is the reader's to know — a docked panel takes page width. */
+  open: boolean;
+  onOpen: (open: boolean) => void;
+  /** Docked beside the page rather than floating over it. */
+  docked: boolean;
+  /** The column the reader made for a docked panel; null until it has mounted. */
+  dockSlot: HTMLElement | null;
+  /** Switch shape. Absent when the window is too narrow for two columns. */
+  onDock?: (docked: boolean) => void;
 }
 
 type Note = { kind: 'refusal' | 'error'; text: string };
 
-export function IssueChat({ issue, dataset, onCite, offsetRight = 24 }: Props) {
-  const [open, setOpen] = useState(false);
+export function IssueChat({
+  issue, dataset, onCite, offsetRight = 24, open, onOpen: setOpen, docked, dockSlot, onDock,
+}: Props) {
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [draft, setDraft] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -55,11 +71,11 @@ export function IssueChat({ issue, dataset, onCite, offsetRight = 24 }: Props) {
   useEffect(() => {
     const el = scroller.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [turns, pending, note, open]);
+  }, [turns, pending, note, open, docked, dockSlot]);
 
   useEffect(() => {
     if (open && !disabledReason) input.current?.focus();
-  }, [open, disabledReason]);
+  }, [open, docked, dockSlot, disabledReason]);
 
   // Esc closes the panel — but the reader also listens for Esc (it closes the
   // book), so this stops the event before it turns into a page you didn't ask for.
@@ -70,7 +86,7 @@ export function IssueChat({ issue, dataset, onCite, offsetRight = 24 }: Props) {
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [open]);
+  }, [open, setOpen]);
 
   useEffect(() => () => abort.current?.abort(), []);
 
@@ -113,107 +129,125 @@ export function IssueChat({ issue, dataset, onCite, offsetRight = 24 }: Props) {
     setNote(null);
   };
 
-  return (
-    <>
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Reading-room assistant"
-          style={{
-            position: 'fixed', right: offsetRight, bottom: 96, zIndex: 60,
-            width: 390, maxWidth: 'calc(100vw - 48px)',
-            height: 'min(640px, calc(100vh - 160px))',
-            background: C.canvas, border: `1px solid ${C.hairMed}`, borderTop: `3px solid ${C.navy}`,
-            display: 'flex', flexDirection: 'column',
-          }}
-        >
-          <Header issue={issue} onClose={() => setOpen(false)} />
+  const panel = (
+    <div
+      role={docked ? 'complementary' : 'dialog'}
+      aria-label="Reading-room assistant"
+      style={{
+        ...(docked
+          ? { flex: 1, minWidth: 0, borderLeft: `1px solid ${C.hairMed}` }
+          : {
+              position: 'fixed', right: offsetRight, bottom: 96, zIndex: 60,
+              width: 390, maxWidth: 'calc(100vw - 48px)',
+              height: 'min(640px, calc(100vh - 160px))',
+              border: `1px solid ${C.hairMed}`,
+            }),
+        background: C.canvas, borderTop: `3px solid ${C.navy}`,
+        display: 'flex', flexDirection: 'column',
+      }}
+    >
+      <Header
+        issue={issue}
+        onClose={() => setOpen(false)}
+        docked={docked}
+        onDock={onDock}
+      />
 
-          <div ref={scroller} style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 8px' }}>
-            {disabledReason ? (
-              <Disabled text={disabledReason} />
-            ) : turns.length === 0 && !pending ? (
-              <Opening issue={issue} onPick={ask} />
-            ) : (
-              <>
-                {turns.map((t, i) =>
-                  t.role === 'user' ? (
-                    <UserTurn key={i} text={t.content} />
-                  ) : (
-                    <AssistantTurn key={i} text={t.content} dataset={dataset} onCite={onCite} />
-                  ),
-                )}
-                {pending && <AssistantTurn text={pending} dataset={dataset} onCite={onCite} streaming />}
-                {streaming && !pending && (
-                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', color: C.tertiary, marginTop: 14 }}>
-                    READING THE ISSUE…
-                  </div>
-                )}
-              </>
+      <div ref={scroller} style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 8px' }}>
+        {disabledReason ? (
+          <Disabled text={disabledReason} />
+        ) : turns.length === 0 && !pending ? (
+          <Opening issue={issue} onPick={ask} />
+        ) : (
+          <>
+            {turns.map((t, i) =>
+              t.role === 'user' ? (
+                <UserTurn key={i} text={t.content} />
+              ) : (
+                <AssistantTurn key={i} text={t.content} dataset={dataset} onCite={onCite} />
+              ),
             )}
-
-            {note && (
-              <div
-                style={{
-                  marginTop: 16, border: `1px solid ${note.kind === 'error' ? C.hairMed : C.marigold}`,
-                  borderLeft: `3px solid ${note.kind === 'error' ? C.tertiary : C.marigold}`,
-                  padding: '10px 12px', background: C.canvas,
-                }}
-              >
-                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', color: C.tertiary }}>
-                  {note.kind === 'error' ? 'THE ASSISTANT IS UNAVAILABLE' : 'THE ASSISTANT STOPPED HERE'}
-                </div>
-                <div style={{ fontFamily: SERIF, fontSize: 14.5, lineHeight: 1.55, color: C.body, marginTop: 5 }}>
-                  {note.text}
-                </div>
+            {pending && <AssistantTurn text={pending} dataset={dataset} onCite={onCite} streaming />}
+            {streaming && !pending && (
+              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', color: C.tertiary, marginTop: 14 }}>
+                READING THE ISSUE…
               </div>
             )}
-          </div>
-
-          {!disabledReason && (
-            <Composer
-              draft={draft}
-              onDraft={setDraft}
-              onSend={() => ask(draft)}
-              onStop={() => abort.current?.abort()}
-              onReset={reset}
-              streaming={streaming}
-              asked={asked}
-              atCap={atCap}
-              inputRef={input}
-            />
-          )}
-        </div>
-      )}
-
-      <button
-        onClick={() => setOpen((o) => !o)}
-        title={open ? 'Close the reading-room assistant' : 'Ask about this issue'}
-        aria-label={open ? 'Close the reading-room assistant' : 'Ask about this issue'}
-        style={{
-          position: 'fixed', right: offsetRight, bottom: 24, zIndex: 60,
-          width: 56, height: 56, borderRadius: '50%',
-          background: open ? C.navyDeep : C.navy, color: C.canvas,
-          border: `2px solid ${C.canvas}`, outline: `1px solid ${C.navy}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
-      >
-        {open ? (
-          <span style={{ fontFamily: MONO, fontSize: 18, lineHeight: 1 }}>✕</span>
-        ) : (
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M3 4h18v13H8l-5 4V4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-            <path d="M7.5 9h9M7.5 12.5h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
+          </>
         )}
-      </button>
+
+        {note && (
+          <div
+            style={{
+              marginTop: 16, border: `1px solid ${note.kind === 'error' ? C.hairMed : C.marigold}`,
+              borderLeft: `3px solid ${note.kind === 'error' ? C.tertiary : C.marigold}`,
+              padding: '10px 12px', background: C.canvas,
+            }}
+          >
+            <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', color: C.tertiary }}>
+              {note.kind === 'error' ? 'THE ASSISTANT IS UNAVAILABLE' : 'THE ASSISTANT STOPPED HERE'}
+            </div>
+            <div style={{ fontFamily: SERIF, fontSize: 14.5, lineHeight: 1.55, color: C.body, marginTop: 5 }}>
+              {note.text}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {!disabledReason && (
+        <Composer
+          draft={draft}
+          onDraft={setDraft}
+          onSend={() => ask(draft)}
+          onStop={() => abort.current?.abort()}
+          onReset={reset}
+          streaming={streaming}
+          asked={asked}
+          atCap={atCap}
+          inputRef={input}
+        />
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      {open && (docked ? dockSlot && createPortal(panel, dockSlot) : panel)}
+
+      {/* Docked, the panel has its own close — a button floating over the page
+          it sits beside would only cover the text. */}
+      {!(open && docked) && (
+        <button
+          onClick={() => setOpen(!open)}
+          title={open ? 'Close the reading-room assistant' : 'Ask about this issue'}
+          aria-label={open ? 'Close the reading-room assistant' : 'Ask about this issue'}
+          style={{
+            position: 'fixed', right: offsetRight, bottom: 24, zIndex: 60,
+            width: 56, height: 56, borderRadius: '50%',
+            background: open ? C.navyDeep : C.navy, color: C.canvas,
+            border: `2px solid ${C.canvas}`, outline: `1px solid ${C.navy}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {open ? (
+            <span style={{ fontFamily: MONO, fontSize: 18, lineHeight: 1 }}>✕</span>
+          ) : (
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M3 4h18v13H8l-5 4V4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+              <path d="M7.5 9h9M7.5 12.5h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          )}
+        </button>
+      )}
     </>
   );
 }
 
 /* ── panel parts ───────────────────────────────────────────────────────────── */
 
-function Header({ issue, onClose }: { issue: ShelfIssue; onClose: () => void }) {
+function Header({
+  issue, onClose, docked, onDock,
+}: { issue: ShelfIssue; onClose: () => void; docked: boolean; onDock?: (docked: boolean) => void }) {
   return (
     <>
       <div style={{ background: C.navy, color: C.canvas, padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -225,6 +259,22 @@ function Header({ issue, onClose }: { issue: ShelfIssue; onClose: () => void }) 
             {issue.serial.toUpperCase()} · {issue.dateLabel.toUpperCase()}
           </div>
         </div>
+        {onDock && (
+          <button
+            onClick={() => onDock(!docked)}
+            title={docked ? 'Float the assistant over the page' : 'Dock the assistant beside the page'}
+            aria-label={docked ? 'Float the assistant over the page' : 'Dock the assistant beside the page'}
+            style={{ color: C.canvas, padding: 4, display: 'flex' }}
+          >
+            {/* A page with a column beside it; docked, a page with a card over its corner. */}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="1.5" y="2.5" width="13" height="11" stroke="currentColor" strokeWidth="1.3" />
+              {docked
+                ? <rect x="8.5" y="8" width="4.5" height="4" fill="currentColor" />
+                : <rect x="9.5" y="2.5" width="5" height="11" fill="currentColor" />}
+            </svg>
+          </button>
+        )}
         <button onClick={onClose} aria-label="Close" style={{ color: C.canvas, fontFamily: MONO, fontSize: 14, lineHeight: 1, padding: 4 }}>
           ✕
         </button>

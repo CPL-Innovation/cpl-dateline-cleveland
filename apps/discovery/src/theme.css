@@ -118,3 +118,14 @@ input {
 .dc-region-box { cursor: pointer; }
 .dc-region-box:hover { background: rgba(0, 87, 183, 0.14) !important; }
 .dc-region-box:hover .dc-region-tag { opacity: 1 !important; }
+
+/* A box the assistant cited: it pulses a few times as the scan lands on it, then
+   settles into a steady marigold halo (set inline) so the eye can find it again. */
+@keyframes dc-region-glow {
+  from { box-shadow: 0 0 0 2px rgba(241, 196, 0, 0.8), 0 0 14px 4px rgba(241, 196, 0, 0.35); }
+  to   { box-shadow: 0 0 0 5px rgba(241, 196, 0, 0.95), 0 0 36px 16px rgba(241, 196, 0, 0.5); }
+}
+.dc-region-glow { animation: dc-region-glow 0.8s ease-in-out 0.65s 4 alternate both; }
+@media (prefers-reduced-motion: reduce) {
+  .dc-region-glow { animation: none; }
+}
