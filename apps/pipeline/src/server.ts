@@ -9,6 +9,8 @@
 //   POST /api/import?collection=&pointer=&issueId=&record=&page=  body: objects JSON
 //                                            → the page, stored as supplied (mode 'import')
 //
+//   POST /api/objects-publish {objectIds, published}
+//                                            → publish/withdraw many objects in one statement
 //   GET  /api/page/clear?collection=&record= → what the page holds: objects, curator work, box proposals
 //   POST /api/page/clear {collection, record, transcription, boxes:{<detector>:{detector,drawn}}, acknowledge}
 //                                            → clears them; the page becomes done / review / un-ingested by what is left
@@ -41,7 +43,7 @@ import { reextractObject } from "./lib/reextract.ts";
 import { pagePlan, clearPage, ClearRefused } from "./lib/clearPage.ts";
 import { resummarize, setObjectSummary } from "./lib/resummarize.ts";
 import { migrate, query, closePool, getPool } from "./lib/pg.ts";
-import { importPage, getPageObjects, setObjectRegion, setObjectText, setObjectReview, setObjectTitle, replaceObjectRawText, deleteObject, RightsBlocked } from "./lib/ingestPage.ts";
+import { importPage, getPageObjects, setObjectRegion, setObjectText, setObjectReview, setObjectsPublished, setObjectTitle, replaceObjectRawText, deleteObject, RightsBlocked } from "./lib/ingestPage.ts";
 import { getDiscovery } from "./lib/discovery.ts";
 import { getShelf } from "./lib/shelf.ts";
 import { streamIssueChat, ChatRefused, type ChatMessage } from "./lib/chat.ts";
@@ -243,6 +245,17 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       if ("published" in body) patch.published = body.published;
       const out = await setObjectReview(id, patch);
       return json(res, 200, { ok: true, objectId: id, ...out });
+    } catch (e) { return json(res, 400, { error: (e as Error).message }); }
+  }
+
+  // Publish (or withdraw) a batch — the workbench's "Publish page…", after the
+  // curator has chosen which of the page's objects go live. Body:
+  // { objectIds: [number | "co-123", …], published: boolean }.
+  if (url.pathname === "/api/objects-publish" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const out = await setObjectsPublished(body.objectIds, body.published);
+      return json(res, 200, { ok: true, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
 

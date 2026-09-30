@@ -891,6 +891,29 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .cm .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 .vbtn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
 .vbtn.danger:hover{filter:brightness(.92)}
+
+/* ── publish page (modal) ─────────────────────────────────────────────────────
+   Same frame as ⌫, but a brand rule, not a red one: publishing is reversible.
+   Everything starts ticked — the curator narrows by taking things OUT. */
+.sl-pubbtn{font-family:var(--sans);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 10px;border:1px solid var(--brand);background:#fff;color:var(--brand);cursor:pointer;border-radius:2px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sl-pubbtn:hover{background:var(--brand);color:#fff}
+.sl-pubbtn .c{font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:0;opacity:.8}
+.cm.pub{border-top-color:var(--brand);width:min(640px,100%)}
+.cm .facets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.cm .lab .all{float:right;font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;
+  color:var(--brand);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline}
+.cm label.opt .sw{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:0}
+.cm label.opt .c{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--tertiary)}
+.cm label.opt.zero{color:var(--tertiary)}
+.cm .objs{max-height:230px;overflow:auto;border:1px solid var(--hair);padding:2px 8px}
+.cm .objs label.opt{padding:3px 0;border-top:1px dashed var(--hair);font-size:12.5px}
+.cm .objs label.opt:first-child{border-top:0}
+.cm .objs .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cm .objs .tag{flex:none;font-family:var(--mono);font-size:9.5px;color:var(--tertiary);text-transform:uppercase;letter-spacing:.06em}
+.cm .objs .tag.live{color:var(--ok)}
+.cm .objs .tag.fl{color:var(--danger)}
 </style>
 </head>
 <body>
@@ -1072,6 +1095,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
                       <div id="wl-flags"></div>
                     </div>
                   </div>
+                  <!-- live pages only: the whole page, filtered in a modal, in one go -->
+                  <button class="sl-pubbtn" id="sl-publish" hidden title="Publish this page's objects — choose which in the next step">Publish page…<span class="c" id="sl-publish-n"></span></button>
                 </div>
                 <div class="sl-prog" id="wl-prog">loading run…</div>
                 <div class="sl-rows" id="wl-rows"></div>
@@ -4289,10 +4314,176 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       .catch(function(e){ if(msg) msg.textContent = 'save failed — '+e.message; });
     }
 
+    // ══ PUBLISH PAGE (batch) ════════════════════════════════════════════════
+    // Putting a page live one object at a time is 30-odd clicks of the same
+    // decision. This is that decision made once: every object on the page starts
+    // ticked, the curator takes OUT what shouldn't go (by class, by flag, by
+    // verdict, or one by one), and one request publishes the rest — atomically,
+    // so a dropped connection never leaves half a page live. Objects already
+    // live are shown but not re-sent; publishing twice is not a new date.
+    var PUB_FLAGS = [
+      { k:'advertorial', label:'Advertorial suspect', sw:'var(--danger)', test:function(o){ return !!o.isAdvertorial; } },
+      { k:'loss', label:'Faithfulness marks', sw:'var(--warn)', test:function(o){ return /\[(loss|illegible)\]/i.test(o.transcript||''); } }
+    ];
+    var PUB_STATUS = [
+      { k:'reviewed', label:'Confirmed' }, { k:'unreviewed', label:'Unreviewed' }, { k:'flagged', label:'Flagged — needs more work' }
+    ];
+    function paintPublishBtn(){
+      var b=document.getElementById('sl-publish'); if(!b) return;
+      b.hidden = !(REGION_API && d.live && wl.length);
+      var left = wl.filter(function(o){ return !o.published; }).length;
+      set('sl-publish-n', left ? left+' not live' : 'all live');
+      b.onclick = openPublishModal;
+    }
+    function openPublishModal(){
+      var back = document.createElement('div'); back.className = 'cm-back';
+      back.innerHTML = '<div class="cm pub" role="dialog" aria-modal="true" aria-label="Publish this page"></div>';
+      document.body.appendChild(back);
+      var box = back.querySelector('.cm');
+      var busy = false, err = '';
+      function close(){ if(busy) return; document.removeEventListener('keydown', onKey, true); back.remove(); }
+      // Capture phase + stop: the workbench's own keys (p publishes ONE object,
+      // arrows move the selection) must not fire underneath the modal.
+      function onKey(ev){
+        if(ev.key === 'Escape'){ ev.preventDefault(); close(); }
+        ev.stopPropagation();
+      }
+      document.addEventListener('keydown', onKey, true);
+      back.addEventListener('mousedown', function(ev){ if(ev.target === back) close(); });
+
+      var classes = {}; wl.forEach(function(o){ classes[o.class]=(classes[o.class]||0)+1; });
+      var classKeys = Object.keys(classes).sort(function(a,b){ return classes[b]-classes[a]; });
+      // Selection: facets are "include" sets, all on. `off` = rows unticked by hand.
+      var sel = { cls:new Set(classKeys), flags:new Set(PUB_FLAGS.map(function(f){ return f.k; })),
+                  status:new Set(PUB_STATUS.map(function(s){ return s.k; })), off:new Set() };
+      function inScope(o){
+        if(!sel.cls.has(o.class)) return false;
+        if(!sel.status.has(o.status||'unreviewed')) return false;
+        // an object carrying ANY excluded flag is out
+        return PUB_FLAGS.every(function(f){ return sel.flags.has(f.k) || !f.test(o); });
+      }
+      function chosen(){ return wl.filter(function(o){ return inScope(o) && !o.published && !sel.off.has(o.id); }); }
+      var n = function(k, one, many){ return k+' '+(k===1 ? one : (many || one+'s')); };
+
+      function paint(){
+        var inS = wl.filter(inScope), go = chosen();
+        var live = inS.filter(function(o){ return o.published; }).length;
+        var h = '<h3>Publish this page</h3>'+
+          '<div class="sub">'+esc(d.issue ? d.issue.label : '')+' · '+n(wl.length, 'object')+' · '+
+            n(wl.filter(function(o){ return o.published; }).length, 'already live', 'already live')+'</div>';
+
+        h += '<div class="sec"><div class="lab">Object class'+
+          '<button class="all" data-all="cls">'+(sel.cls.size===classKeys.length ? 'none' : 'all')+'</button></div><div class="facets">';
+        classKeys.forEach(function(k){
+          h += '<label class="opt"><input type="checkbox" data-f="cls" data-k="'+esc(k)+'"'+(sel.cls.has(k)?' checked':'')+'>'+
+            '<span><span class="sw" style="background:'+colorVar(COLORKEY[k]||'article')+'"></span>'+esc(LABEL[k]||k.replace(/_/g,' '))+'</span>'+
+            '<span class="c">'+classes[k]+'</span></label>';
+        });
+        h += '</div></div>';
+
+        h += '<div class="sec"><div class="facets"><div><div class="lab">Include flagged content</div>';
+        PUB_FLAGS.forEach(function(f){
+          var c = wl.filter(f.test).length;
+          h += '<label class="opt'+(c?'':' zero')+'"><input type="checkbox" data-f="flags" data-k="'+f.k+'"'+(sel.flags.has(f.k)?' checked':'')+'>'+
+            '<span><span class="sw" style="background:'+f.sw+'"></span>'+esc(f.label)+'</span><span class="c">'+c+'</span></label>';
+        });
+        h += '</div><div><div class="lab">Review verdict</div>';
+        PUB_STATUS.forEach(function(s){
+          var c = wl.filter(function(o){ return (o.status||'unreviewed')===s.k; }).length;
+          h += '<label class="opt'+(c?'':' zero')+'"><input type="checkbox" data-f="status" data-k="'+s.k+'"'+(sel.status.has(s.k)?' checked':'')+'>'+
+            '<span>'+esc(s.label)+'</span><span class="c">'+c+'</span></label>';
+        });
+        h += '</div></div></div>';
+
+        h += '<div class="sec"><div class="lab">Objects · '+go.length+' of '+inS.length+' selected'+
+          (inS.length ? '<button class="all" data-all="rows">'+(sel.off.size ? 'tick all' : 'untick all')+'</button>' : '')+'</div>';
+        if(!inS.length) h += '<div class="note">No objects match these filters.</div>';
+        else {
+          h += '<div class="objs">';
+          // what this click would change first; what is already live after it
+          inS.slice().sort(function(a,b){ return (a.published?1:0)-(b.published?1:0); }).forEach(function(o){
+            var fl = PUB_FLAGS.filter(function(f){ return f.test(o); }).map(function(f){ return f.k==='advertorial' ? 'advertorial?' : '[loss]'; });
+            h += '<label class="opt'+(o.published?' off':'')+'" title="'+esc(rowTip(o))+'">'+
+              '<input type="checkbox" data-o="'+esc(o.id)+'"'+(o.published || !sel.off.has(o.id) ? ' checked' : '')+(o.published?' disabled':'')+'>'+
+              '<span class="sw" style="background:'+colorVar(o.color)+';margin-top:4px"></span>'+
+              '<span class="t">'+esc(rowLabel(o))+'</span>'+
+              (fl.length ? '<span class="tag fl">'+esc(fl.join(' · '))+'</span>' : '')+
+              (o.status==='flagged' ? '<span class="tag fl">flagged</span>' : '')+
+              (o.published ? '<span class="tag live">live</span>' : '')+
+              '</label>';
+          });
+          h += '</div>';
+        }
+        h += '</div>';
+
+        var goFlagged = go.filter(function(o){ return o.status==='flagged'; }).length;
+        var goUnrev = go.filter(function(o){ return (o.status||'unreviewed')==='unreviewed'; }).length;
+        var goAdv = go.filter(PUB_FLAGS[0].test).length;
+        var warn = [];
+        if(goFlagged) warn.push(n(goFlagged, 'object')+' a curator flagged as needing more work');
+        if(goAdv) warn.push(n(goAdv, 'suspected advertorial', 'suspected advertorials'));
+        if(warn.length) h += '<div class="warn soft">This includes '+warn.join(' and ')+'.</div>';
+
+        h += '<div class="result">'+(go.length
+          ? 'Publishes <b>'+n(go.length, 'object')+'</b>'+(goUnrev ? ' ('+goUnrev+' not yet reviewed)' : '')+
+            ' — patrons can see '+(go.length===1?'it':'them')+' as soon as this finishes. Each can be withdrawn on its own afterwards.'
+          : inS.some(function(o){ return !o.published; }) ? 'Nothing selected — tick the objects to publish.'
+          : 'Nothing to publish'+(live ? ' — the '+n(live, 'matching object is', 'matching objects are')+' already live.' : '.'))+
+          (live && go.length ? '<br>'+n(live, 'matching object is', 'matching objects are')+' already live and stay as they are.' : '')+
+          '</div>'+(err ? '<div class="err">'+esc(err)+'</div>' : '');
+        h += '<div class="acts"><button class="vbtn" data-a="cancel"'+(busy?' disabled':'')+'>Cancel</button>'+
+          '<button class="vbtn primary" data-a="go"'+(go.length && !busy ? '' : ' disabled')+'>'+
+            (busy ? 'Publishing…' : 'Publish '+(go.length ? go.length : ''))+'</button></div>';
+        var scroll = box.querySelector('.objs'); var st = scroll ? scroll.scrollTop : 0;
+        box.innerHTML = h;
+        var sc2 = box.querySelector('.objs'); if(sc2) sc2.scrollTop = st;
+
+        box.querySelectorAll('input[data-f]').forEach(function(inp){ inp.onchange = function(){
+          var set_ = sel[inp.dataset.f]; if(inp.checked) set_.add(inp.dataset.k); else set_.delete(inp.dataset.k); paint();
+        }; });
+        box.querySelectorAll('input[data-o]').forEach(function(inp){ inp.onchange = function(){
+          if(inp.checked) sel.off.delete(inp.dataset.o); else sel.off.add(inp.dataset.o); paint();
+        }; });
+        box.querySelectorAll('button[data-all]').forEach(function(b){ b.onclick = function(){
+          if(b.dataset.all==='cls'){ if(sel.cls.size===classKeys.length) sel.cls.clear(); else sel.cls = new Set(classKeys); }
+          else { if(sel.off.size) sel.off.clear(); else wl.filter(inScope).forEach(function(o){ if(!o.published) sel.off.add(o.id); }); }
+          paint();
+        }; });
+        box.querySelector('[data-a="cancel"]').onclick = close;
+        box.querySelector('[data-a="go"]').onclick = submit;
+      }
+
+      function submit(){
+        var go = chosen(); if(!go.length || busy) return;
+        busy = true; err = ''; paint();
+        fetch(REGION_API+'/api/objects-publish', {
+          method:'POST', headers:{'content-type':'application/json'},
+          body: JSON.stringify({ objectIds: go.map(function(o){ return o.id; }), published: true })
+        })
+        .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); })
+        .then(function(j){
+          j.objects.forEach(function(x){
+            var o = objById(x.id); if(!o) return;
+            o.published = x.published; o.publishedAt = x.publishedAt;
+            repaintRow(o);
+          });
+          if(currentObj) paintReview(currentObj);
+          paintPublishBtn();
+          busy = false; close();
+          var msg=document.getElementById('rv-vmsg');
+          if(msg) msg.textContent = n(j.changed, 'object')+' published — patrons can see '+(j.changed===1?'it':'them')+' now'+
+            (j.missing && j.missing.length ? ' · '+j.missing.length+' no longer exist' : '');
+        })
+        .catch(function(e){ busy = false; err = 'publish failed — nothing was published. '+e.message; paint(); });
+      }
+      paint();
+    }
+
     // Every reviewed/flagged/left counter in the app derives from the worklist, so
     // recount from it rather than trusting the payload's snapshot — which, in page
     // mode, was hard-coded to zero and had been lying since the day it was written.
     function recountReview(){
+      paintPublishBtn();   // a single publish changes the page's "not live" count too
       var r={ total:wl.length, reviewed:0, flagged:0, unreviewed:0 };
       wl.forEach(function(o){
         if(o.status==='reviewed') r.reviewed++;
@@ -4481,6 +4672,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       });
     }
     function renderWorklist(){
+      paintPublishBtn();
       var rowsHtml=''; var firstIdx=null; var shown=0;
       wl.forEach(function(o,i){
         if(pageFilter!=null && o.page!==pageFilter) return;

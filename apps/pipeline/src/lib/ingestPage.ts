@@ -585,6 +585,39 @@ export async function setObjectReview(
   };
 }
 
+/**
+ * Publish (or withdraw) many objects at once — the workbench's "Publish page…".
+ * ONE statement, so a batch either lands whole or not at all: a curator who
+ * publishes a page must never find half of it live after a dropped connection.
+ * An object already in the requested state keeps its original published_at —
+ * re-publishing is not a new publication date.
+ */
+export async function setObjectsPublished(objectIds: unknown, published: unknown) {
+  if (!Array.isArray(objectIds) || !objectIds.length) throw new Error("objectIds must be a non-empty array");
+  if (objectIds.length > 2000) throw new Error("at most 2000 objects per batch");
+  const ids = objectIds.map((v) => Number(String(v).replace(/^co-/, "")));
+  if (ids.some((n) => !Number.isInteger(n))) throw new Error("every objectId must be a number");
+  if (typeof published !== "boolean") throw new Error("published must be true or false");
+  // ids are BIGSERIAL, which node-pg hands back as strings — normalise here and
+  // answer in the workbench's own "co-<id>" form so it can match rows directly.
+  const r = await query<{ id: string; is_published: boolean; published_at: Date | null; changed: boolean }>(
+    `WITH target AS (SELECT id, is_published AS was FROM content_objects WHERE id = ANY($1::bigint[]))
+     UPDATE content_objects c
+        SET is_published = $2,
+            published_at = CASE WHEN target.was = $2 THEN c.published_at
+                                WHEN $2 THEN now() ELSE NULL END
+       FROM target WHERE c.id = target.id
+     RETURNING c.id::text AS id, c.is_published, c.published_at, (target.was <> $2) AS changed`,
+    [ids, published],
+  );
+  const found = new Set(r.rows.map((x) => Number(x.id)));
+  return {
+    objects: r.rows.map((x) => ({ id: `co-${x.id}`, published: x.is_published, publishedAt: x.published_at })),
+    changed: r.rows.filter((x) => x.changed).length,
+    missing: ids.filter((n) => !found.has(n)).map((n) => `co-${n}`),
+  };
+}
+
 async function machineText(objectId: number): Promise<string> {
   const r = await query<{ text: string }>("SELECT text FROM content_objects WHERE id=$1", [objectId]);
   if (!r.rowCount) throw new Error(`no content object with id ${objectId}`);
