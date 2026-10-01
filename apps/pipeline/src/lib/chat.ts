@@ -65,6 +65,9 @@ export async function buildIssueCorpus(pointer: number) {
   let used = 0;
   let truncated = 0;
   const items: string[] = [];
+  // The ids actually handed to the model. A citation is real only if it is one of
+  // these — anything else was invented, and is dropped server-side too.
+  const ids: number[] = [];
   for (const r of published) {
     const title = (r.display_title ?? "").trim();
     const body = r.text.replace(/\s+\n/g, "\n").trim().slice(0, 6000);
@@ -77,6 +80,7 @@ export async function buildIssueCorpus(pointer: number) {
     if (used + block.length > CHAT_MAX_CORPUS_CHARS) { truncated++; continue; }
     used += block.length;
     items.push(block);
+    ids.push(Number(r.id));
   }
 
   const issueLabel = `${head.serial ?? "this newspaper"} — ${dateLabel(head.sort_date)}`;
@@ -95,6 +99,7 @@ export async function buildIssueCorpus(pointer: number) {
     serial: head.serial ?? "this newspaper",
     dateLabel: dateLabel(head.sort_date),
     publishedCount: published.length,
+    ids,
     document: `${coverage}\n\n=== PUBLISHED ITEMS FROM THIS ISSUE ===\n\n${items.join("\n\n")}`,
   };
 }
@@ -104,14 +109,14 @@ function systemPrompt(issueLabel: string): string {
     `You are the reading-room assistant at the Cleveland Public Library, sitting with a patron who is reading one issue of a digitized historic newspaper: ${issueLabel}.`,
     "",
     "YOUR SOURCE",
-    "- The items below are the ONLY text you have from this issue. They are the items a curator has reviewed and published.",
+    "- The items in the document above are the ONLY text you have from this issue. They are the items a curator has reviewed and published.",
     "- Do not claim anything about this issue that is not in those items. You have no other pages, no other issues, and no archive to search.",
     "- The transcriptions were made by a machine reading a scan. They contain errors, and [illegible] or [loss] marks where the paper is damaged. Treat them as a good but imperfect read, and say so when a passage is unclear.",
     "- Some pages of this issue have been read but not yet released for public reading. If the patron asks about one, tell them plainly which pages you can see and that the rest is still with the curators.",
     "",
     "CITING",
     "- Cite the item you are drawing on by writing its id in double brackets immediately after the claim, like this: [[co-269]].",
-    "- Use ONLY ids that appear in the items below. Never invent one. If you cannot cite it, do not assert it.",
+    "- Use ONLY ids that appear in the items above. Never invent one. If you cannot cite it, do not assert it.",
     "- Cite the specific item, not the page. Two or three citations in an answer is plenty.",
     "",
     "HOW TO TALK",
@@ -153,6 +158,40 @@ export async function streamIssueChat(
     throw new ChatRefused("nothing from this issue has been published yet, so there is nothing to discuss");
   }
 
+  await streamMessages({
+    corpus: corpus.document,
+    instructions: systemPrompt(corpus.issueLabel),
+    messages: clean,
+    label: `Anthropic reading-room chat (${CHAT_MODEL})`,
+  }, onDelta);
+
+  return { model: CHAT_MODEL, turns };
+}
+
+/**
+ * One streamed Sonnet call over one issue's corpus — the reading-room chat and
+ * Your Edition (SLICE-15) both go through here, so they share one boundary and
+ * one cache.
+ *
+ * The corpus block goes FIRST, marked for caching, and the feature's own
+ * instructions after it. Prompt caching matches on the prefix, so with the
+ * corpus leading, a patron who chats and then makes an edition of the same issue
+ * pays for reading the issue once.
+ */
+export async function streamMessages(
+  args: {
+    corpus: string; instructions: string; messages: ChatMessage[]; label: string;
+    /** Thinking depth. Sonnet 5 thinks by default, and thinking counts against max_tokens. */
+    effort?: "low" | "medium" | "high";
+  },
+  onDelta: (text: string) => void,
+): Promise<{ stopReason: string | null; textChars: number; eventTypes: string[] }> {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error("ANTHROPIC_API_KEY is not set — the reading room needs it");
+  let stopReason: string | null = null;
+  let textChars = 0;
+  const eventTypes = new Set<string>();
+
   const res = await fetchRetry("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -162,17 +201,22 @@ export async function streamIssueChat(
     },
     body: JSON.stringify({
       model: CHAT_MODEL,
-      max_tokens: 1024,
+      // Generous on purpose. The model thinks before it answers, and thinking is
+      // billed against this same ceiling: at 900 it spent the lot thinking and
+      // never wrote a word (seen on a researcher/just-the-facts edition section).
+      // The answer's own length is held by the prompt, not by this cap.
+      max_tokens: 16_000,
+      ...(args.effort ? { output_config: { effort: args.effort } } : {}),
       stream: true,
       system: [
-        { type: "text", text: systemPrompt(corpus.issueLabel) },
-        // The corpus is one large, stable block reused across every turn of the
-        // conversation — exactly what the cache is for.
-        { type: "text", text: corpus.document, cache_control: { type: "ephemeral" } },
+        // One large, stable block reused across every turn and every feature —
+        // exactly what the cache is for.
+        { type: "text", text: args.corpus, cache_control: { type: "ephemeral" } },
+        { type: "text", text: args.instructions },
       ],
-      messages: clean,
+      messages: args.messages,
     }),
-  }, { label: `Anthropic reading-room chat (${CHAT_MODEL})`, retries: 1 });
+  }, { label: args.label, retries: 1 });
 
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${(await res.text()).slice(0, 400)}`);
   if (!res.body) throw new Error("Anthropic returned no stream");
@@ -193,8 +237,12 @@ export async function streamIssueChat(
       if (!payload || payload === "[DONE]") continue;
       try {
         const evt = JSON.parse(payload) as any;
+        eventTypes.add(evt.type === "content_block_delta" ? `delta:${evt.delta?.type}` : evt.type === "content_block_start" ? `block:${evt.content_block?.type}` : evt.type);
         if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta" && evt.delta.text) {
+          textChars += evt.delta.text.length;
           onDelta(evt.delta.text as string);
+        } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
+          stopReason = evt.delta.stop_reason;
         } else if (evt.type === "error") {
           throw new Error(evt.error?.message ?? "stream error");
         }
@@ -204,6 +252,6 @@ export async function streamIssueChat(
       }
     }
   }
-
-  return { model: CHAT_MODEL, turns };
+  // Why a stream ended matters when it ended with nothing: say so, don't guess.
+  return { stopReason, textChars, eventTypes: [...eventTypes] };
 }

@@ -14,13 +14,15 @@ Two live surfaces in one SPA, both routing into a shared page-reader detail:
 
 ## Routes
 
-- **`/`** — patron discovery (the two surfaces above). Internal view switching is
-  state-based, not URL-based.
+- **`/`** — patron discovery. Internal view switching is state-based, with one
+  exception: **`?issue=<key>`** opens that issue in THE STACKS (the address bar
+  tracks the open book), and `&view=edition&rc=…&picks=…` rebuilds a shared Your
+  Edition (`parseLink()` in `src/lib/edition.ts`).
 - **`/staff`** — the **Editorial Workbench**: the staff-facing enrichment-pipeline
   interface (Stage-5 review workbench — Run & progress, Review, Shape review, plus
   stubbed stages). Vendored verbatim from the Claude Design sketch to
   `public/staff.html` and hosted in a full-viewport frame (it's a self-contained
-  concept sketch with its own styles/scripts). The header/footer "STAFF ·
+  concept sketch with its own styles/scripts). The provenance strip's and footer's "STAFF
   WORKBENCH" links route here; the workbench's "← Patron prototype" link returns
   to `/`. A tiny path router lives in `src/lib/router.ts`.
 
@@ -107,5 +109,6 @@ them, so the affordance is missing rather than present-and-dead
 - **Semantic search** — the embedding column is schema-ready but unpopulated;
   search is literal until an embedding provider is wired.
 - **Front Pages / Places / About** tabs are stubbed.
-- Real scan crops (all clipping frames are keyline placeholders).
+- Real scan crops in THE INDEX (its clipping frames are keyline placeholders;
+  Your Edition already shows real pixel-form IIIF crops).
 - Motion spec; mobile/responsive reflow.

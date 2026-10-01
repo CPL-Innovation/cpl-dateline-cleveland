@@ -16,7 +16,8 @@
     "enrich": "node --env-file-if-exists=.env --experimental-sqlite --experimental-strip-types src/enrich.ts",
     "reset-page": "node --env-file-if-exists=.env --experimental-strip-types src/reset-page.ts",
     "detect": "node --env-file-if-exists=.env --experimental-strip-types src/detect.ts",
-    "detect:models": "sh detect/fetch-models.sh"
+    "detect:models": "sh detect/fetch-models.sh",
+    "test": "node --experimental-strip-types --test src/**/*.test.ts"
   },
   "dependencies": {
     "pg": "^8.22.0"

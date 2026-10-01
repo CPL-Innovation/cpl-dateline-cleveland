@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CalendarEvent, Dataset, DatasetMode, Page } from '../lib/types';
 import type { Selection } from '../lib/match';
 import { mockDataset } from '../data/mock';
@@ -14,13 +14,21 @@ import { StacksBrowse } from './StacksBrowse';
 import { IssueReader, type ReaderView } from './IssueReader';
 import { deriveShelf, fetchShelf, type Shelf } from '../lib/shelf';
 import { mockShelf } from '../data/mockShelf';
+import { parseLink } from '../lib/edition';
 
 // The populated mock week (Jul 23–29 1970) sits at index 4.
 const MOCK_POPULATED_WEEK = 4;
 
 export function Discovery() {
-  const [page, setPage] = useState<Page>('calendar');
-  const [mode, setMode] = useState<DatasetMode>('mock');
+  // A link to a book: `?issue=p7622` opens it in THE STACKS; with
+  // `&view=edition&rc=…&picks=…` it rebuilds a shared Your Edition. Only real
+  // issues have keys worth linking, so a link opens in REAL DATA.
+  const [linked] = useState(() => {
+    const issue = new URLSearchParams(location.search).get('issue');
+    return issue ? { issue, edition: parseLink(location.search) } : null;
+  });
+  const [page, setPage] = useState<Page>(linked ? 'stacks' : 'calendar');
+  const [mode, setMode] = useState<DatasetMode>(linked ? 'real' : 'mock');
   const [weekIdx, setWeekIdx] = useState(MOCK_POPULATED_WEEK);
   const [selectedId, setSelectedId] = useState<string | null>(null); // calendar event
   const [selected, setSelected] = useState<Selection>({}); // index facets
@@ -55,6 +63,29 @@ export function Discovery() {
   const dataset = mode === 'mock' ? mockDataset : (liveReal ?? realDataset);
   const shelf = mode === 'mock' ? mockShelf : (liveShelf ?? deriveShelf(dataset));
   const activeIssue = openIssue ? shelf.issues.find((i) => i.key === openIssue) ?? null : null;
+
+  // Open the linked book once the live shelf knows it.
+  const linkOpened = useRef(false);
+  useEffect(() => {
+    if (!linked || linkOpened.current || !liveShelf) return;
+    const iss = liveShelf.issues.find((i) => i.key === linked.issue);
+    if (!iss) return;
+    linkOpened.current = true;
+    openIssueAt(iss.key);
+    if (linked.edition) setReaderView('edition');
+  }, [liveShelf]);    // eslint-disable-line react-hooks/exhaustive-deps
+
+  // …and keep the address bar pointing at the open book, so any issue can be
+  // linked the ordinary way. replaceState: turning pages isn't history.
+  useEffect(() => {
+    const q = new URLSearchParams();
+    if (page === 'stacks' && openIssue) {
+      q.set('issue', openIssue);
+      if (readerView === 'edition') q.set('view', 'edition');
+    }
+    const next = location.pathname + (q.toString() ? `?${q}` : '');
+    if (next !== location.pathname + location.search) window.history.replaceState(window.history.state, '', next);
+  }, [page, openIssue, readerView]);
 
   const goto = (p: Page) => {
     setPage(p);
@@ -175,6 +206,7 @@ export function Discovery() {
               onView={setReaderView}
               onBack={() => setOpenIssue(null)}
               onOpenObject={(id) => { setDetailId(id); window.scrollTo({ top: 0 }); }}
+              editionLink={linked?.edition && linked.edition.issue === activeIssue.key ? linked.edition : null}
             />
           ) : (
             <StacksBrowse

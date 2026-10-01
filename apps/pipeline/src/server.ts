@@ -6,6 +6,12 @@
 //   GET  /api/page?collection=&record=       → page state + objects (review panel load)
 //   GET  /api/shelf                          → patron shelf: ingested issues as books
 //   POST /api/chat  {pointer, messages}      → SSE reading-room chat about one issue
+//   GET  /api/edition/index?pointer=         → Your Edition (SLICE-15): can this issue make one,
+//                                              and the interests it has material for
+//   POST /api/edition/prompts {pointer, readerCard, history, tried}
+//                                            → this round's three cards (+ free text in round 4); no model call
+//   POST /api/edition/section {pointer, readerCard, cardId|freeText, history, callsUsed, regeneratesUsed, regenerate?, editionId}
+//                                            → SSE: `partial` {headline, body}…, then `section` | `empty`, or `error`
 //   POST /api/import?collection=&pointer=&issueId=&record=&page=  body: objects JSON
 //                                            → the page, stored as supplied (mode 'import')
 //
@@ -47,6 +53,7 @@ import { importPage, getPageObjects, setObjectRegion, setObjectText, setObjectRe
 import { getDiscovery } from "./lib/discovery.ts";
 import { getShelf } from "./lib/shelf.ts";
 import { streamIssueChat, ChatRefused, type ChatMessage } from "./lib/chat.ts";
+import { issueIndex, availableInterests, dealCards, writeSection, readReaderCard, cardText, EDITION_SECTIONS, EDITION_MAX_CALLS, EDITION_MAX_REGENERATES } from "./lib/edition.ts";
 import { resolveIssuePages } from "./lib/issuePages.ts";
 import { suggestTitle } from "./lib/suggestTitle.ts";
 import { proposeBoxes, getProposals, saveProposal, regroup, listDetectors, BoxFirstRefused } from "./lib/boxFirst.ts";
@@ -171,6 +178,68 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       // message in the thread. Everything else is ours and says so.
       const refused = e instanceof ChatRefused;
       if (!refused) console.error("[chat]", (e as Error).message);
+      sse(res, "error", { message: (e as Error).message, refused });
+    }
+    return res.end();
+  }
+
+  // ── Your Edition (SLICE-15) ──────────────────────────────────────────────
+  // Can this issue make an edition, and what can the interview offer? Built from
+  // the published index alone — Phase 1 never reaches the model.
+  if (url.pathname === "/api/edition/index") {
+    const pointer = Number(q.get("pointer"));
+    if (!pointer) return json(res, 400, { error: "pointer required" });
+    try {
+      const ix = await issueIndex(pointer);
+      return json(res, 200, {
+        available: ix.publishedCount > 0,
+        reason: ix.publishedCount > 0 ? null : "Nothing from this issue has been published yet, so there is nothing to make an edition from.",
+        serial: ix.serial, dateLabel: ix.dateLabel, publishedCount: ix.publishedCount,
+        interests: availableInterests(ix),
+        limits: { sections: EDITION_SECTIONS, calls: EDITION_MAX_CALLS, regenerates: EDITION_MAX_REGENERATES },
+      });
+    } catch (e) {
+      if (e instanceof ChatRefused) return json(res, 200, { available: false, reason: "This issue has nothing ingested to read yet.", interests: [] });
+      return json(res, 500, { error: (e as Error).message });
+    }
+  }
+
+  // This round's cards. Deterministic and free: the same reader, issue and picks
+  // are always dealt the same hand. `labels` resolves card ids to their words, for
+  // share links (which carry picks, never prose).
+  if (url.pathname === "/api/edition/prompts" && req.method === "POST") {
+    try {
+      const body = JSON.parse(await readBody(req));
+      const ix = await issueIndex(Number(body.pointer));
+      const rc = readReaderCard(body.readerCard);
+      const history = (Array.isArray(body.history) ? body.history : []).map((h: any) => ({
+        cardId: typeof h?.cardId === "string" ? h.cardId : null,
+        references: (Array.isArray(h?.references) ? h.references : []).map((x: unknown) => Number(String(x).replace(/^co-/, ""))).filter(Number.isInteger),
+      }));
+      const tried = (Array.isArray(body.tried) ? body.tried : []).filter((x: unknown): x is string => typeof x === "string");
+      const labels = Object.fromEntries((Array.isArray(body.labels) ? body.labels : [])
+        .filter((x: unknown): x is string => typeof x === "string").map((id: string) => [id, cardText(ix, id)]));
+      return json(res, 200, { ...dealCards(ix, rc, history, tried), labels });
+    } catch (e) {
+      return json(res, e instanceof ChatRefused ? 400 : 500, { error: (e as Error).message, refused: e instanceof ChatRefused });
+    }
+  }
+
+  if (url.pathname === "/api/edition/section" && req.method === "POST") {
+    let body: any;
+    try { body = JSON.parse(await readBody(req)); }
+    catch (e) { return json(res, 400, { error: (e as Error).message }); }
+    sseOpen(res);
+    try {
+      await writeSection({
+        pointer: Number(body.pointer), readerCard: body.readerCard, cardId: body.cardId, freeText: body.freeText,
+        history: body.history ?? [], callsUsed: body.callsUsed, regeneratesUsed: body.regeneratesUsed,
+        regenerate: !!body.regenerate, editionId: body.editionId,
+      }, (e) => sse(res, e.type, e));
+    } catch (e) {
+      // Same split as the chat: a refusal is the edition's own answer, and costs nothing.
+      const refused = e instanceof ChatRefused;
+      if (!refused) console.error("[edition]", (e as Error).message);
       sse(res, "error", { message: (e as Error).message, refused });
     }
     return res.end();

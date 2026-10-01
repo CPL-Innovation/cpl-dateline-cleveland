@@ -2,7 +2,7 @@
   "name": "cpl-dateline-cleveland",
   "version": "0.1.0",
   "private": true,
-  "description": "Dateline Cleveland — print-native archive enrichment + discovery. Monorepo: apps/pipeline (image → VLM → structured content-objects) and apps/discovery (patron discovery SPA + staff workbench).",
+  "description": "Dateline Cleveland \u2014 print-native archive enrichment + discovery. Monorepo: apps/pipeline (image \u2192 VLM \u2192 structured content-objects) and apps/discovery (patron discovery SPA + staff workbench).",
   "type": "module",
   "workspaces": [
     "apps/*",
@@ -21,6 +21,7 @@
     "export-all": "npm run export-all --workspace @dateline/discovery",
     "dev": "npm run dev --workspace @dateline/discovery",
     "build": "npm run build --workspace @dateline/discovery",
-    "preview": "npm run preview --workspace @dateline/discovery"
+    "preview": "npm run preview --workspace @dateline/discovery",
+    "test": "npm test --workspace @dateline/pipeline"
   }
 }

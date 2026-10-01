@@ -29,6 +29,7 @@ npm run detect:models          # fetch detector weights into models/ (gitignored
 npm run detect -- 7618         # every detector on one page → out/detect/7618/<detector>.jpg|json
 npm run detect -- 7618 --detector pp-doclayout
 npm run reset-page -- 7600 --dry   # take a page back to un-ingested (transcription + all boxes)
+npm test                       # node --test over src/**/*.test.ts
 ```
 
 **Clearing a page** (`src/lib/clearPage.ts`). The workbench's ⌫ *Clear page…* opens a modal that
@@ -168,6 +169,8 @@ src/lib/reextract.ts      re-read one object from all its boxes (suggest only)
 src/lib/region.ts         reading order of an object's boxes
 src/lib/ocr.ts            Tesseract: words, column grid, layout blocks
 src/lib/iiif.ts           ContentDM IIIF: page size, crop checks
+src/lib/chat.ts           the issue corpus (buildIssueCorpus) + one streamed Sonnet call (streamMessages)
+src/lib/edition.ts        Your Edition: issue index, prompt library, dealing, section writing + cache
 src/lib/vlm-prompt.ts     the transcription contract (system prompt, object classes)
 src/lib/explode.ts        ordered blocks -> rows (filler collapse, handwriting flag)
 src/detect.ts             run detectors on a page, write numbered-box overlays

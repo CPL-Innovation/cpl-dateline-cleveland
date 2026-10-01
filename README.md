@@ -28,6 +28,7 @@ npm install          # installs all workspaces (deps hoist to the root)
 npm run server       # apps/pipeline: the ingestion service on :5170 (Postgres; see apps/pipeline/README.md)
 npm run dev          # apps/discovery: dev server at http://localhost:5180  (+ /staff)
 npm run build        # apps/discovery: production static build → apps/discovery/dist
+npm test             # apps/pipeline: node --test (e.g. edition citation validation)
 ```
 
 Pages are ingested **box-first** from the staff workbench (`/staff`): a detector draws boxes, a
@@ -47,8 +48,9 @@ cpl-dateline-cleveland/
 │  │  ├─ src/            #   ingest · enrich · view · probe · server · lib (vlmExtract, enrichAdapter,
 │  │  │                 #     ocrAnchor, title, reextract, resummarize, suggestTitle, explode, db, pg, …)
 │  │  ├─ migrations/     #   001_init.sql + 002_enrichment.sql (SQLite prototype)
-│  │  │                 #   pg/001..006  (Postgres: schema · text overlay · review · display title ·
-│  │  │                 #                 publish gate · re-extraction) — applied in filename order
+│  │  │                 #   pg/001..011  (Postgres: schema · text overlay · review · display title ·
+│  │  │                 #                 publish gate · re-extraction · authorship · box-first ·
+│  │  │                 #                 classification · ingest mode · edition cache) — applied in filename order
 │  │  ├─ fixtures/       #   session-model transcriptions (VLM) + enrichment/ (Stage-4) replayed by `fixture`
 │  │  ├─ inbox/          #   the 4 Brooklyn News page images (gitignored; PD)
 │  │  ├─ data/           #   slice01.sqlite (gitignored, prototype store)
@@ -75,6 +77,7 @@ goes through `apps/pipeline`'s ingestion service (`npm run server`, port 5170):
 | Regenerate a summary | `POST /api/object-summary` (+ `/suggest`) | `summary`, in place (enrichment is already an overlay) |
 | Status + review note | `POST /api/object-review` | `curation_status`, `review_note` |
 | Publish / withdraw | `POST /api/object-review` `{published}` | `is_published` |
+| Publish a page (batch) | `POST /api/objects-publish` `{objectIds, published}` | `is_published` for many, in one statement |
 | Delete | `DELETE /api/object` | the row, plus its cascades |
 
 Three of these carry consequences worth knowing before you use them:
@@ -105,11 +108,19 @@ bound issues, grouped by serial, opening into a page-turning reader.
   `dmGetCompoundObjectInfo`, so a half-ingested issue still has all four leaves. Pages the
   pipeline hasn't read are turnable as scans and say so. Rights gate: page images are attached
   only for issues whose `rights_status` is `open`.
-- **Two registers, one place in the book.** `READ` sets the page's **published** objects as a
-  reading column in printed order (the printed headline is lifted out of the body so the page
-  doesn't print it twice). `SCAN` is a full-window stage: the site chrome steps aside, the
-  filmstrip stands up as a page rail in the dead margin beside a portrait leaf, and the scan
-  fills the rest. Arrow keys turn pages in both.
+- **Three ways to open a page, one place in the book.** The reader bar's switch names them for
+  what they are. **Transcribed text** (`READ`) sets the page's **published** objects in printed
+  order (the printed headline is lifted out of the body so the page doesn't print it twice), in
+  1–4 columns that flow down and across like the paper, grouped by type or not, in full or as
+  summaries, filtered by type. **Original scan** (`SCAN`) is a full-window stage: the site chrome
+  steps aside, a page rail stands in the dead margin beside a portrait leaf, and the scan fills
+  the rest. **Your edition** is below. Arrow keys turn pages; `V` flips text ↔ scan; the bar's
+  `PAGE n OF N ▾` opens every leaf as thumbnails.
+- **Text and scan invite comparison.** READ says it is an AI transcription and offers the scan;
+  every located item carries **See it on the page**, which turns to the scan and flies the view
+  onto the item's box, lit.
+- **Linkable.** `?issue=<key>` opens a shelved issue (the address bar tracks the open book;
+  `&view=edition&rc=…&picks=…` rebuilds a shared edition).
 - **The scan viewer.** Zoom is transform-based on a *virtual* 1600px page, anchored on the
   cursor (⌘/ctrl-scroll, double-click, `+`/`-`/`0`), with panning clamped to the page's own
   edges. Scale and offset are one piece of state advanced functionally — held apart, two zooms
@@ -132,23 +143,53 @@ bound issues, grouped by serial, opening into a page-turning reader.
 
 ### The reading-room assistant
 
-A floating call button in the reader opens a chat about **the issue you are reading** —
-`POST /api/chat` (SSE over POST), Sonnet, `apps/pipeline/src/lib/chat.ts`.
+A chat about **the issue you are reading**, presented as the paper itself ("Ask The Brooklyn
+News") — `POST /api/chat` (SSE over POST), Sonnet, `apps/pipeline/src/lib/chat.ts`. On a wide
+window it opens **docked beside the page** by default (READ and SCAN); a patron's close is
+remembered, and it folds into a labelled call button. One conversation spans both registers.
 
 - **The corpus is the constraint, not the prompt.** The server assembles the context from
   `is_published` rows for that one issue's pages and sends nothing else — no other issue, no
   unpublished read, no retrieval, no web. The model is also told which pages are read-but-withheld,
   so "what's on page 3?" is answerable as a fact about the review queue rather than a shrug.
 - **Citations are structural.** The model marks a claim `[[co-269]]`; the client resolves that id
-  against the index and renders a chip that turns the reader to the page and marks the item. An id
+  against the index and renders a chip that turns the reader to the page and marks the item — in
+  SCAN it flies the scan to the item's box and lights it instead. An id
   the model invents resolves to nothing and is dropped — a bad citation degrades to no citation,
   never to a false one.
 - **Outside knowledge is labelled, not banned.** At most one sentence of general background,
   prefixed `Beyond this issue:` so a patron can see it did not come from the paper.
 - **Guards.** 20 questions per conversation (server-enforced, `CHAT_MAX_TURNS`), a corpus cap
-  (`CHAT_MAX_CORPUS_CHARS`), and the issue corpus travels as a cached system block. The assistant
-  is unavailable in MOCK mode and on issues with nothing published, and says which it is rather
-  than offering a dead box.
+  (`CHAT_MAX_CORPUS_CHARS`), and the issue corpus travels as a cached system block — placed
+  **first**, before the instructions, so the chat and Your Edition share one cache entry
+  (`streamMessages`). The assistant is unavailable in MOCK mode and on issues with nothing
+  published, and says which it is rather than offering a dead box.
+- **`max_tokens` is generous on purpose.** Sonnet thinks before it answers, and thinking counts
+  against the same ceiling; at ~1K a hard request can spend it all thinking and return no text.
+  Both features allow 16K and hold length in the prompt.
+
+### Your Edition (SLICE-15)
+
+The reader's third register: a three-question interview builds a **Reader Card** (role, 1–3
+interests, how you like it served — no model call; kept in `localStorage`), then four rounds of
+prompt cards each stream one section — headline, one paragraph in the reader's register, and
+**real newsprint crops** of the cited items — into a zine that can't be edited, only made.
+`apps/pipeline/src/lib/edition.ts`, `apps/discovery/src/components/YourEdition.tsx`.
+
+- **Dealing is free and deterministic.** `POST /api/edition/prompts` picks three cards per round
+  from a code-side prompt library plus per-issue topic cards, filtered by the Reader Card and by
+  what the issue's published index actually holds (`GET /api/edition/index`). A card is never
+  dealt without material behind it, or once that material is fully cited.
+- **Writing uses the chat's corpus and rails.** `POST /api/edition/section` (SSE) asks for JSON;
+  citation ids are checked against the ids actually in the corpus (ids written into the prose are
+  lifted out, invented ones dropped). A section left with no citation says so and doesn't count.
+  Crops are pixel-form IIIF regions of each item's largest box; unlocated items get a chip.
+- **Costs are capped server-side.** Four sections; at most **6 model calls per edition**; the
+  last round allows the patron's own question, with 2 retries. Card sections are cached in
+  `edition_sections` (pointer · card · register · role) and re-checked against what is published
+  before being served; free text is never cached. Counters are client-reported, like the chat's.
+- **Share and print.** Copy link carries picks, not prose (own questions are dropped, and the
+  link says so); Print is a single-column stylesheet with crops and footnoted citations.
 
 ## Status & scope
 

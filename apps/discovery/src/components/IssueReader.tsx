@@ -15,9 +15,11 @@ import { TYPE_COLORS } from '../lib/types';
 import type { ShelfIssue, ShelfPage } from '../lib/shelf';
 import { objectsOnPage } from '../lib/shelf';
 import { IssueChat } from './IssueChat';
+import { YourEdition } from './YourEdition';
+import { useEdition, type EditionLink } from '../lib/edition';
 import { C, MONO, SANS, SERIF } from '../lib/ui';
 
-export type ReaderView = 'read' | 'scan';
+export type ReaderView = 'read' | 'scan' | 'edition';
 
 interface Props {
   issue: ShelfIssue;
@@ -28,9 +30,11 @@ interface Props {
   onView: (v: ReaderView) => void;
   onBack: () => void;
   onOpenObject: (id: string) => void;
+  /** A shared Your Edition link to rebuild, when the page was opened from one. */
+  editionLink?: EditionLink | null;
 }
 
-export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, onBack, onOpenObject }: Props) {
+export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, onBack, onOpenObject, editionLink = null }: Props) {
   const idx = Math.max(0, issue.pages.findIndex((p) => p.page === pageNumber));
   const page = issue.pages[idx] ?? issue.pages[0];
   const prev = issue.pages[idx - 1];
@@ -131,7 +135,7 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
       // V flips between the text and the scan — the comparison is the point, so
       // it should cost one key, not a trip to the bar.
       else if ((e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault(); onView(view === 'read' ? 'scan' : 'read');
+        e.preventDefault(); onView(view === 'scan' ? 'read' : view === 'read' ? 'scan' : 'read');
       }
     };
     window.addEventListener('keydown', onKey);
@@ -144,9 +148,26 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
   const [mastheadInView, setMastheadInView] = useState(true);
   useEffect(() => { if (view !== 'read') setMastheadInView(true); }, [view]);
 
-  // A flight belongs to the trip into SCAN that asked for it. Back in READ it is
+  // A flight belongs to the trip into SCAN that asked for it. Out of SCAN it is
   // spent — otherwise the next plain switch to SCAN would replay it.
-  useEffect(() => { if (view === 'read') setFlight(null); }, [view]);
+  useEffect(() => { if (view !== 'scan') setFlight(null); }, [view]);
+
+  // Your Edition (SLICE-15). Its state lives HERE, not in the edition view, so a
+  // reference crop — which turns the book to SCAN and lights the box — never
+  // costs the patron the edition they were halfway through.
+  const edition = useEdition(issue, dataset, editionLink);
+  // The edition needs the whole width; the assistant folds into its button while
+  // it's open, and comes back the way it was when the patron leaves.
+  const foldedForEdition = useRef(false);
+  useEffect(() => {
+    if (view === 'edition') {
+      window.scrollTo({ top: 0 });
+      if (chatOpen) { foldedForEdition.current = true; setChatOpenState(false); }
+    } else if (foldedForEdition.current) {
+      foldedForEdition.current = false;
+      setChatOpenState(true);
+    }
+  }, [view]);    // eslint-disable-line react-hooks/exhaustive-deps
 
   // Following a citation answers "where did that come from?" in the register the
   // reader is already in. In SCAN the book turns to the page and the scan flies
@@ -170,6 +191,9 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
   // "See it on the page": the same flight a citation takes — into SCAN, onto the
   // item's box, lit.
   const seeOnPage = (objectId: string) => {
+    // From an edition the item may be on another leaf: turn to it first.
+    const item = dataset.indexItems.find((i) => i.id === objectId);
+    if (item?.printedPage && item.printedPage !== pageNumber) onPage(item.printedPage);
     onView('scan');
     setFlight((f) => ({ id: objectId, n: (f?.n ?? 0) + 1 }));
   };
@@ -199,7 +223,7 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
       onPage={onPage}
       prev={prev}
       next={next}
-      showTitle={view === 'scan' || !mastheadInView}
+      showTitle={view !== 'read' || !mastheadInView}
     />
   );
 
@@ -243,7 +267,9 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
             reading column re-centres in what is left. The bar stays full width —
             it belongs to the book, not to either column. */}
         <div style={{ marginRight: columnOpen ? DOCK_W : 0 }}>
-          {(
+          {view === 'edition' ? (
+            <YourEdition issue={issue} dataset={dataset} ed={edition} onSeeOnPage={seeOnPage} />
+          ) : (
             <ReadView
               issue={issue}
               page={page}
@@ -412,11 +438,26 @@ function ViewSwitch({ view, page, onView }: { view: ReaderView; page: ShelfPage;
       <path d="M3.5 4h9v4h-9zM3.5 10.5h4v6h-4zM9 10.5h3.5M9 13h3.5M9 15.5h3.5" stroke="currentColor" strokeWidth="1.1" />
     </svg>
   );
+  const editionIcon = (
+    <span style={{ position: 'relative', display: 'inline-flex' }}>
+      <svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true">
+        <rect x="0.75" y="0.75" width="14.5" height="18.5" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M3.5 4h9M3.5 6.5h9" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M3.5 10h4M3.5 12.5h4M3.5 15h4" stroke="currentColor" strokeWidth="1.1" />
+      </svg>
+      <svg width="9" height="9" viewBox="0 0 24 24" fill={view === 'edition' ? C.marigold : C.navy} aria-hidden="true" style={{ position: 'absolute', right: -4, bottom: 1 }}>
+        <path d="M12 1.5c.5 4.9 1.9 7.9 4 9.1 1.6.9 3.7 1.3 6.5 1.4-2.8.1-4.9.5-6.5 1.4-2.1 1.2-3.5 4.2-4 9.1-.5-4.9-1.9-7.9-4-9.1C6.4 12.5 4.3 12.1 1.5 12c2.8-.1 4.9-.5 6.5-1.4 2.1-1.2 3.5-4.2 4-9.1z" />
+      </svg>
+    </span>
+  );
   return (
     <div role="group" aria-label="How to view this page" style={{ display: 'flex', border: `1px solid ${C.hairMed}`, flexShrink: 0 }}>
       {opt('read', textIcon, 'Transcribed text', 'The page’s text, transcribed by AI and set for reading (V)')}
       <div style={{ width: 1, background: C.hairMed }} />
       {opt('scan', scanIcon, 'Original scan', 'The archival photograph of the printed page (V)')}
+      <div style={{ width: 1, background: C.hairMed }} />
+      {/* The third way in: a paper of the patron's own, made from this one. */}
+      {opt('edition', editionIcon, 'Your edition', 'Make Your Edition — a four-section paper of your own, written by AI from this issue')}
     </div>
   );
 }
