@@ -19,6 +19,7 @@ import {
   type Enrichment,
 } from "./enrich-prompt.ts";
 import { fetchRetry } from "./http.ts";
+import { record, anthropicUsage, geminiUsage } from "./spend.ts";
 
 export interface EnrichArgs {
   issueId: string;
@@ -121,7 +122,8 @@ async function callAnthropic(args: EnrichArgs): Promise<unknown> {
     body: JSON.stringify(body),
   }, { label: `Anthropic enrich (${ENRICH_MODEL})` });
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
-  const json = (await res.json()) as { content: Array<{ text?: string }> };
+  const json = (await res.json()) as { content: Array<{ text?: string }>; usage?: unknown; stop_reason?: string };
+  record({ provider: "anthropic", model: ENRICH_MODEL, step: "enrich", usage: anthropicUsage(json.usage), ok: json.stop_reason !== "max_tokens" });
   return parseObject(json.content.map((c) => c.text ?? "").join(""));
 }
 
@@ -147,7 +149,9 @@ async function callGemini(args: EnrichArgs): Promise<unknown> {
   if (!res.ok) throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    usageMetadata?: unknown;
   };
+  record({ provider: "gemini", model: ENRICH_MODEL, step: "enrich", usage: geminiUsage(json.usageMetadata) });
   const text =
     json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
   return parseObject(text);
@@ -173,7 +177,11 @@ async function callOpenAI(args: EnrichArgs): Promise<unknown> {
   if (!res.ok) throw new Error(`OpenAI API ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as {
     choices: Array<{ message: { content: string } }>;
+    usage?: { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } };
   };
+  const cached = json.usage?.prompt_tokens_details?.cached_tokens ?? 0;
+  record({ provider: "openai", model: ENRICH_MODEL, step: "enrich", usage: {
+    input: (json.usage?.prompt_tokens ?? 0) - cached, output: json.usage?.completion_tokens ?? 0, cacheWrite: 0, cacheRead: cached } });
   return parseObject(json.choices[0].message.content);
 }
 

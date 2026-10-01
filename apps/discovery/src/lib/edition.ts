@@ -8,8 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Dataset } from './types';
 import type { ShelfIssue } from './shelf';
-
-const API = () => 'http://' + location.hostname + ':5170';
+import { API } from './api';
 
 /* ── the Reader Card ───────────────────────────────────────────────────────── */
 
@@ -94,6 +93,8 @@ export function shareUrl(issueKey: string, rc: ReaderCard, picks: Array<string |
 export interface EditionIndex {
   available: boolean; reason: string | null; serial: string; dateLabel: string; publishedCount: number;
   interests: Interest[]; limits: { sections: number; calls: number; regenerates: number };
+  /** Can the finished edition be read aloud (SLICE-16)? Absent from an older server. */
+  podcast?: { available: boolean; reason: string | null };
 }
 export interface DealtCard { id: string; text: string; count: number }
 export interface Deal { round: number; cards: DealtCard[]; freeTextAllowed: boolean; complete: boolean; labels: Record<string, string | null> }
@@ -117,7 +118,7 @@ export async function fetchIndex(pointer: number): Promise<EditionIndex> {
 }
 
 type SectionResult =
-  | { kind: 'section'; section: Section; cached: boolean; modelCall: boolean }
+  | { kind: 'section'; section: Section; kicker?: string; sig?: string; cached: boolean; modelCall: boolean }
   | { kind: 'empty'; message: string; modelCall: true };
 
 async function streamSection(
@@ -148,7 +149,7 @@ async function streamSection(
       if (!data) continue;
       const p = JSON.parse(data);
       if (event === 'partial') onPartial(p);
-      else if (event === 'section') out = { kind: 'section', section: p.section, cached: !!p.cached, modelCall: !!p.modelCall };
+      else if (event === 'section') out = { kind: 'section', section: p.section, kicker: p.kicker, sig: p.sig, cached: !!p.cached, modelCall: !!p.modelCall };
       else if (event === 'empty') out = { kind: 'empty', message: p.message, modelCall: true };
       else if (event === 'error') failure = p.refused ? new EditionRefusal(p.message) : new Error(p.message);
     }
@@ -167,6 +168,9 @@ export interface Built {
   kicker: string;             // the words on the card that made it (or the question)
   section: Section;
   cached: boolean;
+  /** The section exactly as the server signed it (before `clean`), and the
+   *  signature over it and the kicker — what lets the edition be read aloud. */
+  signed?: { section: Section; sig: string };
 }
 
 export interface Draft { role: Role | null; interests: string[]; register: Register | null }
@@ -257,7 +261,9 @@ export function useEdition(issue: ShelfIssue, dataset: Dataset, link: EditionLin
       if (r.kind === 'section') {
         const s = clean(r.section);
         if (!s.references.length) throw new EditionRefusal('Nothing in this issue matched that — try another card.');
-        const built: Built = { cardId: pick.cardId ?? null, kicker: pick.kicker, section: s, cached: r.cached };
+        // The server's own words for the kicker when it sends them: they're what the signature covers.
+        const built: Built = { cardId: pick.cardId ?? null, kicker: r.kicker ?? pick.kicker, section: s, cached: r.cached,
+          signed: r.sig ? { section: r.section, sig: r.sig } : undefined };
         const next = opts.regenerate ? [...list.slice(0, -1), built] : [...list, built];
         if (opts.regenerate) setRegeneratesUsed(opts.regens + 1);
         setSections(next);

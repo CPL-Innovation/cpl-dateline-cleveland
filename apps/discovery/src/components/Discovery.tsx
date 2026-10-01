@@ -15,6 +15,7 @@ import { IssueReader, type ReaderView } from './IssueReader';
 import { deriveShelf, fetchShelf, type Shelf } from '../lib/shelf';
 import { mockShelf } from '../data/mockShelf';
 import { parseLink } from '../lib/edition';
+import { API } from '../lib/api';
 
 // The populated mock week (Jul 23–29 1970) sits at index 4.
 const MOCK_POPULATED_WEEK = 4;
@@ -23,9 +24,13 @@ export function Discovery() {
   // A link to a book: `?issue=p7622` opens it in THE STACKS; with
   // `&view=edition&rc=…&picks=…` it rebuilds a shared Your Edition. Only real
   // issues have keys worth linking, so a link opens in REAL DATA.
+  // `&view=podcast&pod=<id>` opens an edition's podcast (SLICE-16), which the
+  // server holds — the link needs nothing else.
   const [linked] = useState(() => {
-    const issue = new URLSearchParams(location.search).get('issue');
-    return issue ? { issue, edition: parseLink(location.search) } : null;
+    const q = new URLSearchParams(location.search);
+    const issue = q.get('issue');
+    const pod = q.get('view') === 'podcast' ? q.get('pod') : null;
+    return issue ? { issue, edition: parseLink(location.search), pod } : null;
   });
   const [page, setPage] = useState<Page>(linked ? 'stacks' : 'calendar');
   const [mode, setMode] = useState<DatasetMode>(linked ? 'real' : 'mock');
@@ -44,13 +49,13 @@ export function Discovery() {
   const [openIssue, setOpenIssue] = useState<string | null>(null);
   const [readerPage, setReaderPage] = useState(1);
   const [readerView, setReaderView] = useState<ReaderView>('read');
+  const [podId, setPodId] = useState<string | null>(linked?.pod ?? null);
   const [serial, setSerial] = useState<string | null>(null);
 
   useEffect(() => {
     if (mode !== 'real') return;
-    const API = 'http://' + location.hostname + ':5170';
     let cancelled = false;
-    fetch(API + '/api/discovery')
+    fetch(API() + '/api/discovery')
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then((payload) => { if (!cancelled) setLiveReal(buildRealDataset(payload).dataset); })
       .catch(() => { if (!cancelled) setLiveReal(null); }); // fall back to committed
@@ -72,7 +77,8 @@ export function Discovery() {
     if (!iss) return;
     linkOpened.current = true;
     openIssueAt(iss.key);
-    if (linked.edition) setReaderView('edition');
+    if (linked.pod) setReaderView('podcast');
+    else if (linked.edition) setReaderView('edition');
   }, [liveShelf]);    // eslint-disable-line react-hooks/exhaustive-deps
 
   // …and keep the address bar pointing at the open book, so any issue can be
@@ -82,10 +88,11 @@ export function Discovery() {
     if (page === 'stacks' && openIssue) {
       q.set('issue', openIssue);
       if (readerView === 'edition') q.set('view', 'edition');
+      if (readerView === 'podcast' && podId) { q.set('view', 'podcast'); q.set('pod', podId); }
     }
     const next = location.pathname + (q.toString() ? `?${q}` : '');
     if (next !== location.pathname + location.search) window.history.replaceState(window.history.state, '', next);
-  }, [page, openIssue, readerView]);
+  }, [page, openIssue, readerView, podId]);
 
   const goto = (p: Page) => {
     setPage(p);
@@ -207,6 +214,8 @@ export function Discovery() {
               onBack={() => setOpenIssue(null)}
               onOpenObject={(id) => { setDetailId(id); window.scrollTo({ top: 0 }); }}
               editionLink={linked?.edition && linked.edition.issue === activeIssue.key ? linked.edition : null}
+              podId={podId}
+              onPodcast={(id) => { setPodId(id); setReaderView('podcast'); }}
             />
           ) : (
             <StacksBrowse

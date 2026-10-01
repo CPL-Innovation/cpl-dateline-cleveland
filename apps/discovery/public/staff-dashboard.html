@@ -179,6 +179,10 @@ a{color:inherit;text-decoration:none}
     <a class="navitem" href="staff.html#lowconf" target="_top"><span class="ord">06</span>Low-confidence<span class="count" id="nav-lowconf">—</span></a>
     <a class="navitem" href="staff.html#illus" target="_top"><span class="ord">07</span>Illustrations<span class="count" id="nav-illus">—</span></a>
     <a class="navitem" href="staff.html#export" target="_top"><span class="ord">08</span>Export<span class="count">—</span></a>
+    <div class="grp">Your Edition · patron AI</div>
+    <a class="navitem" href="staff.html#podcast" target="_top"><span class="ord">09</span>Podcast audio<span class="count" id="nav-podcast">—</span></a>
+    <div class="grp">Running costs</div>
+    <a class="navitem" href="staff.html#spend" target="_top"><span class="ord">10</span>AI spend<span class="count" id="nav-spend">—</span></a>
     <div class="foot">
       Pilot posture — corpus treated as public domain for prototyping.<br><br>
       Hard rights gate before production. Every machine field ships flagged until a human confirms.
@@ -487,6 +491,25 @@ a{color:inherit;text-decoration:none}
     var x=t.querySelector('.x'); if(x)x.addEventListener('click',function(){t.classList.remove('show');});
     clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},6000);
   }
+})();
+</script>
+<script>
+/* 10 · AI spend (SLICE-17): the rail shows what's been spent so far. */
+(function(){
+  var el = document.getElementById('nav-spend'); if(!el) return;
+  fetch('http://'+location.hostname+':5170/api/spend/summary').then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+    if(!d) return; var n = d.total.cost; el.textContent = n===0 ? '$0' : n<1 ? '$'+n.toFixed(3) : '$'+n.toFixed(2);
+  }).catch(function(){});
+})();
+/* 09 · Podcast audio (SLICE-16): the rail shows whether patrons can make one. */
+(function(){
+  var el = document.getElementById('nav-podcast'); if(!el) return;
+  fetch('http://'+location.hostname+':5170/api/settings/podcast').then(function(r){ return r.ok ? r.json() : null; }).then(function(v){
+    if(!v) return;
+    var on = v.available && v.available.available, off = !v.enabled;
+    el.textContent = on ? 'on' : off ? 'off' : 'setup';
+    if(!on) el.className = 'count hot';
+  }).catch(function(){});
 })();
 </script>
 </body>

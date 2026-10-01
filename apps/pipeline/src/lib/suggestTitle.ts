@@ -10,6 +10,7 @@
 // Claude call sites (vlmExtract, enrichAdapter) — one calling convention and one
 // retry/backoff policy across every model call in the service.
 import { fetchRetry } from "./http.ts";
+import { record, anthropicUsage } from "./spend.ts";
 import { TITLE_MODEL } from "../config.ts";
 
 // Structured output, so the model cannot wrap the headline in a preamble or
@@ -70,7 +71,8 @@ export async function suggestTitle(text: string, objectClass?: string | null, ro
   }, { label: `Anthropic title suggestion (${TITLE_MODEL})` });
 
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
-  const json = (await res.json()) as { content: Array<{ type: string; text?: string }> };
+  const json = (await res.json()) as { content: Array<{ type: string; text?: string }>; usage?: unknown };
+  record({ provider: "anthropic", model: TITLE_MODEL, step: "title", usage: anthropicUsage(json.usage) });
   const raw = json.content.filter((c) => c.type === "text").map((c) => c.text ?? "").join("");
 
   let title = "";

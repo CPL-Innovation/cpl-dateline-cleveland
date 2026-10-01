@@ -21,7 +21,9 @@ read-only design intent; intent changes are proposed back via `build/_FROM-BUILD
 
 Requires Node ≥ 22.5 (TypeScript type-stripping — no build step), Postgres with pgvector, and an
 `ANTHROPIC_API_KEY` in `.env` (gitignored; copy `.env.example`). Box-first also wants `tesseract`
-on PATH (`brew install tesseract`) and, for the ONNX detectors, `uv`.
+on PATH (`brew install tesseract`) and, for the ONNX detectors, `uv`. Podcasts (SLICE-16) need a
+Gemini key, either saved in the workbench (step 09) or as `GEMINI_API_KEY` in `.env`. Their audio
+is written to `data/podcasts/` (gitignored).
 
 ```bash
 npm run server                 # the ingestion service on :5170; applies migrations/pg on boot
@@ -44,6 +46,12 @@ transcription) needs an explicit acknowledgement. `reset-page` is the command-li
 
 Endpoints are listed in the header of `src/server.ts`. The server does not hot-reload: restart it
 after changing anything under `src/`.
+
+**Every paid model call is booked** (SLICE-17, `src/lib/spend.ts`). A new call site reports its
+step and the response's `usage` with `record()`, and the route around it opens
+`withSpend({pageRecord, issuePointer, objectId, ref})` so the row lands on the right page. A model
+missing from `MODEL_PRICES` (`src/config.ts`) is recorded unpriced and flagged in the workbench, so
+add a price when you add a model.
 
 **Rights gate.** Every way in calls `assertIngestable()`, which refuses an in-copyright issue before
 any page image reaches a model.
@@ -171,6 +179,10 @@ src/lib/ocr.ts            Tesseract: words, column grid, layout blocks
 src/lib/iiif.ts           ContentDM IIIF: page size, crop checks
 src/lib/chat.ts           the issue corpus (buildIssueCorpus) + one streamed Sonnet call (streamMessages)
 src/lib/edition.ts        Your Edition: issue index, prompt library, dealing, section writing + cache
+src/lib/editionSig.ts     HMAC over each section Your Edition writes (what the podcast will voice)
+src/lib/podcast.ts        Your Edition, read aloud: settings, script, episode queue, mix
+src/lib/tts.ts            Gemini TTS: both request dialects, WAV/L16 decode, model list
+src/lib/spend.ts          what the AI costs: per-call usage → model_calls, priced; page/summary reads
 src/lib/vlm-prompt.ts     the transcription contract (system prompt, object classes)
 src/lib/explode.ts        ordered blocks -> rows (filler collapse, handwriting flag)
 src/detect.ts             run detectors on a page, write numbered-box overlays

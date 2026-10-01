@@ -22,6 +22,7 @@ import { buildIssueCorpus, streamMessages, ChatRefused } from "./chat.ts";
 import { CHAT_MODEL, iiifId } from "../config.ts";
 import { pageSize } from "./iiif.ts";
 import { readingRects } from "./region.ts";
+import { signSection } from "./editionSig.ts";
 
 export { ChatRefused as EditionRefused };
 
@@ -510,7 +511,9 @@ export interface SectionRequest {
 
 export type SectionEvent =
   | { type: "partial"; headline?: string; body?: string }
-  | { type: "section"; section: Section; cached: boolean; modelCall: boolean; empty: false }
+  // `kicker` is the card's words as the server knows them, and `sig` signs them
+  // with the section — what lets the podcast step voice it (editionSig.ts).
+  | { type: "section"; section: Section; kicker: string; sig: string; cached: boolean; modelCall: boolean; empty: false }
   | { type: "empty"; message: string; modelCall: true };
 
 export async function writeSection(req: SectionRequest, emit: (e: SectionEvent) => void): Promise<void> {
@@ -545,6 +548,9 @@ export async function writeSection(req: SectionRequest, emit: (e: SectionEvent) 
     job = { card: e.card, instruction: e.instruction, material: [...mat.filter((id) => !cited.has(id)), ...mat.filter((id) => cited.has(id))], cacheId: e.id };
   }
 
+  // The words the patron sees above the section — and that its signature covers.
+  const kicker = job.cacheId ? job.card : `You asked: ${free}`;
+
   // A card pick by the same kind of reader is the same section — serve it free.
   // Re-checked against what is published NOW: a cached section citing an item a
   // curator has since withdrawn is a miss, not a leak.
@@ -554,7 +560,7 @@ export async function writeSection(req: SectionRequest, emit: (e: SectionEvent) 
       [req.pointer, job.cacheId, rc.register, rc.role])).rows[0];
     if (hit && hit.section.references.every((r) => ix.corpusIds.has(Number(r.slice(3))))) {
       console.log(`${tag} cache hit · p${req.pointer} · ${job.cacheId} · ${rc.role}/${rc.register} — no model call`);
-      emit({ type: "section", section: hit.section, cached: true, modelCall: false, empty: false });
+      emit({ type: "section", section: hit.section, kicker, sig: await signSection(req.pointer, kicker, hit.section), cached: true, modelCall: false, empty: false });
       return;
     }
   }
@@ -574,6 +580,7 @@ export async function writeSection(req: SectionRequest, emit: (e: SectionEvent) 
     // One paragraph from a known set of items: it needs care, not deliberation.
     effort: "medium",
     label: `Anthropic Your Edition (${CHAT_MODEL})`,
+    step: "edition",
   }, (t) => {
     raw += t;
     const p = partialOf(raw);
@@ -595,7 +602,7 @@ export async function writeSection(req: SectionRequest, emit: (e: SectionEvent) 
        VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (issue_pointer, card_id, register, role) DO NOTHING`,
       [req.pointer, job.cacheId, rc.register, rc.role, JSON.stringify(section), CHAT_MODEL]);
   }
-  emit({ type: "section", section, cached: false, modelCall: true, empty: false });
+  emit({ type: "section", section, kicker, sig: await signSection(req.pointer, kicker, section), cached: false, modelCall: true, empty: false });
 }
 
 /** The card text for an id — for share links, which carry picks, not prose. */

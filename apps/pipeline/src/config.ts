@@ -202,3 +202,41 @@ export const COVERAGE_MIN_WORDS = Number(process.env.COVERAGE_MIN_WORDS ?? 5);
 // Box-first reads one group per call; a group needing more images than this
 // (a tall box counts once per slice) is read in consecutive chunks.
 export const BOXFIRST_MAX_IMAGES = Number(process.env.BOXFIRST_MAX_IMAGES ?? 20);
+
+// ── Your Edition, read aloud (SLICE-16) ──────────────────────────────────────
+// The script is written by Claude from the edition's four validated sections
+// (nothing else); the voices are Gemini TTS. Which TTS model, which voices and the
+// Gemini key are the workbench's call (step 09, stored in app_settings) — these
+// are only the defaults it starts from. GEMINI_API_KEY in .env is the fallback key
+// when the workbench hasn't set one.
+export const PODCAST_SCRIPT_MODEL = process.env.PODCAST_SCRIPT_MODEL ?? CHAT_MODEL;
+export const PODCAST_DEFAULT_TTS_MODEL = process.env.PODCAST_TTS_MODEL ?? "gemini-3.8-flash-tts";
+export const PODCAST_DIR = resolve(ROOT, "data", "podcasts");
+// Episodes recorded at once, server-wide; the rest wait their turn in order.
+export const PODCAST_CONCURRENCY = Number(process.env.PODCAST_CONCURRENCY ?? 2);
+// Segments of one episode voiced at once (intro, four sections, outro).
+export const PODCAST_TTS_CONCURRENCY = Number(process.env.PODCAST_TTS_CONCURRENCY ?? 3);
+
+// ── what the AI costs (SLICE-17) ─────────────────────────────────────────────
+// USD per million tokens, by model, with the date each rate starts — a call is
+// priced at the rate in force when it was made (Gemini's TTS rates double on
+// 2027-01-01). A model not listed here is recorded with its tokens and a NULL
+// cost, and the workbench says it's unpriced rather than guessing.
+// Sources, checked 2026-10-01: Anthropic's model price table (cache writes are
+// the 5-minute rate, 1.25× input; cache reads 0.1× input) and
+// ai.google.dev/gemini-api/docs/pricing (paid tier; TTS output is audio tokens,
+// 25 per second of speech).
+export interface ModelPrice { model: string; from?: string; input: number; output: number; cacheWrite?: number; cacheRead?: number }
+export const MODEL_PRICES: ModelPrice[] = [
+  { model: "claude-sonnet-5", input: 2, output: 10, cacheWrite: 2.5, cacheRead: 0.2 },
+  { model: "claude-sonnet-5-5", input: 2, output: 10, cacheWrite: 2.5, cacheRead: 0.2 },
+  { model: "claude-opus-5-5", input: 4, output: 20, cacheWrite: 5, cacheRead: 0.2 },
+  { model: "claude-haiku-4-5", input: 1, output: 5, cacheWrite: 1.25, cacheRead: 0.1 },
+  { model: "gemini-3.8-flash-tts", input: 0.5, output: 9 },
+  { model: "gemini-3.8-flash-tts", from: "2027-01-01", input: 1, output: 18 },
+  { model: "gemini-3.8-flash-lite-tts", input: 0.5, output: 6 },
+  { model: "gemini-3.8-flash-lite-tts", from: "2027-01-01", input: 1, output: 12 },
+  { model: "gemini-3.1-flash-tts-preview", input: 1, output: 20 },
+  { model: "gemini-2.5-flash-preview-tts", input: 0.5, output: 10 },
+  { model: "gemini-2.5-pro-preview-tts", input: 1, output: 20 },
+];

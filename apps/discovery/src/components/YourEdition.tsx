@@ -11,6 +11,7 @@ import { useState } from 'react';
 import type { Dataset, IndexItem } from '../lib/types';
 import type { ShelfIssue } from '../lib/shelf';
 import { REGISTER_OPTIONS, ROLE_OPTIONS, type Built, type Crop, type EditionState } from '../lib/edition';
+import { requestPodcast, voiceable } from '../lib/podcast';
 import { C, MONO, SANS, SERIF } from '../lib/ui';
 
 interface Props {
@@ -19,9 +20,11 @@ interface Props {
   ed: EditionState;
   /** Into SCAN, onto this item's box on its own leaf. */
   onSeeOnPage: (id: string) => void;
+  /** To the podcast page for this episode (SLICE-16). */
+  onPodcast: (id: string) => void;
 }
 
-export function YourEdition({ issue, dataset, ed, onSeeOnPage }: Props) {
+export function YourEdition({ issue, dataset, ed, onSeeOnPage, onPodcast }: Props) {
   if (ed.phase === 'loading') {
     return <Frame><div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', color: C.tertiary, padding: '60px 0' }}>OPENING THE ISSUE…</div></Frame>;
   }
@@ -42,7 +45,7 @@ export function YourEdition({ issue, dataset, ed, onSeeOnPage }: Props) {
           <Intro />
           {ed.phase === 'interview' && <Interview ed={ed} />}
           {ed.phase === 'card' && <CardConfirm ed={ed} />}
-          {(ed.phase === 'build' || ed.phase === 'done') && <Build ed={ed} />}
+          {(ed.phase === 'build' || ed.phase === 'done') && <Build ed={ed} issue={issue} onPodcast={onPodcast} />}
         </div>
         <Sheet issue={issue} dataset={dataset} ed={ed} onSeeOnPage={onSeeOnPage} />
       </div>
@@ -199,7 +202,7 @@ function CardConfirm({ ed }: { ed: EditionState }) {
 
 /* ── Phase 2: the build game ───────────────────────────────────────────────── */
 
-function Build({ ed }: { ed: EditionState }) {
+function Build({ ed, issue, onPodcast }: { ed: EditionState; issue: ShelfIssue; onPodcast: (id: string) => void }) {
   const [q, setQ] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
   const n = ed.sections.length;
@@ -251,6 +254,7 @@ function Build({ ed }: { ed: EditionState }) {
             <button className="dc-btn-ghost" onClick={ed.startOver} style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', padding: '11px 16px', border: `1px solid ${C.hairMed}`, color: C.secondary }}>START OVER</button>
           </div>
           {copied && <div style={{ fontFamily: SERIF, fontSize: 13.5, lineHeight: 1.5, color: C.secondary, marginTop: 10 }}>{copied}</div>}
+          <ListenCard ed={ed} issue={issue} onPodcast={onPodcast} />
           {lastIsOwn && regensLeft > 0 && (
             <div style={{ marginTop: 18, borderTop: `1px solid ${C.hairLight}`, paddingTop: 14 }}>
               <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', color: C.tertiary }}>
@@ -278,6 +282,61 @@ function Build({ ed }: { ed: EditionState }) {
         <span>✦ AI (CLAUDE SONNET) · WRITTEN ONLY FROM THIS ISSUE · WRITING TURNS {ed.callsUsed}/{ed.maxCalls}</span>
         {!done && <button className="dc-underline-hover" onClick={ed.redo} style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.06em', color: C.navy, flexShrink: 0 }}>CHANGE CARD</button>}
       </div>
+    </div>
+  );
+}
+
+/** Your Edition, read aloud (SLICE-16): the way from a finished paper to its episode. */
+const LISTEN_MINUTES: Record<string, string> = { quick: 'about 3–4 minutes', full: 'about 6–8 minutes', ten: 'about 4 minutes', facts: 'about 4 minutes' };
+
+function ListenCard({ ed, issue, onPodcast }: { ed: EditionState; issue: ShelfIssue; onPodcast: (id: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const pod = ed.index?.podcast;
+  const signed = voiceable(ed.sections);
+  const reason = !pod ? 'Audio editions aren’t available from this reading room yet.'
+    : !pod.available ? pod.reason
+    : !signed ? 'This edition was made before audio editions existed — start over to make one that can be read aloud.'
+    : null;
+  const go = async () => {
+    if (busy || reason || !ed.card || issue.pointer == null) return;
+    setBusy(true); setErr(null);
+    try {
+      const r = await requestPodcast(issue.pointer, ed.card, ed.label ?? '', ed.sections);
+      onPodcast(r.id);
+    } catch (e) {
+      setErr((e as Error).message);
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="dc-noprint" style={{ marginTop: 18, border: `1px solid ${C.hairMed}`, borderTop: `3px solid ${C.marigold}`, background: C.canvas, padding: '14px 16px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', color: C.tertiary }}>
+        <Spark size={10} /> NEW · HEAR IT
+      </div>
+      <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 19, lineHeight: 1.25, color: C.ink, marginTop: 6 }}>Turn it into a podcast</div>
+      <div style={{ fontFamily: SERIF, fontSize: 14, lineHeight: 1.5, color: C.secondary, marginTop: 4 }}>
+        Two AI hosts talk you through your four sections — {LISTEN_MINUTES[ed.card?.register ?? 'quick']}, with the transcript to read along.
+      </div>
+      <button
+        onClick={go} disabled={!!reason || busy}
+        className={reason ? undefined : 'dc-btn-primary'}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, width: '100%', marginTop: 12,
+          fontFamily: SANS, fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', padding: '12px 16px',
+          border: `1px solid ${reason ? C.hairMed : C.ink}`, background: reason ? C.sunken : C.ink, color: reason ? C.tertiary : C.canvas,
+          cursor: reason ? 'not-allowed' : busy ? 'progress' : 'pointer',
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="8.5" y="2.5" width="7" height="12" rx="3.5" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M5 11a7 7 0 0 0 14 0M12 18v3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+        {busy ? 'BOOKING THE STUDIO…' : 'MAKE THE PODCAST →'}
+      </button>
+      {(reason || err) && (
+        <div role="status" style={{ fontFamily: SERIF, fontSize: 13.5, lineHeight: 1.5, color: C.secondary, marginTop: 8 }}>{err ?? reason}</div>
+      )}
     </div>
   );
 }
@@ -347,7 +406,7 @@ function Sheet({ issue, dataset, ed, onSeeOnPage }: { issue: ShelfIssue; dataset
 
       {done && (
         <footer style={{ marginTop: 30, borderTop: `1px solid ${C.hairMed}`, paddingTop: 10, fontFamily: MONO, fontSize: 9, lineHeight: 1.7, letterSpacing: '0.06em', color: C.tertiary, textAlign: 'center' }}>
-          WRITTEN BY AI (CLAUDE SONNET) FROM THE PUBLISHED PAGES OF {issue.serial.toUpperCase()}, {issue.dateLabel.toUpperCase()} · CLEVELAND PUBLIC LIBRARY · MAY CONTAIN ERRORS — EVERY SECTION CITES THE PAGE IT CAME FROM
+          WRITTEN BY AI (CLAUDE SONNET) FROM THE PUBLISHED PAGES OF {issue.serial.toUpperCase()}, {issue.dateLabel.toUpperCase()} · CLEVELAND PUBLIC LIBRARY
         </footer>
       )}
     </article>
@@ -394,7 +453,7 @@ function SectionBlock({ n, b, byId, footStart, onSeeOnPage }: {
       </ol>
 
       <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', color: C.tertiary, marginTop: 10 }}>
-        WRITTEN BY AI FROM THIS ISSUE — MAY CONTAIN ERRORS
+        WRITTEN BY AI FROM THIS ISSUE
       </div>
     </section>
   );

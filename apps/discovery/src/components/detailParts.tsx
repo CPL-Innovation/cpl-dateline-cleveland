@@ -205,7 +205,7 @@ export function Transcription({ text }: { text: string }) {
             padding: '2px 7px',
           }}
         >
-          TRANSCRIBED BY AI — MAY CONTAIN ERRORS
+          TRANSCRIBED BY AI
         </div>
       </div>
       <div

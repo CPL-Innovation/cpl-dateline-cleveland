@@ -9,6 +9,7 @@
 // It SUGGESTS ONLY. The proposed summary goes back to the workbench and is written
 // only when the curator commits it.
 import { fetchRetry } from "./http.ts";
+import { record, anthropicUsage } from "./spend.ts";
 import { RESUMMARIZE_MODEL } from "../config.ts";
 
 // The definition is lifted from the enrichment contract in enrich-prompt.ts
@@ -72,7 +73,8 @@ export async function resummarize(text: string, objectClass: string, role: strin
   }, { label: `Anthropic re-summarize (${RESUMMARIZE_MODEL})` });
 
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${await res.text()}`);
-  const json = (await res.json()) as { content: Array<{ type: string; text?: string }> };
+  const json = (await res.json()) as { content: Array<{ type: string; text?: string }>; usage?: unknown };
+  record({ provider: "anthropic", model: RESUMMARIZE_MODEL, step: "summary", usage: anthropicUsage(json.usage) });
   const raw = json.content.filter((c) => c.type === "text").map((c) => c.text ?? "").join("");
   let summary: string;
   try {

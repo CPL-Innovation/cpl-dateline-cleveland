@@ -11,6 +11,7 @@
 // reader can never show something the index wouldn't.
 
 import type { Dataset, IndexItem } from './types';
+import { API } from './api';
 
 export interface ShelfPage {
   /** printed page number (1-based) */
@@ -57,8 +58,6 @@ export interface Shelf {
   source: 'live' | 'committed' | 'mock';
   note: string;
 }
-
-const API = () => 'http://' + location.hostname + ':5170';
 
 /** Live shelf from the ingestion service. Rejects if it is offline. */
 export async function fetchShelf(): Promise<Shelf> {

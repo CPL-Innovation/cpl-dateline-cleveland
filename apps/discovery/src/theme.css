@@ -193,3 +193,23 @@ input {
   .dc-edition-section p { orphans: 3; widows: 3; }
   .dc-edition-crop img { filter: none !important; }
 }
+
+/* ── Your Edition, read aloud (SLICE-16) ─────────────────────────────────── */
+.dc-onair i { transform-origin: bottom; transform: scaleY(0.25); }
+.dc-onair.live i { animation: dc-onair 0.9s ease-in-out infinite alternate; }
+@keyframes dc-onair { 0% { transform: scaleY(0.2); } 50% { transform: scaleY(1); } 100% { transform: scaleY(0.45); } }
+.dc-spin { display: inline-block; animation: dc-spin 0.8s linear infinite; }
+@keyframes dc-spin { to { transform: rotate(360deg); } }
+.dc-play-ready { animation: dc-play-ready 2.4s ease-out infinite; }
+@keyframes dc-play-ready { 0% { box-shadow: 0 0 0 0 rgba(0, 87, 183, 0.35); } 70%, 100% { box-shadow: 0 0 0 14px rgba(0, 87, 183, 0); } }
+.dc-pod-line:not([aria-current]):hover { background: var(--dc-sunken) !important; }
+.dc-pod-line:focus-visible { outline: 2px solid var(--dc-navy); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  .dc-onair.live i, .dc-play-ready { animation: none; }
+  .dc-onair.live i { transform: scaleY(0.7); }
+}
+@media (max-width: 640px) {
+  .dc-podcast-cover { width: 120px !important; height: 120px !important; }
+  .dc-podcast [data-line] { grid-template-columns: minmax(0, 1fr) !important; gap: 2px !important; }
+  .dc-podcast .dc-pod-src { margin-left: 0 !important; }
+}

@@ -15,6 +15,7 @@
 // has coverage GAPS — runs of OCR-read text that no grouped box contains — unless
 // the curator has looked at them and said to go ahead.
 import { fetchRetry } from "./http.ts";
+import { record, anthropicUsage } from "./spend.ts";
 import { query } from "./pg.ts";
 import { pageOcr, type PageOcr } from "./ocr.ts";
 import { pageSize, jpegSize } from "./iiif.ts";
@@ -250,6 +251,7 @@ export async function readGroup(
   content.push({ type: "text", text: buildPrompt({ ...ctx, slices: crops.map((c) => c.length) }) });
 
   const ids = boxes.map((b) => `#${b.id}`).join(" ");
+  const t0 = performance.now();
   const res = await fetchRetry("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
@@ -265,7 +267,10 @@ export async function readGroup(
   const j = (await res.json()) as {
     content: Array<{ type: string; text?: string }>; stop_reason?: string;
     stop_details?: { category?: string | null; explanation?: string } | null;
+    usage?: unknown;
   };
+  record({ provider: "anthropic", model: BOXFIRST_MODEL, step: "transcribe", usage: anthropicUsage(j.usage),
+    ms: performance.now() - t0, ok: j.stop_reason !== "max_tokens" && j.stop_reason !== "refusal" });
   if (j.stop_reason === "max_tokens") throw new Error(`boxes ${ids}: ran out of output tokens mid-transcription`);
   if (j.stop_reason === "refusal") throw new Error(`boxes ${ids}: the model declined (${j.stop_details?.category ?? "no category"})`);
   const raw = j.content.filter((c) => c.type === "text").map((c) => c.text ?? "").join("");

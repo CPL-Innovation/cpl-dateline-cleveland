@@ -12,6 +12,22 @@
 //                                            → this round's three cards (+ free text in round 4); no model call
 //   POST /api/edition/section {pointer, readerCard, cardId|freeText, history, callsUsed, regeneratesUsed, regenerate?, editionId}
 //                                            → SSE: `partial` {headline, body}…, then `section` | `empty`, or `error`
+//
+// Your Edition, read aloud (SLICE-16) — lib/podcast.ts:
+//   POST /api/podcast {pointer, readerCard, label, sections:[{kicker, section, sig}]}
+//                                            → {id, status, cached}; refused unless every section
+//                                              verifies as one this server wrote
+//   GET  /api/podcast?id=                    → the episode: status, progress, script, timings
+//   GET  /api/podcast/audio?id=              → audio/wav (Range-aware, so the player can seek)
+//   POST /api/podcast/retry {id}             → re-run a failed episode
+//   GET  /api/settings/podcast               → workbench step 09 (the key is never returned)
+//   POST /api/settings/podcast {enabled, apiKey?, ttsModel, format, hosts, style, dailyLimit}
+//   POST /api/settings/podcast/models {apiKey?}  → the TTS models the key can reach
+//   POST /api/settings/podcast/test {…draft, host?} → audio/wav of a line or two
+//
+// What the AI costs (SLICE-17) — lib/spend.ts; every paid call is a model_calls row:
+//   GET  /api/spend/page?record=             → one page: total, ingest share, by step
+//   GET  /api/spend/summary                  → totals, cost per ingested page, by step / issue / page / day
 //   POST /api/import?collection=&pointer=&issueId=&record=&page=  body: objects JSON
 //                                            → the page, stored as supplied (mode 'import')
 //
@@ -43,7 +59,8 @@
 // The rights gate lives in assertIngestable() (ingestPage.ts), called by every way
 // in; this file is transport + seeding.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
+import { createReadStream } from "node:fs";
 import { INGEST_PORT, CATALOG_JSON, iiifId } from "./config.ts";
 import { reextractObject } from "./lib/reextract.ts";
 import { pagePlan, clearPage, ClearRefused } from "./lib/clearPage.ts";
@@ -55,10 +72,15 @@ import { getShelf } from "./lib/shelf.ts";
 import { streamIssueChat, ChatRefused, type ChatMessage } from "./lib/chat.ts";
 import { issueIndex, availableInterests, dealCards, writeSection, readReaderCard, cardText, EDITION_SECTIONS, EDITION_MAX_CALLS, EDITION_MAX_REGENERATES } from "./lib/edition.ts";
 import { resolveIssuePages } from "./lib/issuePages.ts";
+import {
+  requestPodcast, getPodcast, retryPodcast, audioPath, recoverInterrupted, availability,
+  settingsView, saveSettings, listModels, testVoice, SettingsRefused,
+} from "./lib/podcast.ts";
 import { suggestTitle } from "./lib/suggestTitle.ts";
 import { proposeBoxes, getProposals, saveProposal, regroup, listDetectors, BoxFirstRefused } from "./lib/boxFirst.ts";
 import { DetectorUnavailable } from "./lib/detect.ts";
 import { checkCoverage, transcribeProposal, CoverageGaps } from "./lib/boxTranscribe.ts";
+import { withSpend, pageSpend, spendSummary } from "./lib/spend.ts";
 import type { DetectorId } from "./config.ts";
 
 const ORIGIN = process.env.CORS_ORIGIN ?? "*";
@@ -70,6 +92,8 @@ function cors(res: ServerResponse) {
   // in the client, with no request ever reaching a route (curl never sees this,
   // because curl sends no preflight).
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+  // The workbench's voice test reads which model answered and how long it took.
+  res.setHeader("Access-Control-Expose-Headers", "x-tts-model, x-tts-ms, content-range, accept-ranges");
 }
 function json(res: ServerResponse, status: number, body: unknown) {
   cors(res);
@@ -171,7 +195,8 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
 
     sseOpen(res);
     try {
-      const out = await streamIssueChat(pointer, body.messages ?? [], (text) => sse(res, "delta", { text }));
+      const out = await withSpend({ issuePointer: pointer },
+        () => streamIssueChat(pointer, body.messages ?? [], (text) => sse(res, "delta", { text })));
       sse(res, "done", out);
     } catch (e) {
       // A refusal is the patron's answer, not a crash — it reaches them as a
@@ -196,6 +221,8 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         reason: ix.publishedCount > 0 ? null : "Nothing from this issue has been published yet, so there is nothing to make an edition from.",
         serial: ix.serial, dateLabel: ix.dateLabel, publishedCount: ix.publishedCount,
         interests: availableInterests(ix),
+        // Whether the finished edition can be read aloud (SLICE-16), and if not, why.
+        podcast: await availability().catch(() => ({ available: false, reason: "Audio editions are unavailable right now." })),
         limits: { sections: EDITION_SECTIONS, calls: EDITION_MAX_CALLS, regenerates: EDITION_MAX_REGENERATES },
       });
     } catch (e) {
@@ -231,11 +258,12 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     catch (e) { return json(res, 400, { error: (e as Error).message }); }
     sseOpen(res);
     try {
-      await writeSection({
-        pointer: Number(body.pointer), readerCard: body.readerCard, cardId: body.cardId, freeText: body.freeText,
-        history: body.history ?? [], callsUsed: body.callsUsed, regeneratesUsed: body.regeneratesUsed,
-        regenerate: !!body.regenerate, editionId: body.editionId,
-      }, (e) => sse(res, e.type, e));
+      await withSpend({ issuePointer: Number(body.pointer) || null, ref: `edition:${String(body.editionId ?? "-").slice(0, 24)}` },
+        () => writeSection({
+          pointer: Number(body.pointer), readerCard: body.readerCard, cardId: body.cardId, freeText: body.freeText,
+          history: body.history ?? [], callsUsed: body.callsUsed, regeneratesUsed: body.regeneratesUsed,
+          regenerate: !!body.regenerate, editionId: body.editionId,
+        }, (e) => sse(res, e.type, e)));
     } catch (e) {
       // Same split as the chat: a refusal is the edition's own answer, and costs nothing.
       const refused = e instanceof ChatRefused;
@@ -243,6 +271,83 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       sse(res, "error", { message: (e as Error).message, refused });
     }
     return res.end();
+  }
+
+  // ── Your Edition, read aloud (SLICE-16) ─────────────────────────────────
+  if (url.pathname === "/api/podcast" && req.method === "POST") {
+    try { return json(res, 200, await requestPodcast(JSON.parse(await readBody(req)))); }
+    catch (e) {
+      // A refusal is the patron's answer (and costs nothing); anything else is ours.
+      const refused = e instanceof ChatRefused;
+      if (!refused) console.error("[podcast]", (e as Error).message);
+      return json(res, refused ? 400 : 500, { error: (e as Error).message, refused });
+    }
+  }
+  if (url.pathname === "/api/podcast" && req.method === "GET") {
+    try {
+      const p = await getPodcast(q.get("id") ?? "");
+      return p ? json(res, 200, p) : json(res, 404, { error: "There’s no such episode — it may have been made on another server." });
+    } catch (e) { return json(res, 500, { error: (e as Error).message }); }
+  }
+  if (url.pathname === "/api/podcast/retry" && req.method === "POST") {
+    try { return json(res, 200, await retryPodcast(String(JSON.parse(await readBody(req)).id ?? ""))); }
+    catch (e) { return json(res, e instanceof ChatRefused ? 400 : 500, { error: (e as Error).message, refused: e instanceof ChatRefused }); }
+  }
+  if (url.pathname === "/api/podcast/audio") {
+    const file = audioPath(q.get("id") ?? "");
+    let size: number;
+    try { size = (await stat(file)).size; } catch { return json(res, 404, { error: "no audio for that episode" }); }
+    cors(res);
+    // Range, so the player can seek without downloading the whole file first.
+    const m = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ""));
+    const name = `your-edition-${(q.get("id") ?? "").slice(0, 12)}.wav`;
+    const head = { "content-type": "audio/wav", "accept-ranges": "bytes", "cache-control": "private, max-age=86400",
+      ...(q.get("download") ? { "content-disposition": `attachment; filename="${name}"` } : {}) };
+    if (m && (m[1] || m[2])) {
+      const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
+      const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
+      if (start >= size || start > end) { res.writeHead(416, { "content-range": `bytes */${size}` }); return res.end(); }
+      res.writeHead(206, { ...head, "content-range": `bytes ${start}-${end}/${size}`, "content-length": end - start + 1 });
+      createReadStream(file, { start, end }).pipe(res);
+    } else {
+      res.writeHead(200, { ...head, "content-length": size });
+      createReadStream(file).pipe(res);
+    }
+    return;
+  }
+
+  // Workbench step 09 — the podcast step's settings. Like every other workbench
+  // write route here, these are unauthenticated (staff network posture); the key
+  // is write-only over HTTP regardless.
+  if (url.pathname === "/api/settings/podcast") {
+    try {
+      if (req.method === "GET") return json(res, 200, await settingsView());
+      if (req.method === "POST") return json(res, 200, await saveSettings(JSON.parse(await readBody(req))));
+    } catch (e) { return json(res, e instanceof SettingsRefused ? 400 : 500, { error: (e as Error).message }); }
+  }
+  if (url.pathname === "/api/settings/podcast/models" && req.method === "POST") {
+    try { return json(res, 200, await listModels(JSON.parse((await readBody(req)) || "{}").apiKey)); }
+    catch (e) { return json(res, 500, { error: (e as Error).message }); }
+  }
+  if (url.pathname === "/api/settings/podcast/test" && req.method === "POST") {
+    try {
+      const out = await testVoice(JSON.parse((await readBody(req)) || "{}"));
+      cors(res);
+      res.writeHead(200, { "content-type": "audio/wav", "content-length": out.audio.length, "x-tts-model": out.model, "x-tts-ms": String(out.ms) });
+      return res.end(out.audio);
+    } catch (e) { return json(res, e instanceof SettingsRefused ? 400 : 500, { error: (e as Error).message }); }
+  }
+
+  // ── what the AI costs (SLICE-17) ──────────────────────────────────────────
+  if (url.pathname === "/api/spend/page") {
+    const record = Number(q.get("record"));
+    if (!record) return json(res, 400, { error: "record required" });
+    try { return json(res, 200, await pageSpend(record)); }
+    catch (e) { return json(res, 500, { error: (e as Error).message }); }
+  }
+  if (url.pathname === "/api/spend/summary") {
+    try { return json(res, 200, await spendSummary()); }
+    catch (e) { return json(res, 500, { error: (e as Error).message }); }
   }
 
   // The patron shelf: ingested issues as BOOKS (spines + whole page structure).
@@ -359,12 +464,13 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       const body = JSON.parse(await readBody(req));
       const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
       if (!Number.isFinite(id)) throw new Error("objectId must be a number");
-      const r = await query<{ text: string; object_class: string; role: string | null }>(
-        `SELECT COALESCE(text_human, text) AS text, object_class, role
+      const r = await query<{ text: string; object_class: string; role: string | null; page_record: number }>(
+        `SELECT COALESCE(text_human, text) AS text, object_class, role, page_record
            FROM content_objects WHERE id = $1`, [id]);
       if (!r.rowCount) throw new Error(`no content object with id ${id}`);
       const row = r.rows[0];
-      const out = await suggestTitle(row.text, row.object_class, row.role);
+      const out = await withSpend({ pageRecord: row.page_record, objectId: id },
+        () => suggestTitle(row.text, row.object_class, row.role));
       return json(res, 200, { ok: true, objectId: id, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
@@ -380,12 +486,13 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         `SELECT page_record, object_class, role, region_bbox FROM content_objects WHERE id = $1`, [id]);
       if (!r.rowCount) throw new Error(`no content object with id ${id}`);
       const row = r.rows[0];
-      const out = await reextractObject({
+      // The same call as ingestion's transcription — booked as the curator's re-read.
+      const out = await withSpend({ pageRecord: row.page_record, objectId: id, step: "reextract" }, () => reextractObject({
         iiifId: iiifId(row.page_record),
         region: row.region_bbox,
         objectClass: row.object_class,
         role: row.role,
-      });
+      }));
       return json(res, 200, { ok: true, objectId: id, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
@@ -409,10 +516,11 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       const id = Number(String(body.objectId ?? "").replace(/^co-/, ""));
       if (!Number.isFinite(id)) throw new Error("objectId must be a number");
       const r = await query<any>(
-        `SELECT COALESCE(text_human, text) AS text, object_class, role, summary
+        `SELECT COALESCE(text_human, text) AS text, object_class, role, summary, page_record
            FROM content_objects WHERE id = $1`, [id]);
       if (!r.rowCount) throw new Error(`no content object with id ${id}`);
-      const out = await resummarize(r.rows[0].text, r.rows[0].object_class, r.rows[0].role);
+      const out = await withSpend({ pageRecord: r.rows[0].page_record, objectId: id },
+        () => resummarize(r.rows[0].text, r.rows[0].object_class, r.rows[0].role));
       return json(res, 200, { ok: true, objectId: id, previous: r.rows[0].summary, ...out });
     } catch (e) { return json(res, 400, { error: (e as Error).message }); }
   }
@@ -479,14 +587,14 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     sseOpen(res);
     const ka = setInterval(() => res.write(": keepalive\n\n"), 15000);
     try {
-      const proposal = await proposeBoxes({
+      const proposal = await withSpend({ pageRecord: record, issuePointer: q.get("pointer") ? Number(q.get("pointer")) : null }, () => proposeBoxes({
         collection: q.get("collection") ?? "p16014coll5",
         issuePointer: q.get("pointer") ? Number(q.get("pointer")) : null,
         issueId: q.get("issueId") ?? `issue_${record}`,
         pageRecord: record,
         pageNumber: Number(q.get("page") ?? 1),
         detector: (q.get("detector") ?? "") as DetectorId,
-      }, (e) => sse(res, "progress", e));
+      }, (e) => sse(res, "progress", e)));
       sse(res, "result", proposal);
     } catch (e) {
       const m = (e as Error).message;
@@ -521,7 +629,8 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   if (url.pathname === "/api/boxfirst/group" && req.method === "POST") {
     try {
       const b = JSON.parse(await readBody(req));
-      return json(res, 200, await regroup(b.collection ?? "p16014coll5", Number(b.record), b.detector));
+      return json(res, 200, await withSpend({ pageRecord: Number(b.record) },
+        () => regroup(b.collection ?? "p16014coll5", Number(b.record), b.detector)));
     } catch (e) { return json(res, e instanceof BoxFirstRefused ? 409 : 502, { error: (e as Error).message }); }
   }
 
@@ -539,13 +648,13 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     sseOpen(res);
     const ka = setInterval(() => res.write(": keepalive\n\n"), 15000);
     try {
-      await transcribeProposal({
+      await withSpend({ pageRecord: record, issuePointer: q.get("pointer") ? Number(q.get("pointer")) : null }, () => transcribeProposal({
         collection, pageRecord: record,
         issuePointer: q.get("pointer") ? Number(q.get("pointer")) : null,
         issueId: q.get("issueId") ?? `issue_${record}`,
         detector: (q.get("detector") ?? "") as DetectorId,
         force: q.get("force") === "1",
-      }, (e) => sse(res, "progress", e));
+      }, (e) => sse(res, "progress", e)));
       sse(res, "result", await getPageObjects(collection, record));
     } catch (e) {
       const m = (e as Error).message;
@@ -567,6 +676,7 @@ async function main() {
   console.log("[server] applying schema…");
   await migrate();
   await seedIssues();
+  await recoverInterrupted();
   const server = createServer((req, res) =>
     handle(req, res).catch((e) => { try { json(res, 500, { error: (e as Error).message }); } catch {} }),
   );

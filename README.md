@@ -28,8 +28,25 @@ npm install          # installs all workspaces (deps hoist to the root)
 npm run server       # apps/pipeline: the ingestion service on :5170 (Postgres; see apps/pipeline/README.md)
 npm run dev          # apps/discovery: dev server at http://localhost:5180  (+ /staff)
 npm run build        # apps/discovery: production static build → apps/discovery/dist
-npm test             # apps/pipeline: node --test (e.g. edition citation validation)
+npm test             # apps/pipeline: node --test (edition citations, podcast scripts, spend pricing)
 ```
+
+**A temporary public preview** of the patron site (never the workbench) is one command while
+both servers run — a Cloudflare quick tunnel to the dev server, torn down when it stops:
+
+```bash
+cloudflared tunnel --no-autoupdate --url http://localhost:5180
+```
+
+Off this machine the SPA calls `/api` on its own origin (`apps/discovery/src/lib/api.ts`) and
+Vite proxies it to `:5170` — through a gate in `apps/discovery/vite.config.ts`. Requests that
+arrive through the tunnel (Cloudflare stamps them `cf-connecting-ip`) reach the patron pages and
+an allowlist of patron API routes only (shelf, discovery, chat, Your Edition, podcasts). The
+workbench pages and every write, ingest, settings and spend route answer **403**. Paths are judged
+decoded, slash-collapsed, dot-resolved and case-folded, so `/Staff.HTML` or `//api/…` don't get
+through, and an API path must arrive spelled exactly as allowed. Local and LAN use is unchanged.
+The patron AI features still spend real credit over a public link (the chat and edition caps are
+client-reported), so keep the link short-lived and watch **10 · AI spend**.
 
 Pages are ingested **box-first** from the staff workbench (`/staff`): a detector draws boxes, a
 curator corrects and groups them, and each group is transcribed from full-resolution crops. The
@@ -48,12 +65,14 @@ cpl-dateline-cleveland/
 │  │  ├─ src/            #   ingest · enrich · view · probe · server · lib (vlmExtract, enrichAdapter,
 │  │  │                 #     ocrAnchor, title, reextract, resummarize, suggestTitle, explode, db, pg, …)
 │  │  ├─ migrations/     #   001_init.sql + 002_enrichment.sql (SQLite prototype)
-│  │  │                 #   pg/001..011  (Postgres: schema · text overlay · review · display title ·
+│  │  │                 #   pg/001..013  (Postgres: schema · text overlay · review · display title ·
 │  │  │                 #                 publish gate · re-extraction · authorship · box-first ·
-│  │  │                 #                 classification · ingest mode · edition cache) — applied in filename order
+│  │  │                 #                 classification · ingest mode · edition cache · podcast ·
+│  │  │                 #                 model-call ledger)
+│  │  │                 #                 — applied in filename order
 │  │  ├─ fixtures/       #   session-model transcriptions (VLM) + enrichment/ (Stage-4) replayed by `fixture`
 │  │  ├─ inbox/          #   the 4 Brooklyn News page images (gitignored; PD)
-│  │  ├─ data/           #   slice01.sqlite (gitignored, prototype store)
+│  │  ├─ data/           #   slice01.sqlite + podcasts/*.wav (gitignored)
 │  │  └─ .env.example    #   VLM provider keys (copy → .env for a live run)
 │  └─ discovery/         # @dateline/discovery — patron SPA + staff /staff workbench
 │     ├─ src/            #   App/router, components, data (mock + real adapter)
@@ -147,6 +166,9 @@ A chat about **the issue you are reading**, presented as the paper itself ("Ask 
 News") — `POST /api/chat` (SSE over POST), Sonnet, `apps/pipeline/src/lib/chat.ts`. On a wide
 window it opens **docked beside the page** by default (READ and SCAN); a patron's close is
 remembered, and it folds into a labelled call button. One conversation spans both registers.
+It is **hidden entirely on Your Edition and its podcast**, button included: those pages are the
+patron's own paper, not a page to ask about. It's hidden, not unmounted, so a conversation
+started in READ or SCAN is still there when the patron comes back.
 
 - **The corpus is the constraint, not the prompt.** The server assembles the context from
   `is_published` rows for that one issue's pages and sends nothing else — no other issue, no
@@ -190,6 +212,57 @@ prompt cards each stream one section — headline, one paragraph in the reader's
   before being served; free text is never cached. Counters are client-reported, like the chat's.
 - **Share and print.** Copy link carries picks, not prose (own questions are dropped, and the
   link says so); Print is a single-column stylesheet with crops and footnoted citations.
+
+### Your Edition, read aloud (SLICE-16)
+
+A finished edition can become a short podcast: **Make the podcast** opens its own page
+(`?issue=…&view=podcast&pod=<id>`), which follows the episode being made (script → voices →
+mix) and then plays it, with chapters per section and a transcript that lights and follows the
+line being spoken. Any line can be clicked to hear it, and each section shows the newsprint
+it came from. `apps/pipeline/src/lib/podcast.ts` + `tts.ts`,
+`apps/discovery/src/components/PodcastView.tsx`.
+
+- **Script by Claude, voices by Gemini.** The script is written from the edition's sections
+  and nothing else. It may rephrase for the ear but never adds a fact. The opening line
+  (paper, date, hosts) and the closing credit are written by code; the hosts never talk
+  about being AI. The page says the script and voices are AI. Gemini TTS records the intro,
+  one segment per section, and the outro (three at a time). They're joined into one WAV with
+  chapter and approximate line times, stored at `data/podcasts/<id>.wav`.
+- **It voices only what this server wrote.** Every section `edition.ts` emits carries an HMAC
+  over its words (`editionSig.ts`), and `POST /api/podcast` refuses a section that doesn't
+  verify, before any spend. Episodes are keyed on content + voice settings, so the same
+  edition read the same way is made once (`edition_podcasts`). There's also a daily cap.
+- **Staff configure it in the workbench, step 09 · Podcast audio.** Options: the Gemini key
+  (write-only; falls back to `GEMINI_API_KEY`), the TTS model (listed live from the key, so
+  new models appear without a deploy), two hosts or one narrator, names and voices with ▶
+  previews, delivery direction, the patron switch, and the daily cap. Settings live in
+  `app_settings`. Gemini's TTS models take one of two request forms (`tts.ts`), and the
+  adapter learns which one per model.
+- **Failures are recoverable.** A failed episode says why in the patron's terms. Try again
+  uses the *current* settings (the usual fix is staff changing them) and reuses a script
+  that was already written. Episodes cut off by a server restart are marked failed at boot.
+
+### What the AI costs (SLICE-17)
+
+Every paid model call reports its usage. The pipeline records each one as a row in
+`model_calls`: provider, model, step, the page, issue or object it was for, input, output and
+cache tokens, and the dollar cost at the rate in force that day. `apps/pipeline/src/lib/spend.ts`.
+
+- **Where a call belongs comes from the route, not the call site.** Server routes wrap their
+  work in `withSpend({pageRecord, issuePointer, objectId, ref})` (AsyncLocalStorage), so the
+  grouper, transcriber and enricher only report their step and `usage`. A curator's re-read
+  goes through ingestion's transcription call but is booked as `reextract`.
+- **Prices** live in `MODEL_PRICES` (`config.ts`): Claude per Anthropic's price table,
+  Gemini TTS per Google's (which doubles on 2027-01-01, so rates carry a start date). A model
+  with no price is recorded with a NULL cost and flagged as unpriced, never treated as free.
+  Recording is fire-and-forget and never fails the call it records.
+- **Everything billed counts:** re-ingests, retries, and calls that hit `max_tokens` or a
+  refusal. Clearing a page doesn't delete its spend.
+- **Where to see it:** the review toolbar shows the open page's total, with a by-step
+  breakdown on hover. Workbench step **10 · AI spend** shows the total, the median cost per
+  ingested page, the ingestion / curator-tools / patron-features split, and tables by page,
+  issue, step and day. Endpoints: `GET /api/spend/page?record=`, `GET /api/spend/summary`.
+- Tracking began with this slice. Pages ingested before it have no recorded spend.
 
 ## Status & scope
 

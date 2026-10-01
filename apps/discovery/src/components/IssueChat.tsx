@@ -652,7 +652,7 @@ function Composer({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginTop: 8, fontFamily: MONO, fontSize: 9, lineHeight: 1.6, letterSpacing: '0.06em', color: C.tertiary }}>
         <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5 }}>
           <span style={{ color: C.navy, transform: 'translateY(1px)', display: 'inline-flex' }}><Sparkle size={9} /></span>
-          <span>AI (CLAUDE SONNET) · READS ONLY THIS ISSUE · CAN BE WRONG — CHECK THE CITED PAGE · {asked}/{MAX_TURNS}</span>
+          <span>AI (CLAUDE SONNET) · READS ONLY THIS ISSUE · {asked}/{MAX_TURNS}</span>
         </span>
         {asked > 0 && !atCap && (
           <button className="dc-underline-hover" onClick={onReset} style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.06em', color: C.navy }}>

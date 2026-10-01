@@ -914,6 +914,120 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .cm .objs .tag{flex:none;font-family:var(--mono);font-size:9.5px;color:var(--tertiary);text-transform:uppercase;letter-spacing:.06em}
 .cm .objs .tag.live{color:var(--ok)}
 .cm .objs .tag.fl{color:var(--danger)}
+
+/* ============================================================
+   09 · PODCAST AUDIO (SLICE-16) — Your Edition, read aloud.
+   The voice service's settings: Gemini key, TTS model, voices.
+   ============================================================ */
+.pc-wrap{padding:26px 34px 70px;max-width:1120px}
+.pc-strip{display:flex;flex-wrap:wrap;border:1px solid var(--hair-2);margin-bottom:26px}
+.pc-strip .cell{padding:14px 20px;border-right:1px solid var(--hair);min-width:150px}
+.pc-strip .cell:last-child{border-right:none}
+.pc-strip .k{font-family:var(--sans);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--secondary)}
+.pc-strip .v{font-family:var(--mono);font-size:13px;color:var(--ink);margin-top:7px;display:flex;align-items:center;gap:8px}
+.pc-dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--tertiary)}
+.pc-dot.ok{background:var(--ok)} .pc-dot.warn{background:var(--warn)} .pc-dot.off{background:var(--danger)}
+.pc-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:1100px){.pc-grid{grid-template-columns:minmax(0,1fr)}}
+.pc-panel{border:1px solid var(--hair-2);margin-bottom:18px;background:var(--canvas)}
+.pc-panel > h3{display:flex;align-items:baseline;gap:10px;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);padding:13px 18px;border-bottom:1px solid var(--hair);background:var(--sunken)}
+.pc-panel > h3 .n{font-family:var(--mono);color:var(--brand);letter-spacing:0}
+.pc-panel > h3 .aside{margin-left:auto;font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--tertiary)}
+.pc-body{padding:16px 18px 18px}
+.pc-note{font-family:var(--serif);font-size:14px;line-height:1.55;color:var(--secondary);margin-top:8px}
+.pc-note b{color:var(--ink);font-weight:600}
+.pc-note a{color:var(--brand);text-decoration:underline}
+.pc-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pc-label{display:block;font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--secondary);margin:14px 0 6px}
+.pc-label:first-child{margin-top:0}
+.pc-in,.pc-sel,.pc-ta{font-family:var(--serif);font-size:15px;color:var(--ink);border:1px solid var(--hair-2);padding:8px 10px;background:var(--canvas);outline:none;min-width:0}
+.pc-in:focus,.pc-sel:focus,.pc-ta:focus{border-color:var(--brand);box-shadow:0 0 0 2px rgba(0,87,183,.15)}
+.pc-in.mono{font-family:var(--mono);font-size:13px}
+.pc-sel{font-family:var(--mono);font-size:13px;cursor:pointer}
+.pc-ta{width:100%;min-height:76px;resize:vertical;line-height:1.5}
+.pc-keynow{font-family:var(--mono);font-size:12px;color:var(--body);display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.pc-seg{display:inline-flex;border:1px solid var(--hair-2)}
+.pc-seg button{font-family:var(--sans);font-weight:600;font-size:12.5px;padding:8px 14px;color:var(--secondary)}
+.pc-seg button + button{border-left:1px solid var(--hair-2)}
+.pc-seg button.on{background:var(--ink);color:#fff}
+.pc-host{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,1.2fr) auto;gap:8px;align-items:center;margin-top:8px}
+.pc-host .tag{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--brand)}
+.pc-host.b .tag{color:#8A5A00}
+.pc-host.hidden{display:none}
+.pc-play{width:36px;height:36px;border:1px solid var(--hair-2);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.pc-play:hover{border-color:var(--brand);background:var(--sunken)}
+.pc-play[disabled]{opacity:.45;cursor:progress}
+.pc-check{display:flex;gap:10px;align-items:flex-start;font-family:var(--serif);font-size:15px;color:var(--ink);cursor:pointer}
+.pc-check input{margin-top:4px;width:16px;height:16px;accent-color:var(--brand)}
+.pc-msg{font-family:var(--serif);font-size:14px;line-height:1.5;margin-top:10px;padding:9px 12px;border-left:3px solid var(--hair-2);background:var(--sunken);color:var(--body);display:none}
+.pc-msg.show{display:block}
+.pc-savebar .pc-msg,.pc-savebar .pc-audio{flex-basis:100%;margin-top:2px}
+.pc-msg.ok{border-left-color:var(--ok)} .pc-msg.err{border-left-color:var(--danger)} .pc-msg.wait{border-left-color:var(--accent)}
+.pc-savebar{position:sticky;bottom:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 0;margin-top:4px;background:linear-gradient(to bottom,rgba(255,255,255,0),var(--canvas) 30%)}
+.pc-dirty{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);display:none}
+.pc-dirty.show{display:inline}
+.pc-audio{width:100%;height:36px;margin-top:10px;display:none}
+.pc-audio.show{display:block}
+.pc-flow{list-style:none;counter-reset:pc}
+.pc-flow li{counter-increment:pc;font-family:var(--serif);font-size:14.5px;line-height:1.5;color:var(--body);padding:9px 0 9px 30px;border-top:1px solid var(--hair);position:relative}
+.pc-flow li:first-child{border-top:none}
+.pc-flow li::before{content:counter(pc);position:absolute;left:0;top:9px;width:20px;height:20px;border:1px solid var(--brand);color:var(--brand);font-family:var(--mono);font-size:10.5px;display:flex;align-items:center;justify-content:center}
+.pc-flow li b{color:var(--ink)}
+.pc-recent{width:100%;border-collapse:collapse;font-size:13px}
+.pc-recent td{padding:8px 6px;border-top:1px solid var(--hair);vertical-align:top}
+.pc-recent .t{font-family:var(--serif);color:var(--ink)}
+.pc-recent .m{font-family:var(--mono);font-size:10.5px;color:var(--tertiary);white-space:nowrap}
+.pc-recent a{color:var(--brand);font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.06em;text-decoration:none}
+.pc-pill{font-family:var(--sans);font-weight:700;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--hair-2);color:var(--tertiary);white-space:nowrap}
+.pc-pill.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.pc-pill.failed{border-color:var(--danger);color:var(--danger)}
+.pc-pill.live{border-color:var(--accent);color:#8A5A00}
+
+/* ============================================================
+   10 · AI SPEND (SLICE-17) — what each page, issue and feature
+   has cost, from every model call's own usage report.
+   ============================================================ */
+.tspend{font-family:var(--mono);font-size:11px;line-height:1;color:var(--secondary);border:1px solid var(--hair-2);padding:6px 8px;background:var(--canvas);white-space:nowrap;cursor:pointer}
+.tspend:hover{border-color:var(--brand);color:var(--brand)}
+.tspend b{color:var(--ink);font-weight:500}
+.tspend.none{color:var(--tertiary);border-style:dashed}
+.sp-wrap{padding:26px 34px 70px;max-width:1180px}
+.sp-strip{display:flex;flex-wrap:wrap;border:1px solid var(--hair-2);margin-bottom:24px}
+.sp-strip .cell{padding:14px 20px;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);margin-bottom:-1px;min-width:150px;flex:1}
+.sp-strip .cell:last-child{border-right:none}
+.sp-strip .n{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--ink);line-height:1}
+.sp-strip .n.brand{color:var(--brand)}
+.sp-strip .k{font-family:var(--sans);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--secondary);margin-top:8px}
+.sp-strip .sub{font-family:var(--mono);font-size:10.5px;color:var(--tertiary);margin-top:5px}
+.sp-h{display:flex;align-items:baseline;gap:10px;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin:28px 0 10px}
+.sp-h .aside{margin-left:auto;font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--tertiary)}
+.sp-scroll{overflow-x:auto;border:1px solid var(--hair-2)}
+.sp-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.sp-tbl th{font-family:var(--sans);font-weight:700;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--secondary);text-align:right;padding:9px 10px;background:var(--sunken);border-bottom:1px solid var(--hair-2);white-space:nowrap}
+.sp-tbl th:first-child,.sp-tbl td:first-child{text-align:left}
+.sp-tbl td{font-family:var(--mono);font-size:12px;color:var(--body);text-align:right;padding:8px 10px;border-top:1px solid var(--hair);white-space:nowrap}
+.sp-tbl td.t{font-family:var(--serif);font-size:14px;color:var(--ink);min-width:210px}
+.sp-tbl td.tot{color:var(--ink);font-weight:500}
+.sp-tbl td.dim{color:var(--tertiary)}
+.sp-tbl tr.click{cursor:pointer}
+.sp-tbl tr.click:hover td{background:rgba(0,87,183,.05)}
+.sp-tbl a{color:var(--brand);text-decoration:none}
+.sp-bars{display:grid;grid-template-columns:150px minmax(0,1fr) 90px 150px;gap:6px 12px;align-items:center;border:1px solid var(--hair-2);padding:14px 16px}
+.sp-bars .l{font-family:var(--sans);font-weight:600;font-size:12.5px;color:var(--ink)}
+.sp-bars .l small{display:block;font-family:var(--mono);font-weight:400;font-size:9.5px;color:var(--tertiary);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.sp-bars .track{height:10px;background:var(--sunken)}
+.sp-bars .fill{height:100%}
+.sp-bars .v{font-family:var(--mono);font-size:12px;color:var(--ink);text-align:right}
+.sp-bars .m{font-family:var(--mono);font-size:10.5px;color:var(--tertiary)}
+.sp-g-ingest{background:var(--brand)} .sp-g-curation{background:var(--ok)} .sp-g-patron{background:var(--accent)} .sp-g-staff,.sp-g-other{background:var(--tertiary)}
+.sp-days{display:flex;align-items:flex-end;gap:3px;height:90px;border:1px solid var(--hair-2);padding:12px 14px 0}
+.sp-days .d{flex:0 0 22px;background:var(--brand);position:relative}
+.sp-days .d:hover{background:var(--brand-press)}
+.sp-note{font-family:var(--serif);font-size:14px;line-height:1.6;color:var(--secondary);margin-top:10px;max-width:90ch}
+.sp-note b{color:var(--ink);font-weight:600}
+.sp-empty{border:1px dashed var(--hair-2);padding:22px;font-family:var(--serif);font-size:15px;color:var(--secondary)}
+.sp-legend{display:flex;gap:14px;font-family:var(--mono);font-size:10px;color:var(--tertiary);margin-left:auto}
+.sp-legend i{display:inline-block;width:9px;height:9px;margin-right:5px;vertical-align:-1px}
 </style>
 </head>
 <body>
@@ -967,6 +1081,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     <button class="navitem" data-view="lowconf"><span class="ord">06</span>Low-confidence<span class="count" id="nav-lowconf">—</span></button>
     <button class="navitem" data-view="illus"><span class="ord">07</span>Illustrations<span class="count" id="nav-illus">—</span></button>
     <button class="navitem" data-view="export"><span class="ord">08</span>Export<span class="count">—</span></button>
+    <div class="grp">Your Edition · patron AI</div>
+    <button class="navitem" data-view="podcast"><span class="ord">09</span>Podcast audio<span class="count" id="nav-podcast">—</span></button>
+    <div class="grp">Running costs</div>
+    <button class="navitem" data-view="spend"><span class="ord">10</span>AI spend<span class="count" id="nav-spend">—</span></button>
     <div class="foot">
       Pilot posture — corpus treated as public domain for prototyping.<br><br>
       Hard rights gate before production. Every machine field ships flagged until a human confirms.
@@ -1050,6 +1168,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
               <button class="tbtn" id="bx-fill" title="Fill every visible region (F)">▣</button>
               <button class="tbtn" id="bx-obj" title="Colour each object's boxes and number them, as in box-first review">◐</button>
               <button class="tbtn" id="pg-clear" title="Clear this page — its transcription, its boxes, or both…" hidden>⌫</button>
+              <button class="tspend" id="pg-spend" type="button" hidden></button>
               <span class="tsep"></span>
               <div class="zoomctl">
                 <button id="zm-out" title="Zoom out (⌘ + scroll down)">−</button>
@@ -1124,7 +1243,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
             </div>
 
             <div class="blk">
-              <div class="lab" id="rv-tlab">Transcription <span class="ai-badge">Transcribed by AI — may contain errors</span></div>
+              <div class="lab" id="rv-tlab">Transcription <span class="ai-badge">Transcribed by AI</span></div>
               <div class="transcript" id="rv-transcript">—</div>
               <!-- the machine's read, revealed under a corrected transcription -->
               <div class="rawblk" id="rv-raw" hidden></div>
@@ -1335,6 +1454,119 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         </ul>
         <span class="stubtag">Deferred surface</span>
       </div>
+    </section>
+    <!-- ==================== 09 · PODCAST AUDIO (SLICE-16) ==================== -->
+    <section class="view" id="podcast">
+      <div class="vhead">
+        <div class="kicker">Stage 9 · Your Edition, read aloud</div>
+        <h1>Podcast audio</h1>
+        <div class="lede">A patron who finishes Your Edition can turn it into a short podcast. Claude writes a two-host script from their four sections, and nothing else. Gemini gives it voices. Set up the voice service here. Changes apply to the <em>next</em> episode. Episodes already made keep the voices they were recorded with.</div>
+      </div>
+      <div class="pc-wrap">
+        <div class="pc-strip" id="pc-strip">
+          <div class="cell"><div class="k">For patrons</div><div class="v" id="pc-s-live"><span class="pc-dot"></span>loading…</div></div>
+          <div class="cell"><div class="k">Script writer</div><div class="v" id="pc-s-script">—</div></div>
+          <div class="cell"><div class="k">Voice model</div><div class="v" id="pc-s-model">—</div></div>
+          <div class="cell"><div class="k">Episodes today</div><div class="v" id="pc-s-today">—</div></div>
+        </div>
+        <div class="pc-msg err" id="pc-offline">The pipeline server isn’t answering on :5170. Start it with <span class="mono">npm run server</span>, then reload.</div>
+
+        <div class="pc-grid">
+          <div>
+            <div class="pc-panel">
+              <h3><span class="n">1</span> Gemini API key<span class="aside">write-only</span></h3>
+              <div class="pc-body">
+                <div class="pc-keynow" id="pc-keynow"><span class="pc-dot"></span>—</div>
+                <div class="pc-row">
+                  <input class="pc-in mono" id="pc-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste a new key (AIza…)" style="flex:1;min-width:220px">
+                  <button class="vbtn ghost" id="pc-key-check" type="button">Check</button>
+                  <button class="vbtn primary" id="pc-key-save" type="button">Save key</button>
+                </div>
+                <div class="pc-row" style="margin-top:8px"><button class="vbtn ghost" id="pc-key-clear" type="button" style="display:none">Remove workbench key</button></div>
+                <div class="pc-note">The key is stored on the pipeline server and never sent back to a browser. Only its last four characters are shown. If no key is saved here, the server uses <span class="mono">GEMINI_API_KEY</span> from its <span class="mono">.env</span>. Get a key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</div>
+                <div class="pc-msg" id="pc-key-msg"></div>
+              </div>
+            </div>
+
+            <div class="pc-panel">
+              <h3><span class="n">2</span> Voice model<span class="aside" id="pc-model-src">—</span></h3>
+              <div class="pc-body">
+                <div class="pc-row">
+                  <select autocomplete="off" class="pc-sel" id="pc-model" style="flex:1;min-width:240px"></select>
+                  <button class="vbtn ghost" id="pc-model-refresh" type="button" title="Ask Gemini which TTS models this key can use">↻ Refresh</button>
+                </div>
+                <div class="pc-note">The list comes live from the models this key can use, newest first. The 2.5 and 3.1 models take a plain transcript, and the 3.8 family is marked up turn by turn. The server picks the right form for each model, so a new model works as soon as it appears here.</div>
+              </div>
+            </div>
+
+            <div class="pc-panel">
+              <h3><span class="n">3</span> Format &amp; voices</h3>
+              <div class="pc-body">
+                <div class="pc-seg" role="group" aria-label="Format">
+                  <button type="button" data-format="duo">Two hosts</button>
+                  <button type="button" data-format="solo">One narrator</button>
+                </div>
+                <span class="pc-label">Hosts — name and voice</span>
+                <div class="pc-host a"><span class="tag">A</span><input autocomplete="off" class="pc-in" id="pc-h0-name" maxlength="24" aria-label="Host A name"><select autocomplete="off" class="pc-sel" id="pc-h0-voice" aria-label="Host A voice"></select><button class="pc-play" type="button" data-preview="0" title="Hear this host">▶</button></div>
+                <div class="pc-host b" id="pc-hostb"><span class="tag">B</span><input autocomplete="off" class="pc-in" id="pc-h1-name" maxlength="24" aria-label="Host B name"><select autocomplete="off" class="pc-sel" id="pc-h1-voice" aria-label="Host B voice"></select><button class="pc-play" type="button" data-preview="1" title="Hear this host">▶</button></div>
+                <div class="pc-note">Names are spoken on air: the first line introduces the hosts. That the voices are AI is said on the patron’s page, not in the audio.</div>
+                <span class="pc-label">Delivery direction</span>
+                <textarea autocomplete="off" class="pc-ta" id="pc-style" maxlength="400"></textarea>
+                <div class="pc-note">Handed to the voice model with every segment. Kids’ editions automatically add “a little slower and brighter”.</div>
+              </div>
+            </div>
+
+            <div class="pc-panel">
+              <h3><span class="n">4</span> Patron access</h3>
+              <div class="pc-body">
+                <label class="pc-check"><input type="checkbox" id="pc-enabled" autocomplete="off"> <span>Offer “Turn it into a podcast” on finished editions</span></label>
+                <span class="pc-label">New episodes per day (server-wide)</span>
+                <div class="pc-row"><input autocomplete="off" class="pc-in mono" id="pc-limit" type="number" min="0" max="10000" style="width:110px"> <span class="pc-note" style="margin:0">A replay of an episode that already exists is free and doesn’t count.</span></div>
+              </div>
+            </div>
+
+            <div class="pc-savebar">
+              <button class="vbtn primary" id="pc-save" type="button">Save settings</button>
+              <button class="vbtn ghost" id="pc-test" type="button">▶ Test the setup</button>
+              <button class="vbtn ghost" id="pc-revert" type="button">Revert</button>
+              <span class="pc-dirty" id="pc-dirty">● Unsaved changes</span>
+              <div class="pc-msg" id="pc-msg"></div>
+              <audio class="pc-audio" id="pc-audio" controls></audio>
+            </div>
+          </div>
+
+          <div>
+            <div class="pc-panel">
+              <h3>How an episode is made</h3>
+              <div class="pc-body">
+                <ol class="pc-flow">
+                  <li><b>The patron finishes an edition.</b> Every section was written from the issue’s published pages, and the server signed each one.</li>
+                  <li><b>Script.</b> <span id="pc-flow-script">Claude</span> turns the four sections into a conversation. It may rephrase for the ear but never adds a fact. The code writes the opening line, which names the paper, the date and the hosts.</li>
+                  <li><b>Voices.</b> The chosen Gemini model records the intro, one segment per section, and the outro. Three segments record at a time.</li>
+                  <li><b>Mix.</b> The segments are joined into one WAV with chapter marks and approximate line timing for the transcript.</li>
+                  <li><b>Kept.</b> The same edition read with the same settings is served from storage after that, at no cost. The server only voices text it signed, so the endpoint can’t be used to read arbitrary text.</li>
+                </ol>
+              </div>
+            </div>
+            <div class="pc-panel">
+              <h3>Recent episodes<span class="aside"><a href="#" id="pc-recent-refresh" style="color:var(--brand)">refresh</a></span></h3>
+              <div class="pc-body" style="padding-top:6px">
+                <table class="pc-recent"><tbody id="pc-recent"><tr><td class="m">—</td></tr></tbody></table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 10 · AI SPEND (SLICE-17) ==================== -->
+    <section class="view" id="spend">
+      <div class="vhead">
+        <div class="kicker">Stage 10 · What the AI costs</div>
+        <h1>AI spend</h1>
+        <div class="lede">Every Claude and Gemini call reports the tokens it used. The pipeline records each one with what it was for, and prices it at the rate in force that day. Re-ingests, retries and failed calls all count, because they were all billed.</div>
+      </div>
+      <div class="sp-wrap" id="sp-body"><div class="sp-empty">Loading…</div></div>
     </section>
 
   </main>
@@ -1586,6 +1818,8 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
           var clr = document.getElementById('pg-clear');
           if (clr) { clr.hidden = !(pg.state && (pg.state.status === 'done' || pg.state.status === 'review' || pg.state.status === 'error'));
                      clr.onclick = openClearModal; }
+          // what the AI has cost on this page so far (SLICE-17)
+          if (window.dcSpendChip) window.dcSpendChip(record);
           if (pg.state && pg.state.status === 'done' && pg.objects.length) render(buildD(pg));
           // a page under box-first review (SLICE-14) reopens where the curator left it
           else if (pg.state && pg.state.status === 'review') openBoxFirst(pg);
@@ -3742,7 +3976,7 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
       lab.innerHTML = 'Transcription '+
         (o.textEdited
           ? '<span class="hu-badge">✎ Corrected by hand'+(o.textEditedAt?' · '+esc(shortDate(o.textEditedAt)):'')+'</span>'
-          : '<span class="ai-badge">Transcribed by AI — may contain errors</span>')+
+          : '<span class="ai-badge">Transcribed by AI</span>')+
         ((rexNote && rexNote.oid===o.id) ? '<span class="ai-badge">'+rexNote.html+'</span>' : '')+
         '<button class="tedit" id="rv-trex"'+(live && !on && reg && !rexBusy ? '' : ' disabled')+
         ' title="'+(!reg ? 'no region to crop — draw one first'
@@ -4821,5 +5055,311 @@ document.querySelectorAll('.vbtn, .abtn, .retry').forEach(function(b){
   }
 })();
 </script>
+<script>
+/* ============================================================
+   09 · PODCAST AUDIO (SLICE-16) — the voice service's settings.
+   GET/POST /api/settings/podcast; the key is write-only (the API
+   only ever returns where it comes from and its last four).
+   ============================================================ */
+(function(){
+  var API = 'http://' + location.hostname + ':5170';
+  var $ = function(id){ return document.getElementById(id); };
+  if(!$('podcast')) return;
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  var saved = null, draft = null, voices = [], models = [];
+
+  function pick(v){ return { enabled:!!v.enabled, ttsModel:v.ttsModel, format:v.format, hosts:[{name:v.hosts[0].name,voice:v.hosts[0].voice},{name:v.hosts[1].name,voice:v.hosts[1].voice}], style:v.style||'', dailyLimit:v.dailyLimit }; }
+  function state(v){
+    if(!v.key.set) return ['warn','Needs a Gemini key'];
+    if(!v.scriptReady) return ['warn','Needs ANTHROPIC_API_KEY'];
+    if(!v.enabled) return ['off','Switched off'];
+    if(!v.available.available) return ['warn', v.available.reason];
+    return ['ok','Live'];
+  }
+  function msg(id, kind, html){ var el=$(id); el.className='pc-msg show '+kind; el.innerHTML=html; }
+  function hide(id){ $(id).className='pc-msg'; }
+  function modelLabel(id){ var m=models.filter(function(x){return x.id===id;})[0]; return m ? m.label : id; }
+
+  function renderStatus(){
+    var st = state(saved);
+    $('pc-s-live').innerHTML = '<span class="pc-dot '+st[0]+'"></span>'+esc(st[1]);
+    $('pc-s-script').innerHTML = '<span class="pc-dot '+(saved.scriptReady?'ok':'warn')+'"></span>'+esc(saved.scriptModel);
+    $('pc-s-model').textContent = saved.ttsModel;
+    $('pc-s-today').textContent = saved.usage.today+' / '+saved.usage.limit;
+    $('pc-flow-script').textContent = 'Claude ('+saved.scriptModel+')';
+    var nav = $('nav-podcast');
+    if(nav){ nav.textContent = st[0]==='ok' ? 'on' : st[0]==='off' ? 'off' : 'setup'; nav.className = 'count'+(st[0]==='ok'?'':' hot'); }
+    var k = saved.key;
+    $('pc-keynow').innerHTML = k.set
+      ? '<span class="pc-dot ok"></span>'+(k.source==='workbench' ? 'Saved in the workbench' : 'From the server’s .env')+' · ends <b>'+esc(k.hint)+'</b>'
+      : '<span class="pc-dot warn"></span>No key yet. Patrons won’t see the podcast button until there is one.';
+    $('pc-key-clear').style.display = k.source==='workbench' ? '' : 'none';
+  }
+
+  function voiceOptions(sel, cur){
+    sel.innerHTML = voices.map(function(v){ return '<option value="'+v.id+'"'+(v.id===cur?' selected':'')+'>'+v.id+' — '+v.character+'</option>'; }).join('');
+  }
+  function renderForm(){
+    document.querySelectorAll('#podcast [data-format]').forEach(function(b){ b.classList.toggle('on', b.dataset.format===draft.format); });
+    $('pc-hostb').classList.toggle('hidden', draft.format==='solo');
+    $('pc-h0-name').value = draft.hosts[0].name; $('pc-h1-name').value = draft.hosts[1].name;
+    voiceOptions($('pc-h0-voice'), draft.hosts[0].voice); voiceOptions($('pc-h1-voice'), draft.hosts[1].voice);
+    $('pc-style').value = draft.style;
+    $('pc-enabled').checked = draft.enabled;
+    $('pc-limit').value = draft.dailyLimit;
+    renderModels();
+    dirty();
+  }
+  function renderModels(){
+    var list = models.slice();
+    if(draft && !list.some(function(m){return m.id===draft.ttsModel;})) list.unshift({ id:draft.ttsModel, label:draft.ttsModel+' (not offered by this key)' });
+    $('pc-model').innerHTML = list.map(function(m){ return '<option value="'+esc(m.id)+'"'+(draft&&m.id===draft.ttsModel?' selected':'')+'>'+esc(m.label)+'  ·  '+esc(m.id)+'</option>'; }).join('');
+  }
+  function readForm(){
+    draft.hosts[0].name = $('pc-h0-name').value; draft.hosts[1].name = $('pc-h1-name').value;
+    draft.hosts[0].voice = $('pc-h0-voice').value; draft.hosts[1].voice = $('pc-h1-voice').value;
+    draft.style = $('pc-style').value; draft.enabled = $('pc-enabled').checked;
+    draft.dailyLimit = Number($('pc-limit').value); draft.ttsModel = $('pc-model').value;
+    dirty();
+  }
+  function dirty(){ $('pc-dirty').classList.toggle('show', JSON.stringify(draft)!==JSON.stringify(pick(saved))); }
+
+  function loadModels(withKey){
+    if(!withKey) $('pc-model-src').textContent = 'asking Gemini…';
+    return fetch(API+'/api/settings/podcast/models', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(withKey?{apiKey:withKey}:{}) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(!withKey){ models = j.models || []; renderModels(); $('pc-model-src').textContent = j.live ? models.length+' live from Gemini' : 'defaults — '+(j.error||'offline'); }
+        return j;
+      })
+      .catch(function(){ $('pc-model-src').textContent = 'offline'; return { live:false, error:'the pipeline server is offline' }; });
+  }
+
+  function renderRecent(){
+    var rows = saved.recent || [];
+    $('pc-recent').innerHTML = rows.length ? rows.map(function(r){
+      var when = new Date(r.created_at); var mins = Math.round((Date.now()-when)/60000);
+      var ago = mins<1 ? 'just now' : mins<60 ? mins+'m ago' : mins<1440 ? Math.round(mins/60)+'h ago' : when.toLocaleDateString();
+      var dur = r.duration_s ? Math.floor(r.duration_s/60)+':'+String(Math.round(r.duration_s%60)).padStart(2,'0') : '';
+      var pill = r.status==='done' ? 'done' : r.status==='failed' ? 'failed' : 'live';
+      var link = './?issue=p'+r.issue_pointer+'&view=podcast&pod='+encodeURIComponent(r.id);
+      return '<tr><td><div class="t">'+esc(r.title||'(script not written yet)')+'</div>'
+        +'<div class="m">'+esc((r.serial||'p'+r.issue_pointer))+' · '+esc(r.tts_model||'')+(dur?' · '+dur:'')+' · '+ago+'</div>'
+        +(r.error?'<div class="m" style="color:var(--danger);white-space:normal">'+esc(r.error)+'</div>':'')+'</td>'
+        +'<td style="text-align:right"><span class="pc-pill '+pill+'">'+esc(r.status)+'</span>'
+        +(r.status==='done'?'<div style="margin-top:6px"><a href="'+link+'" target="_top">LISTEN ↗</a></div>':'')+'</td></tr>';
+    }).join('') : '<tr><td class="m">No episodes yet. They appear here as patrons make them.</td></tr>';
+  }
+
+  function load(){
+    return fetch(API+'/api/settings/podcast').then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(v){
+        saved = v; voices = v.voices || []; if(!models.length) models = v.fallbackModels || [];
+        draft = pick(v); hide('pc-offline');
+        renderStatus(); renderForm(); renderRecent();
+      })
+      .catch(function(){
+        $('pc-offline').className='pc-msg err show';
+        $('pc-s-live').innerHTML='<span class="pc-dot off"></span>Server offline';
+        var nav=$('nav-podcast'); if(nav){ nav.textContent='—'; }
+      });
+  }
+
+  function post(body){
+    return fetch(API+'/api/settings/podcast', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); });
+  }
+
+  /* format + fields */
+  document.querySelectorAll('#podcast [data-format]').forEach(function(b){ b.addEventListener('click', function(){ if(!draft) return; draft.format=b.dataset.format; renderForm(); }); });
+  ['pc-h0-name','pc-h1-name','pc-style','pc-limit'].forEach(function(id){ $(id).addEventListener('input', function(){ if(draft) readForm(); }); });
+  ['pc-h0-voice','pc-h1-voice','pc-model','pc-enabled'].forEach(function(id){ $(id).addEventListener('change', function(){ if(draft) readForm(); }); });
+  $('pc-model-refresh').addEventListener('click', function(){ loadModels(); });
+
+  /* key */
+  $('pc-key-check').addEventListener('click', function(){
+    var k = $('pc-key').value.trim();
+    if(!k){ msg('pc-key-msg','err','Paste a key first. The saved key is already checked: its models are the ones listed below.'); return; }
+    msg('pc-key-msg','wait','Asking Gemini which voice models this key can use…');
+    loadModels(k).then(function(j){
+      if(j.live) msg('pc-key-msg','ok','✓ That key works. It can use <b>'+j.models.length+'</b> voice model'+(j.models.length===1?'':'s')+'. Save it to start using it.');
+      else msg('pc-key-msg','err','✗ Gemini turned it away: '+esc(j.error||'unknown error'));
+    });
+  });
+  $('pc-key-save').addEventListener('click', function(){
+    var k = $('pc-key').value.trim();
+    if(!k){ msg('pc-key-msg','err','Paste the key into the field first.'); return; }
+    msg('pc-key-msg','wait','Saving…');
+    post({ apiKey:k }).then(function(v){ saved=v; $('pc-key').value=''; renderStatus(); msg('pc-key-msg','ok','✓ Saved. The workbench key (ends '+esc(v.key.hint)+') is now used for every episode.'); loadModels(); })
+      .catch(function(e){ msg('pc-key-msg','err','✗ '+esc(e.message)); });
+  });
+  $('pc-key-clear').addEventListener('click', function(){
+    if(!confirm('Remove the workbench key? The server will fall back to GEMINI_API_KEY from its .env, if it has one.')) return;
+    post({ apiKey:null }).then(function(v){ saved=v; renderStatus(); msg('pc-key-msg','ok', v.key.set ? 'Removed. Now using the server’s .env key (ends '+esc(v.key.hint)+').' : 'Removed. There’s no key now, so patrons won’t be offered podcasts.'); loadModels(); })
+      .catch(function(e){ msg('pc-key-msg','err','✗ '+esc(e.message)); });
+  });
+
+  /* listen before saving */
+  function speak(extra, btn, label){
+    var body = Object.assign({}, draft, extra||{});
+    var k = $('pc-key').value.trim(); if(k) body.apiKey = k;
+    if(btn) btn.disabled = true;
+    msg('pc-msg','wait', label+' with '+esc(modelLabel(draft.ttsModel))+'…');
+    var t = Date.now();
+    return fetch(API+'/api/settings/podcast/test', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) })
+      .then(function(r){
+        if(!r.ok) return r.json().then(function(j){ throw new Error(j.error||('HTTP '+r.status)); });
+        var model = r.headers.get('x-tts-model'), ms = r.headers.get('x-tts-ms');
+        return r.blob().then(function(b){
+          var a = $('pc-audio'); if(a.dataset.url) URL.revokeObjectURL(a.dataset.url);
+          a.dataset.url = URL.createObjectURL(b); a.src = a.dataset.url; a.className='pc-audio show'; a.play().catch(function(){});
+          msg('pc-msg','ok','✓ '+esc(modelLabel(model))+' answered in '+(Number(ms)/1000).toFixed(1)+'s'+(k?' (with the key in the field, not yet saved)':'')+'.');
+        });
+      })
+      .catch(function(e){ msg('pc-msg','err','✗ '+esc(e.message)); })
+      .finally(function(){ if(btn) btn.disabled = false; });
+  }
+  document.querySelectorAll('#podcast [data-preview]').forEach(function(b){
+    b.addEventListener('click', function(){ if(!draft) return; readForm(); var i=Number(b.dataset.preview); speak({ host:i }, b, 'Recording '+esc(draft.hosts[i].name)+' ('+esc(draft.hosts[i].voice)+')'); });
+  });
+  $('pc-test').addEventListener('click', function(){ if(!draft) return; readForm(); speak({}, $('pc-test'), 'Recording a sample opening'); });
+
+  /* save / revert */
+  $('pc-save').addEventListener('click', function(){
+    if(!draft) return; readForm();
+    msg('pc-msg','wait','Saving…');
+    post(draft).then(function(v){ saved=v; draft=pick(v); renderStatus(); renderForm(); renderRecent(); msg('pc-msg','ok','✓ Saved. The next episode a patron makes uses '+esc(modelLabel(v.ttsModel))+' with '+esc(v.format==='duo' ? v.hosts[0].name+' ('+v.hosts[0].voice+') and '+v.hosts[1].name+' ('+v.hosts[1].voice+')' : v.hosts[0].name+' ('+v.hosts[0].voice+') narrating')+'.'); })
+      .catch(function(e){ msg('pc-msg','err','✗ '+esc(e.message)); });
+  });
+  $('pc-revert').addEventListener('click', function(){ if(!saved) return; draft=pick(saved); renderForm(); hide('pc-msg'); });
+  $('pc-recent-refresh').addEventListener('click', function(e){ e.preventDefault(); load(); });
+  window.addEventListener('beforeunload', function(e){ if(saved && draft && JSON.stringify(draft)!==JSON.stringify(pick(saved))){ e.preventDefault(); e.returnValue=''; } });
+
+  load().then(function(){ if(saved) loadModels(); });
+})();
+</script>
+
+<script>
+/* ============================================================
+   10 · AI SPEND (SLICE-17) — GET /api/spend/summary, and the
+   per-page chip in the review toolbar (GET /api/spend/page).
+   ============================================================ */
+(function(){
+  var API = 'http://' + location.hostname + ':5170';
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  // Money at the precision it deserves: cents for real sums, tenths of a cent for small ones.
+  function usd(n){ n=Number(n)||0; if(n===0) return '$0'; if(n<0.01) return '$'+n.toFixed(4); if(n<1) return '$'+n.toFixed(3); return '$'+n.toFixed(2); }
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function issueDate(d){ var m=/(\d{4})-(\d{2})-(\d{2})/.exec(d||''); return m ? MON[+m[2]-1]+' '+(+m[3])+' '+m[1] : (d||''); }
+  function tok(n){ n=Number(n)||0; return n>=1e6 ? (n/1e6).toFixed(2)+'M' : n>=1e3 ? (n/1e3).toFixed(1)+'k' : String(n); }
+  var STEP = {
+    group:['Grouping','ingest'], transcribe:['Transcription','ingest'], enrich:['Enrichment','ingest'],
+    title:['Title suggestions','curation'], reextract:['Re-reads','curation'], summary:['Summary rewrites','curation'],
+    chat:['Reading-room chat','patron'], edition:['Your Edition','patron'], 'podcast-script':['Podcast scripts','patron'], 'podcast-voice':['Podcast voices','patron'],
+    'voice-test':['Voice tests','staff']
+  };
+  var GROUP = { ingest:'Ingestion', curation:'Curator tools', patron:'Patron features', staff:'Workbench tests', other:'Other' };
+
+  /* the chip in the review toolbar: this page's total, breakdown on hover */
+  window.dcSpendChip = function(record){
+    var chip = $('pg-spend'); if(!chip || !record) return;
+    fetch(API+'/api/spend/page?record='+record).then(function(r){ return r.ok ? r.json() : null; }).then(function(s){
+      if(!s){ chip.hidden = true; return; }
+      chip.hidden = false;
+      if(!s.calls){
+        chip.className='tspend none'; chip.innerHTML='$ —';
+        chip.title='No AI spend recorded for this page. Tracking began with SLICE-17, so pages ingested before then weren’t measured.';
+        return;
+      }
+      chip.className='tspend'; chip.innerHTML='<b>'+usd(s.cost)+'</b>';
+      chip.title = 'AI spend on this page: '+usd(s.cost)+' over '+s.calls+' call'+(s.calls===1?'':'s')+(s.unpriced?' ('+s.unpriced+' unpriced)':'')+'\n'
+        + s.steps.map(function(x){ return '  '+(STEP[x.step]?STEP[x.step][0]:x.step)+' · '+x.calls+'× '+x.model+' · '+usd(x.cost); }).join('\n')
+        + '\nIncludes every re-run and retry. Click for the full breakdown.';
+    }).catch(function(){ chip.hidden = true; });
+  };
+  var chipEl = $('pg-spend');
+  if(chipEl) chipEl.addEventListener('click', function(){ var b=document.querySelector('.navitem[data-view="spend"]'); if(b) b.click(); });
+
+  /* the view */
+  function render(d){
+    var body = $('sp-body');
+    var nav = $('nav-spend'); if(nav) nav.textContent = usd(d.total.cost);
+    if(!d.total.calls){
+      body.innerHTML = '<div class="sp-empty">No model calls recorded yet. Tracking starts now: the next page you ingest, and every chat, edition and podcast after it, will show up here. Pages ingested before this went in weren’t measured.</div>';
+      return;
+    }
+    var since = d.total.first ? new Date(d.total.first).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '—';
+    var groups = {}; d.byStep.forEach(function(s){ var g=(STEP[s.step]||[0,s.group])[1]||'other'; groups[g]=(groups[g]||0)+s.cost; });
+    var pp = d.perPage;
+    var h = '';
+    h += '<div class="sp-strip">'
+      + '<div class="cell"><div class="n brand">'+usd(d.total.cost)+'</div><div class="k">Spent since '+esc(since)+'</div><div class="sub">'+d.total.calls+' calls · '+tok(d.total.input+d.total.cacheRead+d.total.cacheWrite)+' in · '+tok(d.total.output)+' out</div></div>'
+      + '<div class="cell"><div class="n">'+(pp?usd(pp.median):'—')+'</div><div class="k">Per ingested page · median</div><div class="sub">'+(pp?pp.pages+' page'+(pp.pages===1?'':'s')+' · '+usd(pp.min)+'–'+usd(pp.max)+' · mean '+usd(pp.mean):'no page ingested since tracking began')+'</div></div>'
+      + ['ingest','curation','patron'].map(function(g){ return '<div class="cell"><div class="n">'+usd(groups[g]||0)+'</div><div class="k">'+GROUP[g]+'</div><div class="sub">'+(d.total.cost?Math.round(100*(groups[g]||0)/d.total.cost):0)+'% of spend</div></div>'; }).join('')
+      + '</div>';
+    if(d.unpricedModels.length) h += '<div class="pc-msg show err" style="margin:-10px 0 20px">'+d.byStep.reduce(function(n,s){return n+s.unpriced;},0)+' calls have no price on file, so they aren’t in the totals: '+esc(d.unpricedModels.join(', '))+'. Add them to <span class="mono">MODEL_PRICES</span> in <span class="mono">apps/pipeline/src/config.ts</span>.</div>';
+
+    // pages
+    h += '<div class="sp-h">Pages<span class="aside">newest first · click to open in review</span></div>';
+    var pages = d.byPage;
+    h += pages.length ? '<div class="sp-scroll"><table class="sp-tbl"><thead><tr><th>Page</th><th>Objects</th><th>Grouping</th><th>Transcription</th><th>Enrichment</th><th>Ingest</th><th>Per object</th><th>Curator tools</th><th>Calls</th><th>Last</th></tr></thead><tbody>'
+      + pages.map(function(p){
+          var ingest = p.group+p.transcribe+p.enrich;
+          var href = 'staff.html?api=1&record='+p.record+(p.page?'&page='+p.page:'')+(p.pointer?'&pointer='+p.pointer:'');
+          return '<tr class="click" data-href="'+esc(href)+'"><td class="t">'+esc(p.serial||'Record '+p.record)+' · '+esc(issueDate(p.sortDate))+' · <b>p.'+esc(p.page||'?')+'</b></td>'
+            +'<td>'+(p.objects||'<span class="dim">—</span>')+'</td>'
+            +'<td>'+(p.group?usd(p.group):'<span class="dim">—</span>')+'</td><td>'+(p.transcribe?usd(p.transcribe):'<span class="dim">—</span>')+'</td><td>'+(p.enrich?usd(p.enrich):'<span class="dim">—</span>')+'</td>'
+            +'<td class="tot">'+(ingest?usd(ingest):'<span class="dim">—</span>')+'</td>'
+            +'<td>'+(ingest&&p.objects?usd(ingest/p.objects):'<span class="dim">—</span>')+'</td>'
+            +'<td>'+(p.curation?usd(p.curation):'<span class="dim">—</span>')+'</td>'
+            +'<td>'+p.calls+'</td><td class="dim">'+new Date(p.last).toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</td></tr>';
+        }).join('') + '</tbody></table></div>'
+      : '<div class="sp-empty">No page-level calls yet.</div>';
+
+    // issues
+    h += '<div class="sp-h">Issues<span class="aside">ingestion, curator tools and patron features, booked to the issue they were for</span></div>';
+    h += d.byIssue.length ? '<div class="sp-scroll"><table class="sp-tbl"><thead><tr><th>Issue</th><th>Pages ingested</th><th>Ingestion</th><th>Per page</th><th>Curator tools</th><th>Patron features</th><th>Total</th></tr></thead><tbody>'
+      + d.byIssue.map(function(i){
+          return '<tr><td class="t">'+esc(i.serial||'p'+i.pointer)+' · '+esc(issueDate(i.sortDate))+'</td>'
+            +'<td>'+(i.pages||'<span class="dim">0</span>')+(i.pageCount?' / '+i.pageCount:'')+'</td>'
+            +'<td>'+usd(i.ingest)+'</td><td>'+(i.pages?usd(i.ingest/i.pages):'<span class="dim">—</span>')+'</td>'
+            +'<td>'+usd(i.curation)+'</td><td>'+usd(i.patron)+'</td><td class="tot">'+usd(i.cost)+'</td></tr>';
+        }).join('') + '</tbody></table></div>'
+      : '<div class="sp-empty">Nothing booked to an issue yet.</div>';
+
+    // steps
+    var max = Math.max.apply(null, d.byStep.map(function(s){ return s.cost; }).concat([1e-9]));
+    h += '<div class="sp-h">By step<span class="sp-legend">'+['ingest','curation','patron','staff'].map(function(g){ return '<span><i class="sp-g-'+g+'"></i>'+GROUP[g]+'</span>'; }).join('')+'</span></div>';
+    h += '<div class="sp-bars">' + d.byStep.map(function(s){
+      var meta = STEP[s.step] || [s.step, s.group];
+      return '<div class="l">'+esc(meta[0])+'<small>'+esc(GROUP[meta[1]]||'')+'</small></div>'
+        +'<div class="track"><div class="fill sp-g-'+meta[1]+'" style="width:'+(100*s.cost/max).toFixed(1)+'%"></div></div>'
+        +'<div class="v">'+usd(s.cost)+'</div>'
+        +'<div class="m">'+s.calls+' call'+(s.calls===1?'':'s')+' · '+usd(s.calls?s.cost/s.calls:0)+' each</div>';
+    }).join('') + '</div>';
+
+    // days
+    if(d.byDay.length){
+      var dmax = Math.max.apply(null, d.byDay.map(function(x){ return x.cost; }).concat([1e-9]));
+      h += '<div class="sp-h">Last 30 days<span class="aside">hover a day for its total</span></div>';
+      h += '<div class="sp-days">'+d.byDay.map(function(x){ return '<div class="d" style="height:'+Math.max(2, 78*x.cost/dmax).toFixed(0)+'px" title="'+esc(x.day)+' · '+usd(x.cost)+' · '+x.calls+' calls"></div>'; }).join('')+'</div>';
+    }
+
+    h += '<div class="sp-note"><b>How it’s counted.</b> Each call’s own usage report is priced at the published rate for its model. Claude Sonnet 5 is $2 per million input tokens and $10 per million output. Images count as input, and thinking counts as output. Prompt-cache writes cost 1.25× input and reads 0.1×. Gemini TTS bills audio at 25 tokens per second of speech. Locally run detectors, OCR and IIIF image fetches are free and aren’t listed. Rates live in <span class="mono">MODEL_PRICES</span> (<span class="mono">apps/pipeline/src/config.ts</span>), and a call is priced on the day it’s made.</div>';
+    body.innerHTML = h;
+    body.querySelectorAll('tr.click').forEach(function(tr){ tr.addEventListener('click', function(){ location.href = tr.dataset.href + '#review'; }); });
+  }
+  function load(){
+    fetch(API+'/api/spend/summary').then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(render)
+      .catch(function(){ $('sp-body').innerHTML = '<div class="pc-msg err show">The pipeline server isn’t answering on :5170. Start it with <span class="mono">npm run server</span>, then reload.</div>'; });
+  }
+  var navBtn = document.querySelector('.navitem[data-view="spend"]');
+  if(navBtn) navBtn.addEventListener('click', load);
+  load();
+})();
+</script>
+
 </body>
 </html>

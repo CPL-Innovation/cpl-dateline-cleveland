@@ -15,6 +15,9 @@ apps/*/tsconfig.tsbuildinfo
 **/data/*.sqlite
 **/data/*.sqlite-*
 
+# SLICE-16 podcast episodes — generated audio, rebuilt on demand
+apps/pipeline/data/podcasts/
+
 # SLICE-07 catalog harvest resume-cache (pointer→pageCount). Just a re-run
 # accelerator; the resolved counts are baked into the committed catalog.json.
 apps/pipeline/harvest/catalog-pages.json

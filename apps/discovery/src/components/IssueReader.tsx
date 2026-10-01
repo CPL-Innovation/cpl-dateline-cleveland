@@ -16,10 +16,13 @@ import type { ShelfIssue, ShelfPage } from '../lib/shelf';
 import { objectsOnPage } from '../lib/shelf';
 import { IssueChat } from './IssueChat';
 import { YourEdition } from './YourEdition';
+import { PodcastView } from './PodcastView';
 import { useEdition, type EditionLink } from '../lib/edition';
 import { C, MONO, SANS, SERIF } from '../lib/ui';
 
-export type ReaderView = 'read' | 'scan' | 'edition';
+// 'podcast' is reached from a finished edition (SLICE-16) — the edition's own
+// page, so the switch shows it under "Your edition".
+export type ReaderView = 'read' | 'scan' | 'edition' | 'podcast';
 
 interface Props {
   issue: ShelfIssue;
@@ -32,9 +35,12 @@ interface Props {
   onOpenObject: (id: string) => void;
   /** A shared Your Edition link to rebuild, when the page was opened from one. */
   editionLink?: EditionLink | null;
+  /** The episode the podcast view shows (SLICE-16). */
+  podId?: string | null;
+  onPodcast?: (id: string) => void;
 }
 
-export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, onBack, onOpenObject, editionLink = null }: Props) {
+export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, onBack, onOpenObject, editionLink = null, podId = null, onPodcast }: Props) {
   const idx = Math.max(0, issue.pages.findIndex((p) => p.page === pageNumber));
   const page = issue.pages[idx] ?? issue.pages[0];
   const prev = issue.pages[idx - 1];
@@ -66,8 +72,12 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
   const [dockSlot, setDockSlot] = useState<HTMLElement | null>(null);
   const setDocked = (d: boolean) => { setDockPref(d); writeDockPref(d); };
   useEffect(() => {
-    setChatOpenState(assistantLive && readOpenPref() && window.matchMedia(`(min-width: ${DOCK_MIN_VIEWPORT}px)`).matches);
-  }, [issue.key, assistantLive]);
+    // Opened straight into an edition or its podcast (a shared link), the page
+    // needs the width — the assistant waits in its button, as it does when the
+    // patron switches there.
+    const wantsWidth = view === 'edition' || view === 'podcast';
+    setChatOpenState(assistantLive && readOpenPref() && !wantsWidth && window.matchMedia(`(min-width: ${DOCK_MIN_VIEWPORT}px)`).matches);
+  }, [issue.key, assistantLive]);    // eslint-disable-line react-hooks/exhaustive-deps
   const columnOpen = chatOpen && docked;
 
   // READ scrolls the document, so the docked column is FIXED to the window —
@@ -129,6 +139,8 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      // The podcast's player owns the arrows (seek) and space; Escape is still the way out.
+      if (view === 'podcast') { if (e.key === 'Escape') onView('edition'); return; }
       if (e.key === 'ArrowLeft' && prev) { e.preventDefault(); onPage(prev.page); }
       else if (e.key === 'ArrowRight' && next) { e.preventDefault(); onPage(next.page); }
       else if (e.key === 'Escape') onBack();
@@ -156,11 +168,12 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
   // reference crop — which turns the book to SCAN and lights the box — never
   // costs the patron the edition they were halfway through.
   const edition = useEdition(issue, dataset, editionLink);
-  // The edition needs the whole width; the assistant folds into its button while
-  // it's open, and comes back the way it was when the patron leaves.
+  // The edition (and its podcast) is the patron's own paper, not a page to ask
+  // about: the assistant folds away entirely there — button and all — and comes
+  // back the way it was when the patron leaves.
   const foldedForEdition = useRef(false);
   useEffect(() => {
-    if (view === 'edition') {
+    if (view === 'edition' || view === 'podcast') {
       window.scrollTo({ top: 0 });
       if (chatOpen) { foldedForEdition.current = true; setChatOpenState(false); }
     } else if (foldedForEdition.current) {
@@ -267,8 +280,14 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
             reading column re-centres in what is left. The bar stays full width —
             it belongs to the book, not to either column. */}
         <div style={{ marginRight: columnOpen ? DOCK_W : 0 }}>
-          {view === 'edition' ? (
-            <YourEdition issue={issue} dataset={dataset} ed={edition} onSeeOnPage={seeOnPage} />
+          {view === 'podcast' && podId ? (
+            <PodcastView
+              issue={issue} dataset={dataset} podId={podId} onSeeOnPage={seeOnPage}
+              fromEdition={edition.phase === 'done'} onBack={() => onView('edition')}
+              onEpisode={(id) => onPodcast?.(id)}
+            />
+          ) : view === 'edition' || view === 'podcast' ? (
+            <YourEdition issue={issue} dataset={dataset} ed={edition} onSeeOnPage={seeOnPage} onPodcast={(id) => onPodcast?.(id)} />
           ) : (
             <ReadView
               issue={issue}
@@ -293,7 +312,9 @@ export function IssueReader({ issue, dataset, pageNumber, view, onPage, onView, 
           />
         )}
       </div>
-      {chat}
+      {/* Hidden, not unmounted: a conversation started in READ or SCAN is still
+          there when the patron leaves the edition. */}
+      <div style={{ display: view === 'edition' || view === 'podcast' ? 'none' : 'contents' }}>{chat}</div>
     </>
   );
 }
@@ -406,7 +427,7 @@ function PagerButton({ label, title, onClick, disabled }: { label: string; title
  */
 function ViewSwitch({ view, page, onView }: { view: ReaderView; page: ShelfPage; onView: (v: ReaderView) => void }) {
   const opt = (v: ReaderView, icon: React.ReactNode, label: string, title: string) => {
-    const active = view === v;
+    const active = view === v || (v === 'edition' && view === 'podcast');
     return (
       <button
         onClick={() => onView(v)}
@@ -445,7 +466,7 @@ function ViewSwitch({ view, page, onView }: { view: ReaderView; page: ShelfPage;
         <path d="M3.5 4h9M3.5 6.5h9" stroke="currentColor" strokeWidth="1.6" />
         <path d="M3.5 10h4M3.5 12.5h4M3.5 15h4" stroke="currentColor" strokeWidth="1.1" />
       </svg>
-      <svg width="9" height="9" viewBox="0 0 24 24" fill={view === 'edition' ? C.marigold : C.navy} aria-hidden="true" style={{ position: 'absolute', right: -4, bottom: 1 }}>
+      <svg width="9" height="9" viewBox="0 0 24 24" fill={view === 'edition' || view === 'podcast' ? C.marigold : C.navy} aria-hidden="true" style={{ position: 'absolute', right: -4, bottom: 1 }}>
         <path d="M12 1.5c.5 4.9 1.9 7.9 4 9.1 1.6.9 3.7 1.3 6.5 1.4-2.8.1-4.9.5-6.5 1.4-2.1 1.2-3.5 4.2-4 9.1-.5-4.9-1.9-7.9-4-9.1C6.4 12.5 4.3 12.1 1.5 12c2.8-.1 4.9-.5 6.5-1.4 2.1-1.2 3.5-4.2 4-9.1z" />
       </svg>
     </span>
@@ -1114,7 +1135,7 @@ function TranscriptionSlip({
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 16, borderTop: `1px solid ${C.hairMed}`, paddingTop: 10 }}>
           <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', color: C.ink }}>TRANSCRIPTION</div>
           <div style={{ fontFamily: MONO, fontSize: 8.5, letterSpacing: '0.06em', color: C.tertiary, border: `1px solid ${C.hairMed}`, padding: '1px 5px' }}>
-            BY AI — MAY CONTAIN ERRORS
+            BY AI
           </div>
         </div>
         <div style={{ fontFamily: SERIF, fontSize: 15, lineHeight: 1.65, color: C.body, marginTop: 10, whiteSpace: 'pre-wrap' }}>
@@ -1451,7 +1472,7 @@ function SourceStrip({ page, published, onView }: { page: ShelfPage; published: 
         {page.thumb && <img src={page.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />}
       </button>
       <div style={{ flex: 1, minWidth: 0, fontFamily: SERIF, fontSize: 14.5, lineHeight: 1.45, color: C.body }}>
-        You’re reading an <strong style={{ fontWeight: 700, color: C.ink }}>AI transcription</strong> of this page — it may contain errors.{' '}
+        You’re reading an <strong style={{ fontWeight: 700, color: C.ink }}>AI transcription</strong> of this page.{' '}
         <button className="dc-underline-hover" onClick={() => onView('scan')} style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', color: C.navy, whiteSpace: 'nowrap' }}>
           Compare with the original scan →
         </button>

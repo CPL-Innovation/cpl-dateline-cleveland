@@ -17,10 +17,15 @@ Two live surfaces in one SPA, both routing into a shared page-reader detail:
 - **`/`** — patron discovery. Internal view switching is state-based, with one
   exception: **`?issue=<key>`** opens that issue in THE STACKS (the address bar
   tracks the open book), and `&view=edition&rc=…&picks=…` rebuilds a shared Your
-  Edition (`parseLink()` in `src/lib/edition.ts`).
+  Edition (`parseLink()` in `src/lib/edition.ts`). `&view=podcast&pod=<id>` opens an
+  edition's podcast (SLICE-16), which the server holds. API calls go to `:5170` directly
+  on this machine and the LAN, and to `/api` on the page's own origin anywhere else
+  (`src/lib/api.ts`). The Vite dev server proxies that, behind a gate that admits only
+  patron routes from a public tunnel (`vite.config.ts`; see the root README).
 - **`/staff`** — the **Editorial Workbench**: the staff-facing enrichment-pipeline
   interface (Stage-5 review workbench — Run & progress, Review, Shape review, plus
-  stubbed stages). Vendored verbatim from the Claude Design sketch to
+  stubbed stages; **09 · Podcast audio** configures Gemini TTS for SLICE-16, and **10 · AI
+  spend** shows what the model calls have cost, SLICE-17). Vendored verbatim from the Claude Design sketch to
   `public/staff.html` and hosted in a full-viewport frame (it's a self-contained
   concept sketch with its own styles/scripts). The provenance strip's and footer's "STAFF
   WORKBENCH" links route here; the workbench's "← Patron prototype" link returns

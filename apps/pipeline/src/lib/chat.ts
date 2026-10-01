@@ -15,6 +15,7 @@
 // Raw HTTP + fetchRetry, matching every other Claude call site in this service.
 import { query } from "./pg.ts";
 import { fetchRetry } from "./http.ts";
+import { record, anthropicUsage } from "./spend.ts";
 import { CHAT_MODEL, CHAT_MAX_CORPUS_CHARS, CHAT_MAX_TURNS } from "../config.ts";
 import { dateLabel } from "./discovery.ts";
 
@@ -163,6 +164,7 @@ export async function streamIssueChat(
     instructions: systemPrompt(corpus.issueLabel),
     messages: clean,
     label: `Anthropic reading-room chat (${CHAT_MODEL})`,
+    step: "chat",
   }, onDelta);
 
   return { model: CHAT_MODEL, turns };
@@ -183,6 +185,10 @@ export async function streamMessages(
     corpus: string; instructions: string; messages: ChatMessage[]; label: string;
     /** Thinking depth. Sonnet 5 thinks by default, and thinking counts against max_tokens. */
     effort?: "low" | "medium" | "high";
+    /** Defaults to CHAT_MODEL; the podcast script names its own. */
+    model?: string;
+    /** What the call is for, in the spend ledger (SLICE-17). */
+    step: string;
   },
   onDelta: (text: string) => void,
 ): Promise<{ stopReason: string | null; textChars: number; eventTypes: string[] }> {
@@ -200,7 +206,7 @@ export async function streamMessages(
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: CHAT_MODEL,
+      model: args.model ?? CHAT_MODEL,
       // Generous on purpose. The model thinks before it answers, and thinking is
       // billed against this same ceiling: at 900 it spent the lot thinking and
       // never wrote a word (seen on a researcher/just-the-facts edition section).
@@ -221,36 +227,48 @@ export async function streamMessages(
   if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${(await res.text()).slice(0, 400)}`);
   if (!res.body) throw new Error("Anthropic returned no stream");
 
-  // Parse Anthropic's SSE and forward only the text deltas.
+  // Parse Anthropic's SSE and forward only the text deltas. Usage arrives in two
+  // halves — input and cache in message_start, output in message_delta — and is
+  // recorded however the stream ends, since a broken stream still bills.
+  const model = args.model ?? CHAT_MODEL;
+  const t0 = performance.now();
+  let usage: Record<string, unknown> = {};
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buf = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    const lines = buf.split("\n");
-    buf = lines.pop() ?? "";
-    for (const line of lines) {
-      if (!line.startsWith("data:")) continue;
-      const payload = line.slice(5).trim();
-      if (!payload || payload === "[DONE]") continue;
-      try {
-        const evt = JSON.parse(payload) as any;
-        eventTypes.add(evt.type === "content_block_delta" ? `delta:${evt.delta?.type}` : evt.type === "content_block_start" ? `block:${evt.content_block?.type}` : evt.type);
-        if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta" && evt.delta.text) {
-          textChars += evt.delta.text.length;
-          onDelta(evt.delta.text as string);
-        } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
-          stopReason = evt.delta.stop_reason;
-        } else if (evt.type === "error") {
-          throw new Error(evt.error?.message ?? "stream error");
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload) as any;
+          eventTypes.add(evt.type === "content_block_delta" ? `delta:${evt.delta?.type}` : evt.type === "content_block_start" ? `block:${evt.content_block?.type}` : evt.type);
+          if (evt.type === "message_start" && evt.message?.usage) usage = { ...usage, ...evt.message.usage };
+          if (evt.type === "message_delta" && evt.usage) usage = { ...usage, ...evt.usage };
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta" && evt.delta.text) {
+            textChars += evt.delta.text.length;
+            onDelta(evt.delta.text as string);
+          } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
+            stopReason = evt.delta.stop_reason;
+          } else if (evt.type === "error") {
+            throw new Error(evt.error?.message ?? "stream error");
+          }
+        } catch (e) {
+          if (e instanceof SyntaxError) continue; // a split frame — the buffer will catch it
+          throw e;
         }
-      } catch (e) {
-        if (e instanceof SyntaxError) continue; // a split frame — the buffer will catch it
-        throw e;
       }
     }
+  } finally {
+    record({ provider: "anthropic", model, step: args.step, usage: anthropicUsage(usage),
+      ms: performance.now() - t0, ok: stopReason === "end_turn" });
   }
   // Why a stream ended matters when it ended with nothing: say so, don't guess.
   return { stopReason, textChars, eventTypes: [...eventTypes] };

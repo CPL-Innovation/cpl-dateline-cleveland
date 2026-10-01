@@ -12,7 +12,7 @@ export interface ChatTurn {
 
 export class ChatRefusal extends Error {}
 
-const API = () => 'http://' + location.hostname + ':5170';
+import { API } from './api';
 
 export async function streamChat(
   pointer: number,

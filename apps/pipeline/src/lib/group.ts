@@ -12,6 +12,7 @@
 // a page's structure, poor at regressing geometry. The geometry is the detector's
 // and the curator's; the grouping is a proposal the curator corrects.
 import { readFile } from "node:fs/promises";
+import { record, anthropicUsage } from "./spend.ts";
 import { fetchRetry } from "./http.ts";
 import { renderOverlay, type DetectedBox } from "./detect.ts";
 import { OBJECT_CLASSES, type ObjectClass } from "./vlm-prompt.ts";
@@ -150,6 +151,9 @@ export async function groupBoxes(
       stop_details?: { category?: string | null; explanation?: string } | null;
       usage?: { input_tokens?: number; output_tokens?: number };
     };
+    // Billed whatever happens next — a truncated or refused grouping still cost.
+    record({ provider: "anthropic", model: GROUPING_MODEL, step: "group", usage: anthropicUsage(j.usage),
+      ms: performance.now() - t0, ok: j.stop_reason !== "max_tokens" && j.stop_reason !== "refusal" });
     // Structured output guarantees the SHAPE only of a response that finished.
     // One cut off at max_tokens is truncated JSON, and a refusal carries none.
     if (j.stop_reason === "max_tokens") throw new Error("ran out of output tokens before finishing the grouping");
